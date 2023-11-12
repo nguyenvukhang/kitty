@@ -9,5 +9,5 @@ LDFLAGS=-L/opt/homebrew/lib \
     -I${CELLAR}/xxhash/0.8.2/include \
     -I${CELLAR}/python@3.12/3.12.0/Frameworks/Python.framework/Versions/3.12/eeaders
 
-# rm -rf /Applications/kitty.app
-# cp -r kitty.app /Applications/kitty.app
+rm -rf /Applications/kitty.app
+cp -r kitty.app /Applications/Alacritty.app
