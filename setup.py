@@ -1101,41 +1101,6 @@ def build_launcher(args: Options, launcher_dir: str = '.', bundle_type: str = 's
 
 
 # Packaging {{{
-def copy_man_pages(ddir: str) -> None:
-    mandir = os.path.join(ddir, 'share', 'man')
-    safe_makedirs(mandir)
-    man_levels = '15'
-    with suppress(FileNotFoundError):
-        for x in man_levels:
-            shutil.rmtree(os.path.join(mandir, f'man{x}'))
-    src = 'docs/_build/man'
-    if not os.path.exists(src):
-        raise SystemExit('''\
-The kitty man pages are missing. If you are building from git then run:
-make && make docs
-(needs the sphinx documentation system to be installed)
-''')
-    for x in man_levels:
-        os.makedirs(os.path.join(mandir, f'man{x}'))
-        for y in glob.glob(os.path.join(src, f'*.{x}')):
-            shutil.copy2(y, os.path.join(mandir, f'man{x}'))
-
-
-def copy_html_docs(ddir: str) -> None:
-    htmldir = os.path.join(ddir, 'share', 'doc', appname, 'html')
-    safe_makedirs(os.path.dirname(htmldir))
-    with suppress(FileNotFoundError):
-        shutil.rmtree(htmldir)
-    src = 'docs/_build/html'
-    if not os.path.exists(src):
-        raise SystemExit('''\
-The kitty html docs are missing. If you are building from git then run:
-make && make docs
-(needs the sphinx documentation system to be installed)
-''')
-    shutil.copytree(src, htmldir)
-
-
 def compile_python(base_path: str) -> None:
     import compileall
     import py_compile
@@ -1154,8 +1119,6 @@ def create_linux_bundle_gunk(ddir: str, libdir_name: str) -> None:
     if not os.path.exists('docs/_build/html'):
         make = 'gmake' if is_freebsd else 'make'
         run_tool([make, 'docs'])
-    copy_man_pages(ddir)
-    copy_html_docs(ddir)
     for (icdir, ext) in {'256x256': 'png', 'scalable': 'svg'}.items():
         icdir = os.path.join(ddir, 'share', 'icons', 'hicolor', icdir, 'apps')
         safe_makedirs(icdir)
@@ -1440,8 +1403,6 @@ def create_macos_bundle_gunk(dest: str, for_freeze: bool, args: Options) -> str:
     os.mkdir(ddir / 'Contents')
     with open(ddir / 'Contents/Info.plist', 'wb') as fp:
         fp.write(macos_info_plist())
-    copy_man_pages(str(ddir))
-    copy_html_docs(str(ddir))
     os.rename(ddir / 'share', ddir / 'Contents/Resources')
     os.rename(ddir / 'bin', ddir / 'Contents/MacOS')
     os.rename(ddir / 'lib', ddir / 'Contents/Frameworks')
