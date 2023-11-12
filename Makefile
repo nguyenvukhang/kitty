@@ -10,7 +10,8 @@ export FAIL_WARN
 endif
 
 khang:
-	bash build.sh
+	python3 build.py
+	# bash build.sh
 
 all:
 	python3 setup.py $(VVAL)

@@ -11,6 +11,7 @@
 /build/
 /linux-package/
 /kitty.app/
+/Alatty.app/
 /glad/out/
 /kitty/launcher/kitt*
 /*.dSYM/
