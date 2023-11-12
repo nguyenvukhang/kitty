@@ -723,15 +723,14 @@ class Tab:  # {{{
             map ctrl+left move_window left
             map ctrl+down move_window bottom
         ''')
-    def move_window(self, delta: Union[EdgeLiteral, int] = 1) -> None:
-        if isinstance(delta, int):
-            if self.current_layout.move_window(self.windows, delta):
+    def move_window(self, _: Union[EdgeLiteral, int] = 1) -> None:
+        # [KHANG] try sending it to the left. Else, try right.
+        neighbor = self.neighboring_group_id("left")
+        if not neighbor:
+            neighbor = self.neighboring_group_id("right")
+        if neighbor:
+            if self.current_layout.move_window_to_group(self.windows, neighbor):
                 self.relayout()
-        elif isinstance(delta, str):
-            neighbor = self.neighboring_group_id(delta)
-            if neighbor:
-                if self.current_layout.move_window_to_group(self.windows, neighbor):
-                    self.relayout()
 
     def swap_active_window_with(self, window_id: int) -> None:
         group = self.windows.group_for_window(window_id)
