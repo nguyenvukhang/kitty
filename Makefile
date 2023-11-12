@@ -9,6 +9,9 @@ ifdef FAIL_WARN
 export FAIL_WARN
 endif
 
+khang:
+	bash build.sh
+
 all:
 	python3 setup.py $(VVAL)
 
@@ -68,4 +71,4 @@ prepare-for-cross-compile: clean all
 
 cross-compile:
 	python3 setup.py linux-package --skip-code-generation
-	
+
