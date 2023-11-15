@@ -10,8 +10,12 @@ export FAIL_WARN
 endif
 
 khang:
+	# rm -rf build
 	python3 build.py
-	# bash build.sh
+	@make open
+
+open:
+	open Alatty.app
 
 all:
 	python3 setup.py $(VVAL)

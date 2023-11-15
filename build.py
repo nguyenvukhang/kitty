@@ -26,8 +26,14 @@ info_plist = [i if i.strip() != b"<string>kitty</string>" else b'<string>Alatty<
 with open(INFO_PLIST, 'wb') as f:
     f.write(b'\n'.join(info_plist))
 
-
+subprocess.run(["rm", "-rf", "Alatty.app"])
 os.rename("kitty.app/Contents/MacOS/kitty", "kitty.app/Contents/MacOS/alatty")
-subprocess.run(["rm", "-rf", "Alatty.app", '/Applications/Alatty.app'])
 subprocess.run(["mv", "kitty.app", "Alatty.app"])
-subprocess.run(["cp", '-a', "Alatty.app", '/Applications/Alatty.app'])
+
+
+def install():
+    subprocess.run(["rm", "-rf", '/Applications/Alatty.app'])
+    subprocess.run(["cp", '-a', "Alatty.app", '/Applications/Alatty.app'])
+
+
+# install()
