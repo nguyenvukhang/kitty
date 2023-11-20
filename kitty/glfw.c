@@ -1648,10 +1648,8 @@ request_window_attention(id_type kitty_window_id, bool audio_bell) {
 }
 
 void
-set_os_window_title(OSWindow *w, const char *title) {
-    static char buf[2048];
-    strip_csi_(title, buf, arraysz(buf));
-    glfwSetWindowTitle(w->handle, buf);
+set_os_window_title(OSWindow *w) {
+    glfwSetWindowTitle(w->handle, "Alatty");
 }
 
 void

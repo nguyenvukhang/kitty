@@ -322,7 +322,7 @@ set_os_window_title_from_window(Window *w, OSWindow *os_window) {
         Py_XDECREF(os_window->window_title);
         os_window->window_title = w->title;
         Py_INCREF(os_window->window_title);
-        set_os_window_title(os_window, PyUnicode_AsUTF8(w->title));
+        set_os_window_title(os_window);
     }
 }
 
@@ -981,10 +981,10 @@ PYWRAP1(set_os_window_title) {
             Py_XDECREF(os_window->window_title);
             os_window->window_title = title;
             Py_INCREF(title);
-            set_os_window_title(os_window, PyUnicode_AsUTF8(title));
+            set_os_window_title(os_window);
         } else {
             os_window->title_is_overriden = false;
-            if (os_window->window_title) set_os_window_title(os_window, PyUnicode_AsUTF8(os_window->window_title));
+            if (os_window->window_title) set_os_window_title(os_window);
             update_os_window_title(os_window);
         }
     END_WITH_OS_WINDOW

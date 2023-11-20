@@ -261,7 +261,6 @@ class VisualSelect:
         os_window_id: int,
         prev_tab_id: Optional[int],
         prev_os_window_id: Optional[int],
-        title: str,
         callback: Callable[[Optional[Tab], Optional[Window]], None],
         reactivate_prev_tab: bool
     ) -> None:
@@ -273,7 +272,7 @@ class VisualSelect:
         self.window_ids: List[int] = []
         self.window_used_for_selection_id = 0
         self.reactivate_prev_tab = reactivate_prev_tab
-        set_os_window_title(self.os_window_id, title)
+        set_os_window_title(self.os_window_id)
 
     def cancel(self) -> None:
         self.clear_global_state()
@@ -294,7 +293,7 @@ class VisualSelect:
                 self.callback(tab, w)
 
     def clear_global_state(self) -> 'Boss':
-        set_os_window_title(self.os_window_id, '')
+        set_os_window_title(self.os_window_id)
         boss = get_boss()
         redirect_mouse_handling(False)
         boss.clear_pending_sequences()
@@ -1423,7 +1422,7 @@ class Boss:
             tm.set_active_tab(tab)
         if initial_os_window_id != tab.os_window_id:
             focus_os_window(tab.os_window_id, True)
-        self.current_visual_select = VisualSelect(tab.id, tab.os_window_id, initial_tab_id, initial_os_window_id, choose_msg, callback, reactivate_prev_tab)
+        self.current_visual_select = VisualSelect(tab.id, tab.os_window_id, initial_tab_id, initial_os_window_id, callback, reactivate_prev_tab)
         if tab.current_layout.only_active_window_visible:
             w = self.select_window_in_tab_using_overlay(tab, choose_msg, only_window_ids)
             self.current_visual_select.window_used_for_selection_id = 0 if w is None else w.id
