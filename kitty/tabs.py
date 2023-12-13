@@ -279,6 +279,8 @@ class Tab:  # {{{
         return w.get_exe_of_child(oldest) if w else None
 
     def set_title(self, title: str) -> None:
+        if not title:
+            return
         self.name = title or ''
         self.mark_tab_bar_dirty()
 
