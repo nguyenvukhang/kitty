@@ -600,6 +600,7 @@ class Tab:  # {{{
         self._add_window(window)
 
     def set_active_window(self, x: Union[Window, int], for_keep_focus: Optional[Window] = None) -> None:
+        return
         self.windows.set_active_window_group_for(x, for_keep_focus=for_keep_focus)
 
     def get_nth_window(self, n: int) -> Optional[Window]:
