@@ -1524,6 +1524,10 @@ send_prerendered_sprites_for_window(OSWindow *w) {
 FONTS_DATA_HANDLE
 load_fonts_data(double font_sz_in_pts, double dpi_x, double dpi_y) {
     FontGroup *fg = font_group_for(font_sz_in_pts, dpi_x, dpi_y);
+    // temporary patch for 1920x1080 screens
+    if (fg->cell_width == 9) {
+        fg->cell_width = 8;
+    }
     return (FONTS_DATA_HANDLE)fg;
 }
 
