@@ -181,35 +181,3 @@ func Split(s string) (ans []string, err error) {
 	}
 	return
 }
-
-// SplitForCompletion partitions a string into a slice of strings. It differs from Split in being
-// more relaxed about errors and also adding an empty string at the end if s ends with a Space.
-func SplitForCompletion(s string) (argv []string, position_of_last_arg int) {
-	t := NewLexer(s)
-	argv = make([]string, 0, len(s)/4)
-	for {
-		word := t.Next()
-		if word.Value == "" {
-			if word.Trailer == "" {
-				trimmed := strings.TrimRight(s, " ")
-				if len(trimmed) < len(s) { // trailing spaces
-					pos := position_of_last_arg
-					if len(argv) > 0 {
-						pos += len(argv[len(argv)-1])
-					}
-					if pos < len(s) { // trailing whitespace
-						argv = append(argv, "")
-						position_of_last_arg += len(s) - pos + 1
-					}
-				}
-			} else {
-				argv = append(argv, word.Trailer)
-				position_of_last_arg = word.Pos
-			}
-			break
-		}
-		position_of_last_arg = word.Pos
-		argv = append(argv, word.Value)
-	}
-	return
-}

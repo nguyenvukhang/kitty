@@ -180,7 +180,6 @@ func option_from_spec(spec OptionSpec) (*Option, error) {
 	if ans.IsList {
 		ans.parsed_default = []string{}
 	}
-	ans.Completer = spec.Completer
 	if ans.Aliases == nil || len(ans.Aliases) == 0 {
 		return nil, fmt.Errorf("No --aliases specified for option")
 	}
@@ -469,7 +468,7 @@ func option_from_string(overrides map[string]string, entries ...string) (*Option
 					return nil, err
 				}
 				spec.Depth = int(depth)
-			case "condition", "completion":
+			case "condition":
 			default:
 				return nil, fmt.Errorf("Unknown option metadata key: %s", k)
 			case "type":

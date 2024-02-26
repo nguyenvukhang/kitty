@@ -243,7 +243,6 @@ func test_integration_with_python(args []string) (rc int, err error) {
 func TestEntryPoint(root *cli.Command) {
 	root.AddSubCommand(&cli.Command{
 		Name:            "shm",
-		OnlyArgsAllowed: true,
 		Run: func(cmd *cli.Command, args []string) (rc int, err error) {
 			return test_integration_with_python(args)
 		},

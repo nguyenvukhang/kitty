@@ -47,9 +47,6 @@ func (self *Readline) prompt_for_line_number(i int) Prompt {
 		return self.make_prompt(self.format_arg_prompt(self.keyboard_state.current_numeric_argument), i > 0)
 	}
 	if i == 0 {
-		if self.history_search != nil {
-			return self.make_prompt(self.history_search_prompt(), i > 0)
-		}
 		return self.prompt
 	}
 	return self.continuation_prompt
@@ -146,37 +143,10 @@ func (self *Readline) redraw() {
 	self.loop.QueueWriteString("\r")
 	self.loop.ClearToEndOfScreen()
 	prompt_lines := self.get_screen_lines()
-	csl, csl_cached := self.completion_screen_lines()
-	render_completion_above := len(csl)+len(prompt_lines) > self.screen_height
-	completion_needs_render := len(csl) > 0 && (!render_completion_above || !self.completions.current.last_rendered_above || !csl_cached)
 	final_cursor_x := -1
 	cursor_y := 0
 	move_cursor_up_by := 0
 
-	render_completion_lines := func() int {
-		if completion_needs_render {
-			if render_completion_above {
-				self.loop.QueueWriteString("\r")
-			} else {
-				self.loop.QueueWriteString("\r\n")
-			}
-			for i, cl := range csl {
-				self.loop.QueueWriteString(cl)
-				if i < len(csl)-1 || render_completion_above {
-					self.loop.QueueWriteString("\n\r")
-				}
-
-			}
-			return len(csl)
-		}
-		return 0
-	}
-
-	self.loop.AllowLineWrapping(false)
-	if render_completion_above {
-		render_completion_lines()
-	}
-	self.loop.AllowLineWrapping(true)
 	self.loop.QueueWriteString("\r")
 	text_length := 0
 
@@ -213,9 +183,6 @@ func (self *Readline) redraw() {
 		if cursor_moved_down {
 			cursor_y++
 		}
-	}
-	if !render_completion_above {
-		move_cursor_up_by += render_completion_lines()
 	}
 	self.loop.MoveCursorVertically(-move_cursor_up_by)
 	self.loop.QueueWriteString("\r")

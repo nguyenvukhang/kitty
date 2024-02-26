@@ -149,7 +149,3 @@ class PathCompleter:
 
 def get_path(prompt: str = '> ') -> str:
     return PathCompleter(prompt).input()
-
-
-def develop() -> None:
-    PathCompleter().input()

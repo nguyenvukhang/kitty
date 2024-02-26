@@ -5,8 +5,6 @@ import os
 import re
 import sys
 from collections import deque
-from dataclasses import dataclass
-from enum import Enum, auto
 from typing import Any, Callable, Dict, FrozenSet, Iterator, List, Match, Optional, Sequence, Tuple, Type, TypeVar, Union, cast
 
 from .cli_stub import CLIOptions
@@ -16,84 +14,6 @@ from .fast_data_types import wcswidth
 from .options.types import Options as AlattyOpts
 from .types import run_once
 from .typing import BadLineType, TypedDict
-from .utils import shlex_split
-
-
-class CompletionType(Enum):
-    file = auto()
-    directory = auto()
-    keyword = auto()
-    special = auto()
-    none = auto()
-
-
-class CompletionRelativeTo(Enum):
-    cwd = auto()
-    config_dir = auto()
-
-
-@dataclass
-class CompletionSpec:
-
-    type: CompletionType = CompletionType.none
-    kwds: Tuple[str,...] = ()
-    extensions: Tuple[str,...] = ()
-    mime_patterns: Tuple[str,...] = ()
-    group: str = ''
-    relative_to: CompletionRelativeTo = CompletionRelativeTo.cwd
-
-    @staticmethod
-    def from_string(raw: str) -> 'CompletionSpec':
-        self = CompletionSpec()
-        for x in shlex_split(raw):
-            ck, vv = x.split(':', 1)
-            if ck == 'type':
-                self.type = getattr(CompletionType, vv)
-            elif ck == 'kwds':
-                self.kwds += tuple(vv.split(','))
-            elif ck == 'ext':
-                self.extensions += tuple(vv.split(','))
-            elif ck == 'group':
-                self.group = vv
-            elif ck == 'mime':
-                self.mime_patterns += tuple(vv.split(','))
-            elif ck == 'relative':
-                if vv == 'conf':
-                    self.relative_to = CompletionRelativeTo.config_dir
-                else:
-                    raise ValueError(f'Unknown completion relative to value: {vv}')
-            else:
-                raise KeyError(f'Unknown completion property: {ck}')
-        return self
-
-    def as_go_code(self, go_name: str, sep: str = ': ') -> Iterator[str]:
-        completers = []
-        if self.kwds:
-            kwds = (f'"{serialize_as_go_string(x)}"' for x in self.kwds)
-            g = (self.group if self.type is CompletionType.keyword else '') or "Keywords"
-            completers.append(f'cli.NamesCompleter("{serialize_as_go_string(g)}", ' + ', '.join(kwds) + ')')
-        relative_to = 'CONFIG' if self.relative_to is CompletionRelativeTo.config_dir else 'CWD'
-        if self.type is CompletionType.file:
-            g = serialize_as_go_string(self.group or 'Files')
-            added = False
-            if self.extensions:
-                added = True
-                pats = (f'"*.{ext}"' for ext in self.extensions)
-                completers.append(f'cli.FnmatchCompleter("{g}", cli.{relative_to}, ' + ', '.join(pats) + ')')
-            if self.mime_patterns:
-                added = True
-                completers.append(f'cli.MimepatCompleter("{g}", cli.{relative_to}, ' + ', '.join(f'"{p}"' for p in self.mime_patterns) + ')')
-            if not added:
-                completers.append(f'cli.FnmatchCompleter("{g}", cli.{relative_to}, "*")')
-        if self.type is CompletionType.directory:
-            g = serialize_as_go_string(self.group or 'Directories')
-            completers.append(f'cli.DirectoryCompleter("{g}", cli.{relative_to})')
-        if self.type is CompletionType.special:
-            completers.append(self.group)
-        if len(completers) > 1:
-            yield f'{go_name}{sep}cli.ChainCompleters(' + ', '.join(completers) + ')'
-        elif completers:
-            yield f'{go_name}{sep}{completers[0]}'
 
 
 class OptionDict(TypedDict):
@@ -105,7 +25,6 @@ class OptionDict(TypedDict):
     type: str
     default: Optional[str]
     condition: bool
-    completion: CompletionSpec
 
 
 def serialize_as_go_string(x: str) -> str:
@@ -155,11 +74,7 @@ class GoOption:
         '''
         if self.type in ('choice', 'choices'):
             c = ', '.join(self.sorted_choices)
-            cx = ', '.join(f'"{serialize_as_go_string(x)}"' for x in self.sorted_choices)
             ans += f'\nChoices: "{serialize_as_go_string(c)}",\n'
-            ans += f'\nCompleter: cli.NamesCompleter("Choices for {self.long}", {cx}),'
-        elif self.obj_dict['completion'].type is not CompletionType.none:
-            ans += ''.join(self.obj_dict['completion'].as_go_code('Completer', ': ')) + ','
         if depth > 0:
             ans += f'\nDepth: {depth},\n'
         if self.default:
@@ -379,7 +294,7 @@ def parse_option_spec(spec: Optional[str] = None) -> Tuple[OptionSpecSeq, Option
     mpat = re.compile('([a-z]+)=(.+)')
     current_cmd: OptionDict = {
         'dest': '', 'aliases': frozenset(), 'help': '', 'choices': frozenset(),
-        'type': '', 'condition': False, 'default': None, 'completion': CompletionSpec(), 'name': ''
+        'type': '', 'condition': False, 'default': None, 'name': ''
     }
     empty_cmd = current_cmd
 
@@ -400,7 +315,7 @@ def parse_option_spec(spec: Optional[str] = None) -> Tuple[OptionSpecSeq, Option
                 current_cmd = {
                     'dest': defdest, 'aliases': frozenset(parts), 'help': '',
                     'choices': frozenset(), 'type': '', 'name': defdest,
-                    'default': None, 'condition': True, 'completion': CompletionSpec(),
+                    'default': None, 'condition': True,
                 }
                 state = METADATA
                 continue
@@ -428,8 +343,6 @@ def parse_option_spec(spec: Optional[str] = None) -> Tuple[OptionSpecSeq, Option
                         current_cmd['dest'] = v
                     elif k == 'condition':
                         current_cmd['condition'] = bool(eval(v))
-                    elif k == 'completion':
-                        current_cmd['completion'] = CompletionSpec.from_string(v)
         elif state is HELP:
             if line:
                 current_indent = indent_of_line(line)

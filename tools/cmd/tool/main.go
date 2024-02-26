@@ -20,7 +20,6 @@ func AlattyToolEntryPoints(root *cli.Command) {
 	root.AddSubCommand(&cli.Command{
 		Name:            "__hold_till_enter__",
 		Hidden:          true,
-		OnlyArgsAllowed: true,
 		Run: func(cmd *cli.Command, args []string) (rc int, err error) {
 			tui.ExecAndHoldTillEnter(args)
 			return

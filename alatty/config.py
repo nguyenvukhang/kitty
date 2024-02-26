@@ -10,14 +10,10 @@ from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple
 from .conf.utils import BadLine, parse_config_base
 from .conf.utils import load_config as _load_config
 from .constants import cache_dir, defconf
-from .options.types import Options, defaults, option_names
+from .options.types import Options, defaults
 from .options.utils import KeyboardMode, KeyboardModeMap, KeyDefinition, MouseMap, MouseMapping, build_action_aliases
 from .typing import TypedDict
 from .utils import log_error
-
-
-def option_names_for_completion() -> Tuple[str, ...]:
-    return option_names
 
 
 def build_ansi_color_table(opts: Optional[Options] = None) -> int:

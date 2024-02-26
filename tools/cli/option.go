@@ -43,7 +43,6 @@ type OptionSpec struct {
 	Depth     int
 	Default   string
 	Help      string
-	Completer CompletionFunc
 }
 
 type Option struct {
@@ -57,7 +56,6 @@ type Option struct {
 	Help       string
 	IsList     bool
 	Parent     *Command
-	Completer  CompletionFunc
 
 	values_from_cmdline        []string
 	parsed_values_from_cmdline []any

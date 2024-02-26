@@ -67,17 +67,6 @@ func default_shortcuts() *ShortcutMap {
 		sm.AddOrPanic(ActionYank, "ctrl+y")
 		sm.AddOrPanic(ActionPopYank, "alt+y")
 
-		sm.AddOrPanic(ActionHistoryPreviousOrCursorUp, "up")
-		sm.AddOrPanic(ActionHistoryNextOrCursorDown, "down")
-		sm.AddOrPanic(ActionHistoryPrevious, "ctrl+p")
-		sm.AddOrPanic(ActionHistoryNext, "ctrl+n")
-		sm.AddOrPanic(ActionHistoryFirst, "alt+<")
-		sm.AddOrPanic(ActionHistoryLast, "alt+>")
-		sm.AddOrPanic(ActionHistoryIncrementalSearchBackwards, "ctrl+r")
-		sm.AddOrPanic(ActionHistoryIncrementalSearchBackwards, "ctrl+?")
-		sm.AddOrPanic(ActionHistoryIncrementalSearchForwards, "ctrl+s")
-		sm.AddOrPanic(ActionHistoryIncrementalSearchForwards, "ctrl+/")
-
 		sm.AddOrPanic(ActionNumericArgumentDigit0, "alt+0")
 		sm.AddOrPanic(ActionNumericArgumentDigit1, "alt+1")
 		sm.AddOrPanic(ActionNumericArgumentDigit2, "alt+2")
@@ -90,8 +79,6 @@ func default_shortcuts() *ShortcutMap {
 		sm.AddOrPanic(ActionNumericArgumentDigit9, "alt+9")
 		sm.AddOrPanic(ActionNumericArgumentDigitMinus, "alt+-")
 
-		sm.AddOrPanic(ActionCompleteForward, "Tab")
-		sm.AddOrPanic(ActionCompleteBackward, "Shift+Tab")
 		_default_shortcuts = sm
 	}
 	return _default_shortcuts
@@ -104,35 +91,6 @@ func history_search_shortcuts() *shortcuts.ShortcutMap[Action] {
 		sm := shortcuts.New[Action]()
 		sm.AddOrPanic(ActionBackspace, "backspace")
 		sm.AddOrPanic(ActionBackspace, "ctrl+h")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "home")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+a")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "end")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+e")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+home")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+end")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "alt+f")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+right")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+left")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "alt+b")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "left")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+b")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "right")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+f")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "up")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "down")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+c")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "ctrl+g")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndRestore, "escape")
-
-		sm.AddOrPanic(ActionTerminateHistorySearchAndApply, "ctrl+d")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndApply, "enter")
-		sm.AddOrPanic(ActionTerminateHistorySearchAndApply, "ctrl+j")
 
 		_history_search_shortcuts = sm
 	}

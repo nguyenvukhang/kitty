@@ -377,8 +377,3 @@ class Dircolors:
         except OSError:
             return text
         return self.format_mode(text, sr)
-
-
-def develop() -> None:
-    import sys
-    print(Dircolors()(sys.argv[-1], sys.argv[-1]))

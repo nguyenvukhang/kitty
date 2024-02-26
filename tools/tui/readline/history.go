@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"alatty/tools/cli"
 	"alatty/tools/utils"
 	"alatty/tools/utils/shlex"
 	"alatty/tools/wcswidth"
@@ -195,12 +194,7 @@ func (self *Readline) create_history_matches() {
 }
 
 func (self *Readline) last_action_was_history_movement() bool {
-	switch self.last_action {
-	case ActionHistoryLast, ActionHistoryFirst, ActionHistoryNext, ActionHistoryPrevious:
-		return true
-	default:
-		return false
-	}
+  return false
 }
 
 func (self *HistoryMatches) apply(rl *Readline) bool {
@@ -245,25 +239,6 @@ func (self *HistoryMatches) next(num uint, rl *Readline) bool {
 		return self.apply(rl)
 	}
 	return false
-}
-
-func (self *Readline) create_history_search(backwards bool, num uint) {
-	self.history_search = &HistorySearch{backwards: backwards, original_input_state: self.input_state.copy()}
-	self.push_keyboard_map(history_search_shortcuts())
-	self.markup_history_search()
-}
-
-func (self *Readline) end_history_search(accept bool) {
-	if accept && self.history_search.current_idx < len(self.history_search.items) {
-		self.input_state.lines = utils.Splitlines(self.history_search.items[self.history_search.current_idx].Cmd)
-		self.input_state.cursor.Y = len(self.input_state.lines) - 1
-		self.input_state.cursor.X = len(self.input_state.lines[self.input_state.cursor.Y])
-	} else {
-		self.input_state = self.history_search.original_input_state
-	}
-	self.input_state.cursor = *self.ensure_position_in_bounds(&self.input_state.cursor)
-	self.pop_keyboard_map()
-	self.history_search = nil
 }
 
 func (self *Readline) markup_history_search() {
@@ -382,50 +357,4 @@ func (self *Readline) next_history_search(backwards bool, num uint) bool {
 	self.history_search.current_idx = ni
 	self.markup_history_search()
 	return true
-}
-
-func (self *Readline) history_search_prompt() string {
-	ans := "↑"
-	if !self.history_search.backwards {
-		ans = "↓"
-	}
-	failed := len(self.history_search.tokens) > 0 && len(self.history_search.items) == 0
-	if failed {
-		ans = self.fmt_ctx.BrightRed(ans)
-	} else {
-		ans = self.fmt_ctx.Green(ans)
-	}
-	return fmt.Sprintf("history %s: ", ans)
-}
-
-func (self *Readline) history_completer(before_cursor, after_cursor string) (ans *cli.Completions) {
-	ans = cli.NewCompletions()
-	if before_cursor != "" {
-		var words_before_cursor []string
-		words_before_cursor, ans.CurrentWordIdx = shlex.SplitForCompletion(before_cursor)
-		idx := len(words_before_cursor)
-		if idx > 0 {
-			idx--
-		}
-		seen := utils.NewSet[string](16)
-		mg := ans.AddMatchGroup("History")
-		for _, x := range self.history.items {
-			if strings.HasPrefix(x.Cmd, before_cursor) {
-				words, _ := shlex.SplitForCompletion(x.Cmd)
-				if idx < len(words) {
-					word := words[idx]
-					desc := ""
-					if !seen.Has(word) {
-						if word != x.Cmd {
-							desc = x.Cmd
-						}
-						mg.AddMatch(word, desc)
-						seen.Add(word)
-					}
-				}
-			}
-		}
-	}
-
-	return
 }

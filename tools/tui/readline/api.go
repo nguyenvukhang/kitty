@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	"alatty/tools/cli"
 	"alatty/tools/cli/markup"
 	"alatty/tools/tui/loop"
 	"alatty/tools/wcswidth"
@@ -19,7 +18,6 @@ const ST = "\x1b\\"
 const PROMPT_MARK = "\x1b]133;"
 
 type SyntaxHighlightFunction = func(text string, x, y int) string
-type CompleterFunction = func(before_cursor, after_cursor string) *cli.Completions
 
 type RlInit struct {
 	Prompt                  string
@@ -29,7 +27,6 @@ type RlInit struct {
 	EmptyContinuationPrompt bool
 	DontMarkPrompts         bool
 	SyntaxHighlighter       SyntaxHighlightFunction
-	Completer               CompleterFunction
 }
 
 type Position struct {
@@ -130,7 +127,6 @@ type Readline struct {
 	fmt_ctx                *markup.Context
 	text_to_be_added       string
 	syntax_highlighted     syntax_highlighted
-	completions            completions
 }
 
 func (self *Readline) make_prompt(text string, is_secondary bool) Prompt {
@@ -153,11 +149,7 @@ func New(loop *loop.Loop, r RlInit) *Readline {
 		mark_prompts: !r.DontMarkPrompts, fmt_ctx: markup.New(true),
 		loop: loop, input_state: InputState{lines: []string{""}}, history: NewHistory(r.HistoryPath, hc),
 		syntax_highlighted: syntax_highlighted{highlighter: r.SyntaxHighlighter},
-		completions:        completions{completer: r.Completer},
 		kill_ring:          kill_ring{items: list.New().Init()},
-	}
-	if ans.completions.completer == nil && r.HistoryPath != "" {
-		ans.completions.completer = ans.HistoryCompleter
 	}
 	ans.prompt = ans.make_prompt(r.Prompt, false)
 	t := ""
@@ -169,10 +161,6 @@ func New(loop *loop.Loop, r RlInit) *Readline {
 	}
 	ans.continuation_prompt = ans.make_prompt(t, true)
 	return ans
-}
-
-func (self *Readline) HistoryCompleter(before_cursor, after_cursor string) *cli.Completions {
-	return self.history_completer(before_cursor, after_cursor)
 }
 
 func (self *Readline) SetPrompt(prompt string) {
@@ -192,7 +180,6 @@ func (self *Readline) ResetText() {
 	self.last_action = ActionNil
 	self.keyboard_state = KeyboardState{}
 	self.history_search = nil
-	self.completions.current = completion{}
 	self.cursor_y = 0
 }
 

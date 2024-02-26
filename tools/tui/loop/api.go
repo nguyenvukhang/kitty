@@ -221,14 +221,6 @@ func (self *Loop) PrintStyled(style string, args ...any) {
 	self.QueueWriteString(self.SprintStyled(style, args...))
 }
 
-func (self *Loop) SaveCursorPosition() {
-	self.QueueWriteString("\x1b7")
-}
-
-func (self *Loop) RestoreCursorPosition() {
-	self.QueueWriteString("\x1b8")
-}
-
 func (self *Loop) Printf(format string, args ...any) {
 	format = strings.ReplaceAll(format, "\n", "\r\n")
 	self.QueueWriteString(fmt.Sprintf(format, args...))

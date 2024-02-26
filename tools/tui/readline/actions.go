@@ -562,34 +562,6 @@ func (self *Readline) _perform_action(ac Action, repeat_count uint) (err error, 
 		if self.move_cursor_vertically(int(repeat_count)) != 0 {
 			return
 		}
-	case ActionHistoryPreviousOrCursorUp:
-		dont_set_last_action = true
-		if self.perform_action(ActionCursorUp, repeat_count) == ErrCouldNotPerformAction {
-			err = self.perform_action(ActionHistoryPrevious, repeat_count)
-		}
-		return
-	case ActionHistoryNextOrCursorDown:
-		dont_set_last_action = true
-		if self.perform_action(ActionCursorDown, repeat_count) == ErrCouldNotPerformAction {
-			err = self.perform_action(ActionHistoryNext, repeat_count)
-		}
-		return
-	case ActionHistoryFirst:
-		if self.history_first() {
-			return
-		}
-	case ActionHistoryPrevious:
-		if self.history_prev(repeat_count) {
-			return
-		}
-	case ActionHistoryNext:
-		if self.history_next(repeat_count) {
-			return
-		}
-	case ActionHistoryLast:
-		if self.history_last() {
-			return
-		}
 	case ActionClearScreen:
 		self.loop.StartAtomicUpdate()
 		self.loop.ClearScreen()
@@ -628,22 +600,6 @@ func (self *Readline) _perform_action(ac Action, repeat_count uint) (err error, 
 		self.loop.QueueWriteString("\r\n")
 		self.ResetText()
 		return
-	case ActionHistoryIncrementalSearchForwards:
-		if self.history_search == nil {
-			self.create_history_search(false, repeat_count)
-			return
-		}
-		if self.next_history_search(false, repeat_count) {
-			return
-		}
-	case ActionHistoryIncrementalSearchBackwards:
-		if self.history_search == nil {
-			self.create_history_search(true, repeat_count)
-			return
-		}
-		if self.next_history_search(true, repeat_count) {
-			return
-		}
 	case ActionAddText:
 		text := strings.Repeat(self.text_to_be_added, int(repeat_count))
 		self.text_to_be_added = ""
@@ -653,24 +609,6 @@ func (self *Readline) _perform_action(ac Action, repeat_count uint) (err error, 
 			self.add_text(text)
 		}
 		return
-	case ActionTerminateHistorySearchAndRestore:
-		if self.history_search != nil {
-			self.end_history_search(false)
-			return
-		}
-	case ActionTerminateHistorySearchAndApply:
-		if self.history_search != nil {
-			self.end_history_search(true)
-			return
-		}
-	case ActionCompleteForward:
-		if self.complete(true, repeat_count) {
-			return
-		}
-	case ActionCompleteBackward:
-		if self.complete(false, repeat_count) {
-			return
-		}
 	}
 	err = ErrCouldNotPerformAction
 	return
@@ -680,9 +618,6 @@ func (self *Readline) perform_action(ac Action, repeat_count uint) error {
 	err, dont_set_last_action := self._perform_action(ac, repeat_count)
 	if err == nil && !dont_set_last_action {
 		self.last_action = ac
-		if self.completions.current.results != nil && ac != ActionCompleteForward && ac != ActionCompleteBackward {
-			self.completions.current = completion{}
-		}
 	}
 	return err
 }

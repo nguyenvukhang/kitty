@@ -32,7 +32,6 @@ import alatty.constants as kc
 from kittens.tui.operations import Mode
 from kittens.tui.spinners import spinners
 from alatty.cli import (
-    CompletionSpec,
     GoOption,
     go_options_for_seq,
     parse_option_spec,
@@ -180,107 +179,13 @@ def kitten_cli_docs(kitten: str) -> Any:
 
 
 @lru_cache
-def go_options_for_kitten(kitten: str) -> Tuple[Sequence[GoOption], Optional[CompletionSpec]]:
+def go_options_for_kitten(kitten: str) -> Sequence[GoOption]:
     kcd = kitten_cli_docs(kitten)
     if kcd:
         ospec = kcd['options']
-        return (tuple(go_options_for_seq(parse_option_spec(ospec())[0])), kcd.get('args_completion'))
-    return (), None
+        return go_options_for_seq(parse_option_spec(ospec())[0])
+    return ()
 
-
-def generate_kittens_completion() -> None:
-    from kittens.runner import all_kitten_names, get_kitten_wrapper_of
-    for kitten in sorted(all_kitten_names()):
-        kn = 'kitten_' + kitten
-        print(f'{kn} := plus_kitten.AddSubCommand(&cli.Command{{Name:"{kitten}", Group: "Kittens"}})')
-        wof = get_kitten_wrapper_of(kitten)
-        if wof:
-            print(f'{kn}.ArgCompleter = cli.CompletionForWrapper("{serialize_as_go_string(wof)}")')
-            print(f'{kn}.OnlyArgsAllowed = true')
-            continue
-        gopts, ac = go_options_for_kitten(kitten)
-        if gopts or ac:
-            for opt in gopts:
-                print(opt.as_option(kn))
-            if ac is not None:
-                print(''.join(ac.as_go_code(kn + '.ArgCompleter', ' = ')))
-        else:
-            print(f'{kn}.HelpText = ""')
-
-
-@lru_cache
-def clone_safe_launch_opts() -> Sequence[GoOption]:
-    from alatty.launch import clone_safe_opts, options_spec
-    ans = []
-    allowed = clone_safe_opts()
-    for o in go_options_for_seq(parse_option_spec(options_spec())[0]):
-        if o.obj_dict['name'] in allowed:
-            ans.append(o)
-    return tuple(ans)
-
-
-def completion_for_launch_wrappers(*names: str) -> None:
-    for o in clone_safe_launch_opts():
-        for name in names:
-            print(o.as_option(name))
-
-
-def generate_completions_for_alatty() -> None:
-    print('package completion\n')
-    print('import "alatty/tools/cli"')
-    print('import "alatty/tools/cmd/tool"')
-    print('import "alatty/tools/cmd/at"')
-
-    print('func alatty(root *cli.Command) {')
-
-    # The alatty exe
-    print('k := root.AddSubCommand(&cli.Command{'
-          'Name:"alatty", SubCommandIsOptional: true, ArgCompleter: cli.CompleteExecutableFirstArg, SubCommandMustBeFirst: true })')
-    print('kt := root.AddSubCommand(&cli.Command{Name:"kitten", SubCommandMustBeFirst: true })')
-    print('tool.AlattyToolEntryPoints(kt)')
-    for opt in go_options_for_seq(parse_option_spec()[0]):
-        print(opt.as_option('k'))
-
-    # alatty +
-    print('plus := k.AddSubCommand(&cli.Command{Name:"+", Group:"Entry points", ShortDescription: "Various special purpose tools and kittens"})')
-
-    # alatty +launch
-    print('plus_launch := plus.AddSubCommand(&cli.Command{'
-          'Name:"launch", Group:"Entry points", ShortDescription: "Launch Python scripts", ArgCompleter: complete_plus_launch})')
-    print('k.AddClone("", plus_launch).Name = "+launch"')
-
-    # alatty +list-fonts
-    print('plus_list_fonts := plus.AddSubCommand(&cli.Command{'
-          'Name:"list-fonts", Group:"Entry points", ShortDescription: "List all available monospaced fonts"})')
-    print('k.AddClone("", plus_list_fonts).Name = "+list-fonts"')
-
-    # alatty +runpy
-    print('plus_runpy := plus.AddSubCommand(&cli.Command{'
-          'Name: "runpy", Group:"Entry points", ArgCompleter: complete_plus_runpy, ShortDescription: "Run Python code"})')
-    print('k.AddClone("", plus_runpy).Name = "+runpy"')
-
-    # alatty +open
-    print('plus_open := plus.AddSubCommand(&cli.Command{'
-          'Name:"open", Group:"Entry points", ArgCompleter: complete_plus_open, ShortDescription: "Open files and URLs"})')
-    print('for _, og := range k.OptionGroups { plus_open.OptionGroups = append(plus_open.OptionGroups, og.Clone(plus_open)) }')
-    print('k.AddClone("", plus_open).Name = "+open"')
-
-    # alatty +kitten
-    print('plus_kitten := plus.AddSubCommand(&cli.Command{Name:"kitten", Group:"Kittens", SubCommandMustBeFirst: true})')
-    generate_kittens_completion()
-    print('k.AddClone("", plus_kitten).Name = "+kitten"')
-
-    # @
-    print('at.EntryPoint(k)')
-
-    # clone-in-alatty, edit-in-alatty
-    print('cik := root.AddSubCommand(&cli.Command{Name:"clone-in-alatty"})')
-    completion_for_launch_wrappers('cik')
-
-    print('}')
-    print('func init() {')
-    print('cli.RegisterExeForCompletion(alatty)')
-    print('}')
 # }}}
 
 
@@ -378,12 +283,9 @@ def kitten_clis() -> None:
             if has_underscore:
                 print('Hidden: true,')
             print('})')
-            gopts, ac = go_options_for_kitten(kitten)
-            for opt in gopts:
+            for opt in go_options_for_kitten(kitten):
                 print(opt.as_option('ans'))
                 od.append(opt.struct_declaration())
-            if ac is not None:
-                print(''.join(ac.as_go_code('ans.ArgCompleter', ' = ')))
             if not kcd:
                 print('specialize_command(ans)')
             if has_underscore:
@@ -430,7 +332,6 @@ def load_ref_map() -> Dict[str, Dict[str, str]]:
 
 
 def generate_constants() -> str:
-    from alatty.config import option_names_for_completion
     from alatty.options.utils import allowed_shell_integration_values
     ref_map = load_ref_map()
     with open('alatty/data-types.h') as dt:
@@ -439,7 +340,7 @@ def generate_constants() -> str:
         placeholder_char = int(m.group(1), 16)
     dp = ", ".join(map(lambda x: f'"{serialize_as_go_string(x)}"', kc.default_pager_for_help))
     url_prefixes = ','.join(f'"{x}"' for x in Options.url_prefixes)
-    option_names = '`' + '\n'.join(option_names_for_completion()) + '`'
+    option_names = '``'
     return f'''\
 package alatty
 
@@ -539,17 +440,7 @@ def generate_readline_actions() -> str:
         ActionEndInput
         ActionAcceptInput
         ActionCursorUp
-        ActionHistoryPreviousOrCursorUp
         ActionCursorDown
-        ActionHistoryNextOrCursorDown
-        ActionHistoryNext
-        ActionHistoryPrevious
-        ActionHistoryFirst
-        ActionHistoryLast
-        ActionHistoryIncrementalSearchBackwards
-        ActionHistoryIncrementalSearchForwards
-        ActionTerminateHistorySearchAndApply
-        ActionTerminateHistorySearchAndRestore
         ActionClearScreen
         ActionAddText
         ActionAbortCurrentLine
@@ -575,9 +466,6 @@ def generate_readline_actions() -> str:
         ActionNumericArgumentDigit8
         ActionNumericArgumentDigit9
         ActionNumericArgumentDigitMinus
-
-        ActionCompleteForward
-        ActionCompleteBackward
     ''')
 
 

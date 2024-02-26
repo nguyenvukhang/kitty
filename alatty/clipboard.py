@@ -166,20 +166,6 @@ def get_primary_selection() -> str:
     return get_boss().primary_selection.get_text()
 
 
-def develop() -> Tuple[Clipboard, Clipboard]:
-    from .constants import detect_if_wayland_ok, is_macos
-    from .fast_data_types import set_boss
-    from .main import init_glfw_module
-    glfw_module = 'cocoa' if is_macos else ('wayland' if detect_if_wayland_ok() else 'x11')
-
-    class Boss:
-        clipboard = Clipboard()
-        primary_selection = Clipboard(ClipboardType.primary_selection)
-    init_glfw_module(glfw_module)
-    set_boss(Boss())  # type: ignore
-    return Boss.clipboard, Boss.primary_selection
-
-
 class ProtocolType(Enum):
     osc_52 = 52
     osc_5522 = 5522
