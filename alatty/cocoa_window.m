@@ -648,9 +648,6 @@ cocoa_create_global_menu(void) {
                 keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
 
-    MENU_ITEM(appMenu, @"Secure Keyboard Entry", toggle_macos_secure_keyboard_entry);
-    [appMenu addItem:[NSMenuItem separatorItem]];
-
     MENU_ITEM(appMenu, ([NSString stringWithFormat:@"Quit %@", app_name]), quit);
     [appMenu release];
 
@@ -660,7 +657,6 @@ cocoa_create_global_menu(void) {
                 keyEquivalent:@""];
     NSMenu* shellMenu = [[NSMenu alloc] initWithTitle:@"Shell"];
     [shellMenuItem setSubmenu:shellMenu];
-    MENU_ITEM(shellMenu, @"New OS Window", new_os_window);
     MENU_ITEM(shellMenu, @"New Tab", new_tab);
     MENU_ITEM(shellMenu, @"New Window", new_window);
     [shellMenu addItem:[NSMenuItem separatorItem]];
@@ -699,17 +695,6 @@ cocoa_create_global_menu(void) {
     MENU_ITEM(windowMenu, @"Enter Full Screen", toggle_fullscreen);
     [NSApp setWindowsMenu:windowMenu];
     [windowMenu release];
-
-    NSMenuItem* helpMenuItem =
-        [bar addItemWithTitle:@"Help"
-                       action:NULL
-                keyEquivalent:@""];
-    NSMenu* helpMenu = [[NSMenu alloc] initWithTitle:@"Help"];
-    [helpMenuItem setSubmenu:helpMenu];
-
-    MENU_ITEM(helpMenu, @"Visit alatty Website", open_alatty_website);
-    [NSApp setHelpMenu:helpMenu];
-    [helpMenu release];
 
     if (OPT(global_menu.entries)) {
         for (size_t i = 0; i < OPT(global_menu.count); i++) {
