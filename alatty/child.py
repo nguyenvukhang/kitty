@@ -249,9 +249,6 @@ class Child:
         if opts.forward_stdio:
             env['ALATTY_STDIO_FORWARDED'] = '3'
         self.unmodified_argv = list(self.argv)
-        if not self.should_run_via_run_shell_kitten and 'disabled' not in opts.shell_integration:
-            from .shell_integration import modify_shell_environ
-            modify_shell_environ(opts, env, self.argv)
         env = {k: v for k, v in env.items() if v is not DELETE_ENV_VAR}
         if self.is_clone_launch:
             env['ALATTY_IS_CLONE_LAUNCH'] = self.is_clone_launch

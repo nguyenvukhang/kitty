@@ -522,16 +522,6 @@ def get_capabilities(query_string: str, opts: 'Options') -> Generator[str, None,
         name = qname = unhexlify(encoded_query_name).decode('utf-8')
         if name in ('TN', 'name'):
             yield result(encoded_query_name, names[0])
-        elif name.startswith('alatty-query-'):
-            from kittens.query_terminal.main import get_result
-            name = name[len('alatty-query-'):]
-            rval = get_result(name)
-            if rval is None:
-                from .utils import log_error
-                log_error('Unknown alatty terminfo query:', name)
-                yield result(encoded_query_name)
-            else:
-                yield result(encoded_query_name, rval)
         else:
             try:
                 val = queryable_capabilities[name]

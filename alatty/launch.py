@@ -885,7 +885,6 @@ def remote_edit(msg: str, window: Window) -> None:
 
 
 def clone_and_launch(msg: str, window: Window) -> None:
-    from .shell_integration import serialize_env
     c = CloneCmd(msg)
     if c.cwd and not c.opts.cwd:
         c.opts.cwd = c.cwd
@@ -899,38 +898,20 @@ def clone_and_launch(msg: str, window: Window) -> None:
         if f"{env_to_serialize['VIRTUAL_ENV']}/bin" not in env_to_serialize['PATH'].split(os.pathsep):
             del env_to_serialize['VIRTUAL_ENV']
     env_to_serialize['ALATTY_CLONE_SOURCE_STRATEGIES'] = ',' + ','.join(get_options().clone_source_strategies) + ','
-    is_clone_launch = serialize_env(c.shell, env_to_serialize)
-    ssh_kitten_cmdline = window.ssh_kitten_cmdline()
-    if ssh_kitten_cmdline:
-        from kittens.ssh.utils import patch_cmdline, set_cwd_in_cmdline, set_env_in_cmdline
-        cmdline = ssh_kitten_cmdline
-        if c.opts.cwd:
-            set_cwd_in_cmdline(c.opts.cwd, cmdline)
-            c.opts.cwd = None
-        if c.env:
-            set_env_in_cmdline({
-                'ALATTY_IS_CLONE_LAUNCH': is_clone_launch,
-            }, cmdline)
-            c.env = None
-        if c.opts.env:
-            for entry in reversed(c.opts.env):
-                patch_cmdline('env', entry, cmdline)
-            c.opts.env = []
-    else:
-        try:
-            cmdline = window.child.cmdline_of_pid(c.pid)
-        except Exception:
-            cmdline = []
-        if not cmdline:
-            cmdline = list(window.child.argv)
-        if cmdline and cmdline[0].startswith('-'):  # on macOS, run via run-shell kitten
-            if window.child.is_default_shell:
-                cmdline = window.child.unmodified_argv
-            else:
-                cmdline[0] = cmdline[0][1:]
-                cmdline[0] = which(cmdline[0]) or cmdline[0]
-        if cmdline and cmdline[0] == window.child.final_argv0:
-            cmdline[0] = window.child.final_exe
-        if cmdline and cmdline == [window.child.final_exe] + window.child.argv[1:]:
+    try:
+        cmdline = window.child.cmdline_of_pid(c.pid)
+    except Exception:
+        cmdline = []
+    if not cmdline:
+        cmdline = list(window.child.argv)
+    if cmdline and cmdline[0].startswith('-'):  # on macOS, run via run-shell kitten
+        if window.child.is_default_shell:
             cmdline = window.child.unmodified_argv
-    launch(get_boss(), c.opts, cmdline, active=window, is_clone_launch=is_clone_launch)
+        else:
+            cmdline[0] = cmdline[0][1:]
+            cmdline[0] = which(cmdline[0]) or cmdline[0]
+    if cmdline and cmdline[0] == window.child.final_argv0:
+        cmdline[0] = window.child.final_exe
+    if cmdline and cmdline == [window.child.final_exe] + window.child.argv[1:]:
+        cmdline = window.child.unmodified_argv
+    launch(get_boss(), c.opts, cmdline, active=window)

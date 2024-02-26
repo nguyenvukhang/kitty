@@ -7,7 +7,6 @@ from typing import Literal
 from typing import Protocol as Protocol
 from typing import TypedDict as TypedDict
 
-from kittens.hints.main import Mark as MarkType
 from kittens.tui.handler import Handler as HandlerType
 from kittens.tui.images import GraphicsCommand as GraphicsCommandType
 from kittens.tui.images import ImageManager as ImageManagerType
@@ -60,7 +59,7 @@ class WindowSystemMouseEvent(TypedDict):
 __all__ = (
     'EdgeLiteral', 'MatchType', 'GRT_a', 'GRT_f', 'GRT_t', 'GRT_o', 'GRT_m', 'GRT_d',
     'GraphicsCommandType', 'HandlerType', 'AbstractEventLoop', 'AddressFamily', 'Socket', 'CompletedProcess',
-    'PopenType', 'Protocol', 'TypedDict', 'MarkType', 'ImageManagerType', 'Debug', 'LoopType', 'MouseEvent',
+    'PopenType', 'Protocol', 'TypedDict', 'ImageManagerType', 'Debug', 'LoopType', 'MouseEvent',
     'TermManagerType', 'BossType', 'ChildType', 'BadLineType', 'MouseButton',
     'KeyActionType', 'KeyMap', 'AlattyCommonOpts', 'AliasMap', 'CoreTextFont', 'WindowSystemMouseEvent',
     'FontConfigPattern', 'ScreenType', 'StartupCtx', 'KeyEventType', 'LayoutType', 'PowerlineStyle',

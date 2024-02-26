@@ -37,7 +37,6 @@ from .constants import (
     appname,
     clear_handled_signals,
     config_dir,
-    kitten_exe,
     wakeup_io_loop,
 )
 from .fast_data_types import (
@@ -107,7 +106,6 @@ from .utils import (
     parse_color_set,
     path_from_osc7_url,
     resolve_custom_file,
-    resolved_shell,
     sanitize_control_codes,
     sanitize_for_bracketed_paste,
     sanitize_title,
@@ -160,31 +158,6 @@ class CwdRequest:
             return ''
         reported_cwd = path_from_osc7_url(window.screen.last_reported_cwd) if window.screen.last_reported_cwd else ''
         if reported_cwd and (self.request_type is not CwdRequestType.root or window.root_in_foreground_processes):
-            ssh_kitten_cmdline = window.ssh_kitten_cmdline()
-            if ssh_kitten_cmdline:
-                run_shell = argv[0] == resolved_shell(get_options())[0]
-                server_args = [] if run_shell else list(argv)
-                from kittens.ssh.utils import set_cwd_in_cmdline, set_env_in_cmdline, set_server_args_in_cmdline
-                argv[:] = ssh_kitten_cmdline
-                if argv and argv[0] == 'kitten':
-                    argv[0] = kitten_exe()
-                set_cwd_in_cmdline(reported_cwd, argv)
-                set_server_args_in_cmdline(server_args, argv, allocate_tty=not run_shell)
-                if env is not None:
-                    # Assume env is coming from a local process so drop env
-                    # vars that can cause issues when set on the remote host
-                    if env.get('ALATTY_KITTEN_RUN_MODULE') == 'ssh_askpass':
-                        for k in ('ALATTY_KITTEN_RUN_MODULE', 'SSH_ASKPASS', 'SSH_ASKPASS_REQUIRE'):
-                            env.pop(k, None)
-                    for k in (
-                        'HOME', 'USER', 'TEMP', 'TMP', 'TMPDIR', 'PATH', 'PWD', 'OLDPWD', 'ALATTY_INSTALLATION_DIR',
-                        'HOSTNAME', 'SSH_AUTH_SOCK', 'SSH_AGENT_PID', 'ALATTY_STDIO_FORWARDED',
-                        'ALATTY_PUBLIC_KEY', 'TERMINFO', 'XDG_RUNTIME_DIR', 'XDG_VTNR',
-                        'XDG_DATA_DIRS', 'XAUTHORITY', 'EDITOR', 'VISUAL',
-                    ):
-                        env.pop(k, None)
-                    set_env_in_cmdline(env, argv, clone=False)
-                return ''
             if not window.child_is_remote and (self.request_type is CwdRequestType.last_reported or window.at_prompt):
                 return reported_cwd
         return window.get_cwd_of_child(oldest=self.request_type is CwdRequestType.oldest) or ''
@@ -1033,19 +1006,13 @@ class Window:
         if hyperlink_id:
             if not opts.allow_hyperlinks:
                 return
-            from urllib.parse import unquote, urlparse, urlunparse
+            from urllib.parse import urlparse, urlunparse
             try:
                 purl = urlparse(url)
             except Exception:
                 return
             if (not purl.scheme or purl.scheme == 'file'):
                 if purl.netloc:
-                    from .utils import get_hostname
-                    hostname = get_hostname()
-                    remote_hostname = purl.netloc.partition(':')[0]
-                    if remote_hostname and remote_hostname != hostname and remote_hostname != 'localhost':
-                        self.handle_remote_file(purl.netloc, unquote(purl.path))
-                        return
                     url = urlunparse(purl._replace(netloc=''))
             if opts.allow_hyperlinks & 0b10:
                 from kittens.tui.operations import styled
@@ -1063,29 +1030,6 @@ class Window:
             get_boss().open_url(url, cwd=cwd)
         elif q == 'c':
             set_clipboard_string(url)
-
-    def handle_remote_file(self, netloc: str, remote_path: str) -> None:
-        from kittens.remote_file.main import is_ssh_kitten_sentinel
-        from kittens.ssh.utils import get_connection_data
-
-        from .utils import SSHConnectionData
-        args = self.ssh_kitten_cmdline()
-        conn_data: Union[None, List[str], SSHConnectionData] = None
-        if args:
-            ssh_cmdline = sorted(self.child.foreground_processes, key=lambda p: p['pid'])[-1]['cmdline'] or ['']
-            if 'ControlPath=' in ' '.join(ssh_cmdline):
-                idx = ssh_cmdline.index('--')
-                conn_data = [is_ssh_kitten_sentinel] + list(ssh_cmdline[:idx + 2])
-        if conn_data is None:
-            args = self.child.foreground_cmdline
-            conn_data = get_connection_data(args, self.child.foreground_cwd or self.child.current_cwd or '')
-            if conn_data is None:
-                get_boss().show_error('Could not handle remote file', f'No SSH connection data found in: {args}')
-                return
-        get_boss().run_kitten(
-            'remote_file', '--hostname', netloc.partition(':')[0], '--path', remote_path,
-            '--ssh-connection-data', json.dumps(conn_data)
-        )
 
     def send_signal_for_key(self, key_num: bytes) -> bool:
         try:
@@ -1259,11 +1203,6 @@ class Window:
         # Any bytes outside the printable ASCII range are removed.
         data = re.sub(rb'[^ -~]', b'', data)
         self.write_to_child(data)
-
-    def handle_remote_ssh(self, msg: str) -> None:
-        from kittens.ssh.utils import get_ssh_data
-        for line in get_ssh_data(msg, f'{os.getpid()}-{self.id}'):
-            self.write_to_child(line)
 
     def handle_kitten_result(self, msg: str) -> None:
         import base64
@@ -1564,14 +1503,6 @@ class Window:
             if q and q[0].lower() == 'ssh':
                 return True
         return False
-
-    def ssh_kitten_cmdline(self) -> List[str]:
-        from kittens.ssh.utils import is_kitten_cmdline
-        for p in self.child.foreground_processes:
-            q = list(p['cmdline'] or ())
-            if is_kitten_cmdline(q):
-                return q
-        return []
 
     def pipe_data(self, text: str, has_wrap_markers: bool = False) -> PipeData:
         text = text or ''
