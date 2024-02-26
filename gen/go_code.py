@@ -427,12 +427,7 @@ def go_code_for_remote_command(name: str, cmd: RemoteCommand, template: str) -> 
 
 @lru_cache
 def wrapped_kittens() -> Tuple[str, ...]:
-    with open('shell-integration/ssh/alatty') as f:
-        for line in f:
-            if line.startswith('    wrapped_kittens="'):
-                val = line.strip().partition('"')[2][:-1]
-                return tuple(sorted(filter(None, val.split())))
-    raise Exception('Failed to read wrapped kittens from alatty wrapper script')
+    return ("clipboard", "icat", "hyperlinked_grep", "ask", "hints", "unicode_input", "ssh", "themes", "diff", "show_key", "transfer")
 
 
 def generate_conf_parser(kitten: str, defn: Definition) -> None:

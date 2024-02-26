@@ -910,12 +910,7 @@ def build_uniforms_header(skip_generation: bool = False) -> str:
 
 @lru_cache
 def wrapped_kittens() -> str:
-    with open('shell-integration/ssh/alatty') as f:
-        for line in f:
-            if line.startswith('    wrapped_kittens="'):
-                val = line.strip().partition('"')[2][:-1]
-                return ' '.join(sorted(filter(None, val.split())))
-    raise Exception('Failed to read wrapped kittens from alatty wrapper script')
+    return "clipboard icat hyperlinked_grep ask hints unicode_input ssh themes diff show_key transfer"
 
 
 def build(args: Options, native_optimizations: bool = True, call_init: bool = True) -> None:
@@ -1110,20 +1105,6 @@ def build_launcher(args: Options, launcher_dir: str = '.', bundle_type: str = 's
 
 
 # Packaging {{{
-def compile_python(base_path: str) -> None:
-    import compileall
-    import py_compile
-    for root, dirs, files in os.walk(base_path):
-        for f in files:
-            if f.rpartition('.')[-1] in ('pyc', 'pyo'):
-                os.remove(os.path.join(root, f))
-
-    exclude = re.compile('.*/shell-integration/ssh/bootstrap.py')
-    compileall.compile_dir(
-        base_path, rx=exclude, force=True, optimize=(0, 1, 2), quiet=1, workers=0,  # type: ignore
-        invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH, ddir='')
-
-
 def create_linux_bundle_gunk(ddir: str, args: Options) -> None:
     libdir_name = args.libdir_name
     base = Path(ddir)
@@ -1457,7 +1438,6 @@ def package(args: Options, bundle_type: str) -> None:
     shutil.copy2('logo/alatty.png', os.path.join(libdir, 'logo'))
     shutil.copy2('logo/beam-cursor.png', os.path.join(libdir, 'logo'))
     shutil.copy2('logo/beam-cursor@2x.png', os.path.join(libdir, 'logo'))
-    shutil.copytree('shell-integration', os.path.join(libdir, 'shell-integration'), dirs_exist_ok=True)
     allowed_extensions = frozenset('py glsl so'.split())
 
     def src_ignore(parent: str, entries: Iterable[str]) -> List[str]:
@@ -1490,8 +1470,6 @@ def package(args: Options, bundle_type: str) -> None:
         raw = repl('shell_integration', raw, frozenset(Options.shell_integration.split()), frozenset(args.shell_integration.split()))
         if raw != oraw:
             f.seek(0), f.truncate(), f.write(raw)
-
-    compile_python(libdir)
 
     def should_be_executable(path: str) -> bool:
         if path.endswith('.so'):
