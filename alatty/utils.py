@@ -496,30 +496,6 @@ class SingleInstance:
 single_instance = SingleInstance()
 
 
-def parse_address_spec(spec: str) -> Tuple[AddressFamily, Union[Tuple[str, int], str], Optional[str]]:
-    import socket
-    try:
-        protocol, rest = spec.split(':', 1)
-    except ValueError:
-        raise ValueError(f'Invalid listen-on value: {spec} must be of the form protocol:address')
-    socket_path = None
-    address: Union[str, Tuple[str, int]] = ''
-    if protocol == 'unix':
-        family = socket.AF_UNIX
-        address = rest
-        if address.startswith('@') and len(address) > 1:
-            address = '\0' + address[1:]
-        else:
-            socket_path = address
-    elif protocol in ('tcp', 'tcp6'):
-        family = socket.AF_INET if protocol == 'tcp' else socket.AF_INET6
-        host, port = rest.rsplit(':', 1)
-        address = host, int(port)
-    else:
-        raise ValueError(f'Unknown protocol in listen-on value: {spec}')
-    return family, address, socket_path
-
-
 def parse_os_window_state(state: str) -> int:
     return {
         'normal': WINDOW_NORMAL, 'maximized': WINDOW_MAXIMIZED, 'minimized': WINDOW_MINIMIZED,

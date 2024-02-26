@@ -84,9 +84,7 @@ read_response(int fd, monotonic_t timeout, PyObject *ans) {
     }
     PyErr_SetString(PyExc_TimeoutError,
             "Timed out while waiting to read command response."
-            " Make sure you are running this command from within the alatty terminal."
-            " If you want to run commands from outside, then you have to setup a"
-            " socket with the --listen-on command line flag.");
+            " Make sure you are running this command from within the alatty terminal.");
     return false;
 }
 

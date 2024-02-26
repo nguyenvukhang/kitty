@@ -1065,12 +1065,6 @@ dispatch_dcs(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
         case '@':
             if (startswith(screen->parser_buf + 1, screen->parser_buf_pos - 2, "kitty-", sizeof("kitty-") - 1)) {
                 if (startswith(screen->parser_buf + 7, screen->parser_buf_pos - 2, "cmd{", sizeof("cmd{") - 1)) {
-                    PyObject *cmd = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, screen->parser_buf + 10, screen->parser_buf_pos - 10);
-                    if (cmd != NULL) {
-                        REPORT_OSC2(screen_handle_cmd, (char)screen->parser_buf[0], cmd);
-                        screen_handle_cmd(screen, cmd);
-                        Py_DECREF(cmd);
-                    } else PyErr_Clear();
 #define IF_SIMPLE_PREFIX(prefix, func) \
         if (startswith(screen->parser_buf + 7, screen->parser_buf_pos - 1, prefix, sizeof(prefix) - 1)) { \
             const size_t pp_size = sizeof("kitty") + sizeof(prefix); \
@@ -1080,14 +1074,7 @@ dispatch_dcs(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
                 screen_handle_alatty_dcs(screen, #func, msg); \
                 Py_DECREF(msg); \
             } else PyErr_Clear();
-
-                } else IF_SIMPLE_PREFIX("overlay-ready|", handle_overlay_ready)
                 } else IF_SIMPLE_PREFIX("kitten-result|", handle_kitten_result)
-                } else IF_SIMPLE_PREFIX("print|", handle_remote_print)
-                } else IF_SIMPLE_PREFIX("echo|", handle_remote_echo)
-                } else IF_SIMPLE_PREFIX("ask|", handle_remote_askpass)
-                } else IF_SIMPLE_PREFIX("clone|", handle_remote_clone)
-                } else IF_SIMPLE_PREFIX("edit|", handle_remote_edit)
 #undef IF_SIMPLE_PREFIX
                 } else {
                     PyObject *tp = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, screen->parser_buf, screen->parser_buf_pos);

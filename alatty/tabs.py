@@ -441,7 +441,6 @@ class Tab:  # {{{
         cwd: Optional[str] = None,
         env: Optional[Dict[str, str]] = None,
         is_clone_launch: str = '',
-        add_listen_on_env_var: bool = True,
         hold: bool = False,
     ) -> Child:
         check_for_suitability = True
@@ -490,7 +489,7 @@ class Tab:  # {{{
         pwid = platform_window_id(self.os_window_id)
         if pwid is not None:
             fenv['WINDOWID'] = str(pwid)
-        ans = Child(cmd, cwd or self.cwd, stdin, fenv, cwd_from, is_clone_launch=is_clone_launch, add_listen_on_env_var=add_listen_on_env_var, hold=hold)
+        ans = Child(cmd, cwd or self.cwd, stdin, fenv, cwd_from, is_clone_launch=is_clone_launch, hold=hold)
         ans.fork()
         return ans
 
@@ -511,23 +510,20 @@ class Tab:  # {{{
         env: Optional[Dict[str, str]] = None,
         location: Optional[str] = None,
         copy_colors_from: Optional[Window] = None,
-        allow_remote_control: bool = False,
         marker: Optional[str] = None,
         watchers: Optional[Watchers] = None,
         overlay_behind: bool = False,
         is_clone_launch: str = '',
-        remote_control_passwords: Optional[Dict[str, Sequence[str]]] = None,
         hold: bool = False,
     ) -> Window:
         child = self.launch_child(
             use_shell=use_shell, cmd=cmd, stdin=stdin, cwd_from=cwd_from, cwd=cwd, env=env,
-            is_clone_launch=is_clone_launch, add_listen_on_env_var=False if allow_remote_control and remote_control_passwords else True,
+            is_clone_launch=is_clone_launch,
             hold=hold,
         )
         window = Window(
             self, child, self.args, override_title=override_title,
             copy_colors_from=copy_colors_from, watchers=watchers,
-            allow_remote_control=allow_remote_control, remote_control_passwords=remote_control_passwords
         )
         # Must add child before laying out so that resize_pty succeeds
         get_boss().add_child(window)
@@ -545,14 +541,13 @@ class Tab:  # {{{
             special_window: SpecialWindowInstance,
             location: Optional[str] = None,
             copy_colors_from: Optional[Window] = None,
-            allow_remote_control: bool = False,
     ) -> Window:
         return self.new_window(
             use_shell=False, cmd=special_window.cmd, stdin=special_window.stdin,
             override_title=special_window.override_title,
             cwd_from=special_window.cwd_from, cwd=special_window.cwd, overlay_for=special_window.overlay_for,
             env=special_window.env, location=location, copy_colors_from=copy_colors_from,
-            allow_remote_control=allow_remote_control, watchers=special_window.watchers, overlay_behind=special_window.overlay_behind,
+            watchers=special_window.watchers, overlay_behind=special_window.overlay_behind,
             hold=special_window.hold,
         )
 

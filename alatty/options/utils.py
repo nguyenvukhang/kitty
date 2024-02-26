@@ -300,22 +300,6 @@ def set_colors(func: str, rest: str) -> FuncArgsType:
     return func, r
 
 
-@func_with_args('remote_control')
-def remote_control(func: str, rest: str) -> FuncArgsType:
-    func, args = shlex_parse(func, rest)
-    if len(args) < 1:
-        log_error('Too few arguments to remote_control function')
-    return func, args
-
-
-@func_with_args('remote_control_script')
-def remote_control_script(func: str, rest: str) -> FuncArgsType:
-    func, args = shlex_parse(func, rest)
-    if len(args) < 1:
-        log_error('Too few arguments to remote_control_script function')
-    return func, args
-
-
 @func_with_args('nth_os_window', 'nth_window', 'scroll_to_prompt', 'visual_window_select_action_trigger', 'next_layout')
 def single_integer_arg(func: str, rest: str) -> FuncArgsType:
     try:
@@ -731,20 +715,6 @@ def config_or_absolute_path(x: str, env: Optional[Dict[str, str]] = None) -> Opt
     if not x or x.lower() == 'none':
         return None
     return resolve_abs_or_config_path(x, env)
-
-
-def remote_control_password(val: str, current_val: Dict[str, str]) -> Iterable[Tuple[str, Sequence[str]]]:
-    val = val.strip()
-    if val:
-        parts = to_cmdline(val, expand=False)
-        if parts[0].startswith('-'):
-            # this is done so in the future we can add --options to the cmd
-            # line of remote_control_password
-            raise ValueError('Passwords are not allowed to start with hyphens, ignoring this password')
-        if len(parts) == 1:
-            yield parts[0], tuple()
-        else:
-            yield parts[0], tuple(parts[1:])
 
 
 def clipboard_control(x: str) -> Tuple[str, ...]:

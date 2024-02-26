@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # License: GPL v3 Copyright: 2016, Kovid Goyal <kovid at kovidgoyal.net>
 
-import atexit
 import base64
 import json
 import os
@@ -13,7 +12,6 @@ from gettext import gettext as _
 from gettext import ngettext
 from time import monotonic, sleep
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Dict,
@@ -30,7 +28,6 @@ from typing import (
 from weakref import WeakValueDictionary
 
 from .child import cached_process_data, default_env, set_default_env
-from .cli import create_opts, parse_args
 from .cli_stub import CLIOptions
 from .clipboard import (
     Clipboard,
@@ -53,7 +50,6 @@ from .constants import (
     is_wayland,
     kitten_exe,
     alatty_exe,
-    logo_png_file,
     supports_primary_selection,
     website_url,
 )
@@ -88,11 +84,9 @@ from .fast_data_types import (
     mark_os_window_for_close,
     os_window_focus_counters,
     os_window_font_size,
-    patch_global_colors,
     redirect_mouse_handling,
     run_with_activation_token,
     safe_pipe,
-    send_data_to_peer,
     set_application_quit_request,
     set_background_image,
     set_boss,
@@ -112,11 +106,10 @@ from .notify import notification_activated
 from .options.types import Options
 from .options.utils import MINIMUM_FONT_SIZE
 from .os_window_size import initial_window_size_func
-from .rgb import color_from_int
 from .session import Session, create_sessions, get_os_window_sizing_data
 from .shaders import load_shader_programs
 from .tabs import SpecialWindow, SpecialWindowInstance, Tab, TabDict, TabManager
-from .types import _T, AsyncResponse, SingleInstanceData, WindowSystemMouseEvent, ac
+from .types import _T, AsyncResponse, WindowSystemMouseEvent, ac
 from .typing import TypedDict
 from .utils import (
     cleanup_ssh_control_masters,
@@ -129,11 +122,9 @@ from .utils import (
     log_error,
     macos_version,
     open_url,
-    parse_address_spec,
     parse_os_window_state,
     parse_uri_list,
     platform_window_id,
-    remove_socket_file,
     safe_print,
     sanitize_url_for_dispay_to_user,
     single_instance,
@@ -141,9 +132,6 @@ from .utils import (
     which,
 )
 from .window import CommandOutput, CwdRequest, Window
-
-if TYPE_CHECKING:
-    from .rc.base import ResponseType
 
 RCResponse = Union[Dict[str, Any], None, AsyncResponse]
 
@@ -158,20 +146,6 @@ class OSWindowDict(TypedDict):
     wm_class: str
     wm_name: str
     background_opacity: float
-
-
-def listen_on(spec: str) -> Tuple[int, str]:
-    import socket
-    family, address, socket_path = parse_address_spec(spec)
-    s = socket.socket(family)
-    atexit.register(remove_socket_file, s, socket_path)
-    s.bind(address)
-    s.listen()
-    if isinstance(address, tuple):
-        h, resolved_port = s.getsockname()
-        sfamily, host, port = spec.split(':', 2)
-        spec = f'{sfamily}:{host}:{resolved_port}'
-    return s.fileno(), spec
 
 
 def data_for_at(w: Optional[Window], arg: str, add_wrap_markers: bool = False) -> Optional[str]:
@@ -272,20 +246,7 @@ class Boss:
         talk_fd = getattr(single_instance, 'socket', None)
         talk_fd = -1 if talk_fd is None else talk_fd.fileno()
         listen_fd = -1
-        # we dont allow reloading the config file to change
-        # allow_remote_control
-        self.allow_remote_control = opts.allow_remote_control
-        if self.allow_remote_control in ('y', 'yes', 'true'):
-            self.allow_remote_control = 'y'
-        elif self.allow_remote_control in ('n', 'no', 'false'):
-            self.allow_remote_control = 'n'
         self.listening_on = ''
-        if args.listen_on and self.allow_remote_control in ('y', 'socket', 'socket-only', 'password'):
-            try:
-                listen_fd, self.listening_on = listen_on(args.listen_on)
-            except Exception:
-                self.misc_config_errors.append(f'Invalid listen_on={args.listen_on}, ignoring')
-                log_error(self.misc_config_errors[-1])
         self.child_monitor = ChildMonitor(
             self.on_child_death,
             DumpCommands(args) if args.dump_commands or args.dump_bytes else None,
@@ -505,261 +466,6 @@ class Boss:
         assert window.child.pid is not None and window.child.child_fd is not None
         self.child_monitor.add_child(window.id, window.child.pid, window.child.child_fd, window.screen)
         self.window_id_map[window.id] = window
-
-    def _handle_remote_command(self, cmd: str, window: Optional[Window] = None, peer_id: int = 0) -> RCResponse:
-        from .remote_control import is_cmd_allowed, parse_cmd, remote_control_allowed
-        response = None
-        window = window or None
-        from_socket = peer_id > 0
-        is_fd_peer = from_socket and peer_id in self.peer_data_map
-        window_has_remote_control = bool(window and window.allow_remote_control)
-        if not window_has_remote_control and not is_fd_peer:
-            if self.allow_remote_control == 'n':
-                return {'ok': False, 'error': 'Remote control is disabled'}
-            if self.allow_remote_control == 'socket-only' and not from_socket:
-                return {'ok': False, 'error': 'Remote control is allowed over a socket only'}
-        try:
-            pcmd = parse_cmd(cmd, self.encryption_key)
-        except Exception as e:
-            log_error(f'Failed to parse remote command with error: {e}')
-            return response
-        if not pcmd:
-            return response
-        self_window: Optional[Window] = None
-        if window is not None:
-            self_window = window
-        else:
-            try:
-                swid = int(pcmd.get('alatty_window_id', 0))
-            except Exception:
-                pass
-            else:
-                if swid > 0:
-                    self_window = self.window_id_map.get(swid)
-
-        extra_data: Dict[str, Any] = {}
-        try:
-            allowed_unconditionally = (
-                self.allow_remote_control == 'y' or
-                (from_socket and not is_fd_peer and self.allow_remote_control in ('socket-only', 'socket')) or
-                (window and window.remote_control_allowed(pcmd, extra_data)) or
-                (is_fd_peer and remote_control_allowed(pcmd, self.peer_data_map.get(peer_id), None, extra_data))
-            )
-        except PermissionError:
-            return {'ok': False, 'error': 'Remote control disallowed by window specific password'}
-        if allowed_unconditionally:
-            return self._execute_remote_command(pcmd, window, peer_id, self_window)
-        q = is_cmd_allowed(pcmd, window, from_socket, extra_data)
-        if q is True:
-            return self._execute_remote_command(pcmd, window, peer_id, self_window)
-        if q is None:
-            if self.ask_if_remote_cmd_is_allowed(pcmd, window, peer_id, self_window):
-                return AsyncResponse()
-        response = {'ok': False, 'error': 'Remote control is disabled. Add allow_remote_control to your alatty.conf'}
-        if q is False and pcmd.get('password'):
-            response['error'] = 'The user rejected this password or it is disallowed by remote_control_password in alatty.conf'
-        no_response = pcmd.get('no_response') or False
-        if no_response:
-            return None
-        return response
-
-    def ask_if_remote_cmd_is_allowed(
-        self, pcmd: Dict[str, Any], window: Optional[Window] = None, peer_id: int = 0, self_window: Optional[Window] = None
-    ) -> bool:
-        from kittens.tui.operations import styled
-        in_flight = 0
-        for w in self.window_id_map.values():
-            if w.window_custom_type == 'remote_command_permission_dialog':
-                in_flight += 1
-                if in_flight > 4:
-                    log_error('Denying remote command permission as there are too many existing permission requests')
-                    return False
-        wid = 0 if window is None else window.id
-        hidden_text = styled(pcmd['password'], fg='yellow')
-        overlay_window = self.choose(
-            _('A program wishes to control alatty.\n'
-              'Action: {1}\n' 'Password: {0}\n\n' '{2}'
-              ).format(
-                  hidden_text, styled(pcmd['cmd'], fg='magenta'),
-                  '\x1b[m' + styled(_(
-                      'Note that allowing the password will allow all future actions using the same password, in this alatty instance.'
-                  ), dim=True)),
-            partial(self.remote_cmd_permission_received, pcmd, wid, peer_id, self_window),
-            'a;green:Allow request', 'p;yellow:Allow password', 'r;magenta:Deny request', 'd;red:Deny password',
-            window=window, default='a', hidden_text=hidden_text, title=_('Allow remote control?'),
-        )
-        if overlay_window is None:
-            return False
-        overlay_window.window_custom_type = 'remote_command_permission_dialog'
-        return True
-
-    def remote_cmd_permission_received(self, pcmd: Dict[str, Any], window_id: int, peer_id: int, self_window: Optional[Window], choice: str) -> None:
-        from .remote_control import encode_response_for_peer, set_user_password_allowed
-        response: RCResponse = None
-        window = self.window_id_map.get(window_id)
-        choice = choice or 'r'
-        if choice in ('r', 'd'):
-            if choice == 'd':
-                set_user_password_allowed(pcmd['password'], False)
-            no_response = pcmd.get('no_response') or False
-            if not no_response:
-                response = {'ok': False, 'error': 'The user rejected this ' + ('request' if choice == 'r' else 'password')}
-        elif choice in ('a', 'p'):
-            if choice == 'p':
-                set_user_password_allowed(pcmd['password'], True)
-            response = self._execute_remote_command(pcmd, window, peer_id, self_window)
-        if window is not None and response is not None and not isinstance(response, AsyncResponse):
-            window.send_cmd_response(response)
-        if peer_id > 0:
-            if response is None:
-                send_data_to_peer(peer_id, b'')
-            elif not isinstance(response, AsyncResponse):
-                send_data_to_peer(peer_id, encode_response_for_peer(response))
-
-    def _execute_remote_command(
-        self, pcmd: Dict[str, Any], window: Optional[Window] = None, peer_id: int = 0, self_window: Optional[Window] = None
-    ) -> RCResponse:
-        from .remote_control import handle_cmd
-        try:
-            response = handle_cmd(self, window, pcmd, peer_id, self_window)
-        except Exception as err:
-            import traceback
-            response = {'ok': False, 'error': str(err)}
-            if not getattr(err, 'hide_traceback', False):
-                response['tb'] = traceback.format_exc()
-        return response
-
-    @ac('misc', '''
-        Run a remote control command without needing to allow remote control
-
-        For example::
-
-            map f1 remote_control set-spacing margin=30
-
-        See :ref:`rc_mapping` for details.
-        ''')
-    def remote_control(self, *args: str) -> None:
-        try:
-            self.call_remote_control(self.active_window, args)
-        except (Exception, SystemExit) as e:
-            import shlex
-            self.show_error(_('remote_control mapping failed'), shlex.join(args) + '\n' + str(e))
-
-    @ac('misc', '''
-        Run a remote control script without needing to allow remote control
-
-        For example::
-
-            map f1 remote_control_script arg1 arg2 ...
-
-        See :ref:`rc_mapping` for details.
-        ''')
-    def remote_control_script(self, path: str, *args: str) -> None:
-        path = which(path) or path
-        if not os.access(path, os.X_OK):
-            self.show_error('Remote control script not executable', f'The script {path} is not executable check its permissions')
-            return
-        self.run_background_process([path] + list(args), allow_remote_control=True)
-
-    def call_remote_control(self, self_window: Optional[Window], args: Tuple[str, ...]) -> 'ResponseType':
-        from .rc.base import PayloadGetter, command_for_name, parse_subcommand_cli
-        from .remote_control import parse_rc_args
-        aa = list(args)
-        silent = False
-        if aa and aa[0].startswith('!'):
-            aa[0] = aa[0][1:]
-            silent = True
-        try:
-            global_opts, items = parse_rc_args(['@'] + aa)
-            if not items:
-                return None
-            cmd = items[0]
-            c = command_for_name(cmd)
-            opts, items = parse_subcommand_cli(c, items)
-            payload = c.message_to_alatty(global_opts, opts, items)
-        except SystemExit as e:
-            raise Exception(str(e)) from e
-        import types
-        try:
-            if isinstance(payload, types.GeneratorType):
-                for x in payload:
-                    c.response_from_alatty(self, self_window, PayloadGetter(c, x if isinstance(x, dict) else {}))
-                return None
-            return c.response_from_alatty(self, self_window, PayloadGetter(c, payload if isinstance(payload, dict) else {}))
-        except Exception as e:
-            if silent:
-                log_error(f'Failed to run remote_control mapping: {aa} with error: {e}')
-                return None
-            raise
-
-    def peer_message_received(self, msg_bytes: bytes, peer_id: int, is_remote_control: bool) -> Union[bytes, bool, None]:
-        if peer_id > 0 and msg_bytes == b'peer_death':
-            self.peer_data_map.pop(peer_id, None)
-            return False
-        if is_remote_control:
-            cmd_prefix = b'\x1bP@kitty-cmd'
-            terminator = b'\x1b\\'
-            if msg_bytes.startswith(cmd_prefix) and msg_bytes.endswith(terminator):
-                cmd = msg_bytes[len(cmd_prefix):-len(terminator)].decode('utf-8')
-                response = self._handle_remote_command(cmd, peer_id=peer_id)
-                if response is None:
-                    return None
-                if isinstance(response, AsyncResponse):
-                    return True
-                from alatty.remote_control import encode_response_for_peer
-                return encode_response_for_peer(response)
-            log_error('Malformatted remote control message received from peer, ignoring')
-            return None
-
-        try:
-            data:SingleInstanceData = json.loads(msg_bytes.decode('utf-8'))
-        except Exception:
-            log_error('Malformed command received over single instance socket, ignoring')
-            return None
-        if isinstance(data, dict) and data.get('cmd') == 'new_instance':
-            from .cli_stub import CLIOptions
-            startup_id = data['environ'].get('DESKTOP_STARTUP_ID', '')
-            activation_token = data['environ'].get('XDG_ACTIVATION_TOKEN', '')
-            args, rest = parse_args(list(data['args'][1:]), result_class=CLIOptions)
-            cmdline_args_for_open = data.get('cmdline_args_for_open')
-            if cmdline_args_for_open:
-                self.launch_urls(*cmdline_args_for_open, no_replace_window=True)
-                return None
-            args.args = rest
-            opts = create_opts(args)
-            if data['session_data']:
-                if data['session_data'] == 'none':
-                    args.session = 'none'
-                else:
-                    from .session import PreReadSession
-                    args.session = PreReadSession(data['session_data'], data['environ'])
-            else:
-                args.session = ''
-            if not os.path.isabs(args.directory):
-                args.directory = os.path.join(data['cwd'], args.directory)
-            focused_os_window = os_window_id = 0
-            for session in create_sessions(opts, args, respect_cwd=True):
-                os_window_id = self.add_os_window(
-                    session, wclass=args.cls, wname=args.name, opts_for_size=opts, startup_id=startup_id,
-                    override_title=args.title or None)
-                if session.focus_os_window:
-                    focused_os_window = os_window_id
-                if opts.background_opacity != get_options().background_opacity:
-                    self._set_os_window_background_opacity(os_window_id, opts.background_opacity)
-                if data.get('notify_on_os_window_death'):
-                    self.os_window_death_actions[os_window_id] = partial(self.notify_on_os_window_death, data['notify_on_os_window_death'])
-            if focused_os_window > 0:
-                focus_os_window(focused_os_window, True, activation_token)
-            elif activation_token and is_wayland() and os_window_id:
-                focus_os_window(os_window_id, True, activation_token)
-        else:
-            log_error('Unknown message received over single instance socket, ignoring')
-        return None
-
-    def handle_remote_cmd(self, cmd: str, window: Optional[Window] = None) -> None:
-        response = self._handle_remote_command(cmd, window)
-        if response is not None and not isinstance(response, AsyncResponse) and window is not None:
-            window.send_cmd_response(response)
 
     def mark_os_window_for_close(self, os_window_id: int, request_type: int = IMPERATIVE_CLOSE_REQUESTED) -> None:
         mark_os_window_for_close(os_window_id, request_type)
@@ -1261,22 +967,6 @@ class Boss:
         if self.mouse_handler is not None:
             ev = WindowSystemMouseEvent(in_tab_bar, window_id, action, modifiers, button, currently_pressed_button, x, y)
             self.mouse_handler(ev)
-
-    @ac('win', '''
-        Resize the active window interactively
-
-        See :ref:`window_resizing` for details.
-        ''')
-    def start_resizing_window(self) -> None:
-        w = self.active_window
-        if w is None:
-            return
-        overlay_window = self.run_kitten_with_metadata('resize_window', args=[
-            f'--horizontal-increment={get_options().window_resize_step_cells}',
-            f'--vertical-increment={get_options().window_resize_step_lines}'
-        ])
-        if overlay_window is not None:
-            overlay_window.allow_remote_control = True
 
     def resize_layout_window(self, window: Window, increment: float, is_horizontal: bool, reset: bool = False) -> Union[bool, None, str]:
         tab = window.tabref()
@@ -1793,41 +1483,6 @@ class Boss:
                 ],
                 custom_callback=done, action_on_removal=done2)
 
-    @ac('misc', 'Run the alatty shell to control alatty with commands')
-    def alatty_shell(self, window_type: str = 'window') -> None:
-        kw: Dict[str, Any] = {}
-        cmd = [alatty_exe(), '@']
-        aw = self.active_window
-        if aw is not None:
-            env = {'ALATTY_SHELL_ACTIVE_WINDOW_ID': str(aw.id)}
-            at = self.active_tab
-            if at is not None:
-                env['ALATTY_SHELL_ACTIVE_TAB_ID'] = str(at.id)
-            kw['env'] = env
-        if window_type == 'tab':
-            tab = self._new_tab(SpecialWindow(cmd, **kw))
-            if tab is not None:
-                for w in tab:
-                    window = w
-        elif window_type == 'os_window':
-            os_window_id = self._new_os_window(SpecialWindow(cmd, **kw))
-            for tab in self.os_window_map[os_window_id]:
-                for w in tab:
-                    window = w
-        elif window_type == 'overlay':
-            tab = self.active_tab
-            if aw is not None and tab is not None:
-                kw['overlay_for'] = aw.id
-                window = tab.new_special_window(SpecialWindow(cmd, **kw))
-        else:
-            tab = self.active_tab
-            if tab is not None:
-                window = tab.new_special_window(SpecialWindow(cmd, **kw))
-
-        path, ext = os.path.splitext(logo_png_file)
-        window.set_logo(f'{path}-128{ext}', position='bottom-right', alpha=0.25)
-        window.allow_remote_control = True
-
     def switch_focus_to(self, window_id: int) -> None:
         tab = self.active_tab
         if tab:
@@ -1853,8 +1508,6 @@ class Boss:
                     self.drain_actions(actions)
         if not found_action:
             extra_env = {}
-            if self.listening_on:
-                extra_env['ALATTY_LISTEN_ON'] = self.listening_on
 
             def doit(activation_token: str = '') -> None:
                 if activation_token:
@@ -2071,8 +1724,6 @@ class Boss:
         env: Optional[Dict[str, str]] = None,
         stdin: Optional[bytes] = None,
         cwd_from: Optional[CwdRequest] = None,
-        allow_remote_control: bool = False,
-        remote_control_passwords: Optional[Dict[str, Sequence[str]]] = None,
     ) -> None:
         import subprocess
         env = env or None
@@ -2093,21 +1744,6 @@ class Boss:
         def doit(activation_token: str = '') -> None:
             nonlocal env
             pass_fds: Tuple[int, ...] = ()
-            if allow_remote_control:
-                import socket
-                local, remote = socket.socketpair()
-                os.set_inheritable(remote.fileno(), True)
-                lfd = os.dup(local.fileno())
-                local.close()
-                try:
-                    peer_id = self.child_monitor.inject_peer(lfd)
-                except Exception:
-                    os.close(lfd)
-                    remote.close()
-                    raise
-                pass_fds = (remote.fileno(),)
-                add_env('ALATTY_LISTEN_ON', f'fd:{remote.fileno()}')
-                self.peer_data_map[peer_id] = remote_control_passwords
             if activation_token:
                 add_env('XDG_ACTIVATION_TOKEN', activation_token)
             try:
@@ -2124,8 +1760,7 @@ class Boss:
                 else:
                     subprocess.Popen(cmd, env=env, cwd=cwd, preexec_fn=clear_handled_signals, pass_fds=pass_fds, close_fds=True)
             finally:
-                if allow_remote_control:
-                    remote.close()
+                pass
 
         try:
             if is_wayland():
@@ -2235,20 +1870,18 @@ class Boss:
         tab = self.active_tab
         if tab is None:
             return None
-        allow_remote_control = False
         location = None
         if args and args[0].startswith('!'):
             location = args[0][1:].lower()
             args = args[1:]
         if args and args[0] == '@':
             args = args[1:]
-            allow_remote_control = True
         if args:
             return tab.new_special_window(
                 self.args_to_special_window(args, cwd_from=cwd_from),
-                location=location, allow_remote_control=allow_remote_control)
+                location=location)
         else:
-            return tab.new_window(cwd_from=cwd_from, location=location, allow_remote_control=allow_remote_control)
+            return tab.new_window(cwd_from=cwd_from, location=location)
 
     @ac('win', 'Create a new window')
     def new_window(self, *args: str) -> None:
@@ -2282,27 +1915,6 @@ class Boss:
         tm = self.active_tab_manager
         if tm is not None:
             tm.move_tab(-1)
-
-    def patch_colors(self, spec: Dict[str, Optional[int]], configured: bool = False) -> None:
-        from alatty.rc.set_colors import nullable_colors
-        opts = get_options()
-        if configured:
-            for k, v in spec.items():
-                if hasattr(opts, k):
-                    if v is None:
-                        if k in nullable_colors:
-                            setattr(opts, k, None)
-                    else:
-                        setattr(opts, k, color_from_int(v))
-        for tm in self.all_tab_managers:
-            tm.tab_bar.patch_colors(spec)
-            tm.tab_bar.layout()
-            tm.mark_tab_bar_dirty()
-            t = tm.active_tab
-            if t is not None:
-                t.relayout_borders()
-            set_os_window_chrome(tm.os_window_id)
-        patch_global_colors(spec, configured)
 
     def apply_new_options(self, opts: Options) -> None:
         from .fonts.box_drawing import set_scale
@@ -2405,29 +2017,6 @@ class Boss:
                 a(line)
         msg = '\n'.join(ans).rstrip()
         self.show_error(_('Errors parsing configuration'), msg)
-
-    @ac('misc', '''
-        Change colors in the specified windows
-
-        For details, see :ref:`at-set-colors`. For example::
-
-            map f5 set_colors --configured /path/to/some/config/file/colors.conf
-        ''')
-    def set_colors(self, *args: str) -> None:
-        from alatty.rc.base import PayloadGetter, command_for_name, parse_subcommand_cli
-        from alatty.remote_control import parse_rc_args
-        c = command_for_name('set_colors')
-        try:
-            opts, items = parse_subcommand_cli(c, ['set-colors'] + list(args))
-        except (Exception, SystemExit) as err:
-            self.show_error('Invalid set_colors mapping', str(err))
-            return
-        try:
-            payload = c.message_to_alatty(parse_rc_args([])[0], opts, items)
-        except (Exception, SystemExit) as err:
-            self.show_error('Failed to set colors', str(err))
-            return
-        c.response_from_alatty(self, self.active_window, PayloadGetter(c, payload if isinstance(payload, dict) else {}))
 
     def _move_window_to(
         self,

@@ -29,7 +29,6 @@ from .key_encoding import KeyEvent as KeyEventType
 from .layout.base import Layout as LayoutType
 from .options.utils import AliasMap as AliasMap
 from .options.utils import KeyMap as KeyMap
-from .rc.base import RemoteCommand as RemoteCommandType
 from .session import Session as SessionType
 from .session import Tab as SessionTab
 from .tabs import SpecialWindowInstance as SpecialWindowInstance
@@ -63,5 +62,5 @@ __all__ = (
     'TermManagerType', 'BossType', 'ChildType', 'BadLineType', 'MouseButton',
     'KeyActionType', 'KeyMap', 'AlattyCommonOpts', 'AliasMap', 'CoreTextFont', 'WindowSystemMouseEvent',
     'FontConfigPattern', 'ScreenType', 'StartupCtx', 'KeyEventType', 'LayoutType', 'PowerlineStyle',
-    'RemoteCommandType', 'SessionType', 'SessionTab', 'SpecialWindowInstance', 'TabType', 'ScreenSize', 'WindowType'
+    'SessionType', 'SessionTab', 'SpecialWindowInstance', 'TabType', 'ScreenSize', 'WindowType'
 )

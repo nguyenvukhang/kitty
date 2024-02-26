@@ -110,21 +110,6 @@ copy_color_profile(ColorProfile *dest, ColorProfile *src) {
     dest->dirty = true;
 }
 
-static void
-patch_color_table(const char *key, PyObject *profiles, PyObject *spec, size_t which, int change_configured) {
-    PyObject *v = PyDict_GetItemString(spec, key);
-    if (v && PyLong_Check(v)) {
-        color_type color = PyLong_AsUnsignedLong(v);
-        for (Py_ssize_t j = 0; j < PyTuple_GET_SIZE(profiles); j++) {
-            ColorProfile *self = (ColorProfile*)PyTuple_GET_ITEM(profiles, j);
-            self->color_table[which] = color;
-            if (change_configured) self->orig_color_table[which] = color;
-            self->dirty = true;
-        }
-    }
-
-}
-
 #define patch_mark_color(key, profiles, spec, array, i) { \
     PyObject *v = PyDict_GetItemString(spec, key); \
     if (v && PyLong_Check(v)) { \
@@ -135,46 +120,6 @@ patch_color_table(const char *key, PyObject *profiles, PyObject *spec, size_t wh
             self->dirty = true; \
 } } }
 
-
-static PyObject*
-patch_color_profiles(PyObject *module UNUSED, PyObject *args) {
-    PyObject *spec, *profiles, *v; ColorProfile *self; int change_configured;
-    if (!PyArg_ParseTuple(args, "O!O!p", &PyDict_Type, &spec, &PyTuple_Type, &profiles, &change_configured)) return NULL;
-    char key[32] = {0};
-    for (size_t i = 0; i < arraysz(FG_BG_256); i++) {
-        snprintf(key, sizeof(key) - 1, "color%zu", i);
-        patch_color_table(key, profiles, spec, i, change_configured);
-    }
-    for (size_t i = 1; i <= MARK_MASK; i++) {
-#define S(which, i) snprintf(key, sizeof(key) - 1, "mark%zu_" #which, i); patch_mark_color(key, profiles, spec, mark_##which##s, i)
-    S(background, i); S(foreground, i);
-#undef S
-    }
-#define SI(profile_name) \
-    DynamicColor color; \
-    if (PyLong_Check(v)) { \
-        color.rgb = PyLong_AsUnsignedLong(v);  color.type = COLOR_IS_RGB; \
-    } else { color.rgb = 0; color.type = COLOR_IS_SPECIAL; }\
-    self->overridden.profile_name = color; \
-    if (change_configured) self->configured.profile_name = color; \
-    self->dirty = true;
-
-#define S(config_name, profile_name) { \
-    v = PyDict_GetItemString(spec, #config_name); \
-    if (v) { \
-        for (Py_ssize_t i = 0; i < PyTuple_GET_SIZE(profiles); i++) { \
-            self = (ColorProfile*)PyTuple_GET_ITEM(profiles, i); \
-            SI(profile_name); \
-        } \
-    } \
-}
-        S(foreground, default_fg); S(background, default_bg); S(cursor, cursor_color);
-        S(selection_foreground, highlight_fg); S(selection_background, highlight_bg);
-        S(cursor_text_color, cursor_text_color); S(visual_bell_color, visual_bell_color);
-#undef SI
-#undef S
-    Py_RETURN_NONE;
-}
 
 DynamicColor
 colorprofile_to_color(ColorProfile *self, DynamicColor entry, DynamicColor defval) {
@@ -608,7 +553,6 @@ PyTypeObject Color_Type = {
 
 static PyMethodDef module_methods[] = {
     METHODB(default_color_table, METH_NOARGS),
-    METHODB(patch_color_profiles, METH_VARARGS),
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

@@ -1088,9 +1088,7 @@ opt('window_logo_path', 'none',
     long_text='''
 Path to a logo image. Must be in PNG format. Relative paths are interpreted
 relative to the alatty config directory. The logo is displayed in a corner of
-every alatty window. The position is controlled by :opt:`window_logo_position`.
-Individual windows can be configured to have different logos either using the
-:ac:`launch` action or the :doc:`remote control <remote-control>` facility.
+every alatty window.
 '''
     )
 
@@ -2862,91 +2860,6 @@ their stdout/stderr/stdin no longer work.
 '''
     )
 
-opt('+remote_control_password', '',
-    option_type='remote_control_password',
-    add_to_default=False,
-    long_text='''
-Allow other programs to control alatty using passwords. This option can be
-specified multiple times to add multiple passwords. If no passwords are present
-alatty will ask the user for permission if a program tries to use remote control
-with a password. A password can also *optionally* be associated with a set of
-allowed remote control actions. For example::
-
-    remote_control_password "my passphrase" get-colors set-colors focus-window focus-tab
-
-Only the specified actions will be allowed when using this password.
-Glob patterns can be used too, for example::
-
-    remote_control_password "my passphrase" set-tab-* resize-*
-
-To get a list of available actions, run::
-
-    kitten @ --help
-
-A set of actions to be allowed when no password is sent can be specified by
-using an empty password. For example::
-
-    remote_control_password "" *-colors
-
-Finally, the path to a python module can be specified that provides a function
-:code:`is_cmd_allowed` that is used to check every remote control command.
-For example::
-
-    remote_control_password "my passphrase" my_rc_command_checker.py
-
-Relative paths are resolved from the alatty configuration directory.
-See :ref:`rc_custom_auth` for details.
-''')
-
-opt('allow_remote_control', 'no',
-    choices=('password', 'socket-only', 'socket', 'no', 'n', 'false', 'yes', 'y', 'true'),
-    long_text='''
-Allow other programs to control alatty. If you turn this on, other programs can
-control all aspects of alatty, including sending text to alatty windows, opening
-new windows, closing windows, reading the content of windows, etc. Note that
-this even works over SSH connections. The default setting of :code:`no`
-prevents any form of remote control. The meaning of the various values are:
-
-:code:`password`
-    Remote control requests received over both the TTY device and the socket
-    are confirmed based on passwords, see :opt:`remote_control_password`.
-
-:code:`socket-only`
-    Remote control requests received over a socket are accepted
-    unconditionally. Requests received over the TTY are denied.
-    See :opt:`listen_on`.
-
-:code:`socket`
-    Remote control requests received over a socket are accepted
-    unconditionally. Requests received over the TTY are confirmed based on
-    password.
-
-:code:`no`
-    Remote control is completely disabled.
-
-:code:`yes`
-    Remote control requests are always accepted.
-'''
-    )
-
-opt('listen_on', 'none',
-    long_text='''
-Listen to the specified socket for remote control connections. Note that this
-will apply to all alatty instances. It can be overridden by the :option:`alatty
---listen-on` command line option. For UNIX sockets, such as
-:code:`unix:${TEMP}/myalatty` or :code:`unix:@myalatty` (on Linux). Environment
-variables are expanded and relative paths are resolved with respect to the
-temporary directory. If :code:`{alatty_pid}` is present, then it is replaced by
-the PID of the alatty process, otherwise the PID of the alatty process is
-appended to the value, with a hyphen. For TCP sockets such as
-:code:`tcp:localhost:0` a random port is always used even if a non-zero port
-number is specified.  See the help for :option:`alatty --listen-on` for more
-details. Note that this will be ignored unless :opt:`allow_remote_control` is
-set to either: :code:`yes`, :code:`socket` or :code:`socket-only`.
-Changing this option by reloading the config is not supported.
-'''
-    )
-
 opt('+env', '',
     option_type='env',
     add_to_default=False,
@@ -3603,13 +3516,6 @@ directory of the current window using::
 
     map ctrl+alt+enter launch --cwd=current
 
-You can open a new window that is allowed to control alatty via
-the alatty remote control facility with :option:`launch --allow-remote-control`.
-Any programs running in that window will be allowed to control alatty.
-For example::
-
-    map ctrl+enter launch --allow-remote-control some_program
-
 You can open a new window next to the currently active window or as the first
 window, with::
 
@@ -3663,14 +3569,6 @@ map('Move window backward',
 
 map('Move window to top',
     'move_window_to_top alatty_mod+` move_window_to_top',
-    )
-
-map('Start resizing window',
-    'start_resizing_window alatty_mod+r start_resizing_window',
-    )
-map('Start resizing window',
-    'start_resizing_window cmd+r start_resizing_window',
-    only='macos',
     )
 
 map('First window',

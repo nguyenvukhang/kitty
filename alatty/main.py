@@ -366,27 +366,6 @@ def macos_cmdline(argv_args: List[str]) -> List[str]:
     return ans
 
 
-def expand_listen_on(listen_on: str, from_config_file: bool) -> str:
-    if from_config_file and listen_on == 'none':
-        return ''
-    listen_on = expandvars(listen_on)
-    if '{alatty_pid}' not in listen_on and from_config_file and listen_on.startswith('unix:'):
-        listen_on += '-{alatty_pid}'
-    listen_on = listen_on.replace('{alatty_pid}', str(os.getpid()))
-    if listen_on.startswith('unix:'):
-        path = listen_on[len('unix:'):]
-        if not path.startswith('@'):
-            if path.startswith('~'):
-                listen_on = f'unix:{os.path.expanduser(path)}'
-            elif not os.path.isabs(path):
-                import tempfile
-                listen_on = f'unix:{os.path.join(tempfile.gettempdir(), path)}'
-    elif listen_on.startswith('tcp:') or listen_on.startswith('tcp6:'):
-        if from_config_file:  # use a random port
-            listen_on = ':'.join(listen_on.split(':', 2)[:2]) + ':0'
-    return listen_on
-
-
 def safe_samefile(a: str, b: str) -> bool:
     with suppress(OSError):
         return os.path.samefile(a, b)
@@ -445,12 +424,6 @@ def setup_manpath(env: Dict[str, str]) -> None:
 
 
 def setup_environment(opts: Options, cli_opts: CLIOptions) -> None:
-    from_config_file = False
-    if not cli_opts.listen_on:
-        cli_opts.listen_on = opts.listen_on
-        from_config_file = True
-    if cli_opts.listen_on:
-        cli_opts.listen_on = expand_listen_on(cli_opts.listen_on, from_config_file)
     env = opts.env.copy()
     ensure_alatty_in_path()
     ensure_kitten_in_path()

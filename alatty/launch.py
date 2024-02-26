@@ -12,7 +12,7 @@ from .child import Child
 from .cli import parse_args
 from .cli_stub import LaunchCLIOptions
 from .clipboard import set_clipboard_string, set_primary_selection
-from .fast_data_types import add_timer, get_boss, get_options, get_os_window_title, patch_color_profiles
+from .fast_data_types import add_timer, get_boss, get_options, get_os_window_title
 from .options.utils import env as parse_env
 from .tabs import Tab, TabManager
 from .types import OverlayType, run_once
@@ -72,10 +72,7 @@ Where to launch the child process:
 
 :code:`background`
     The process will be run in the :italic:`background`, without a alatty
-    window. Note that if :option:`kitten @ launch --allow-remote-control` is
-    specified the :envvar:`ALATTY_LISTEN_ON` environment variable will be set to
-    a dedicated socket pair file descriptor that the process can use for remote
-    control.
+    window.
 
 :code:`clipboard`, :code:`primary`
     These two are meant to work with :option:`--stdin-source <launch --stdin-source>` to copy
@@ -157,37 +154,6 @@ instead of at the end. The values of :code:`vsplit`, :code:`hsplit` and
 window is placed in a vertical, horizontal or automatic split with the currently
 active window. The default is to place the window in a layout dependent manner,
 typically, after the currently active window.
-
-
---allow-remote-control
-type=bool-set
-Programs running in this window can control alatty (even if remote control is not
-enabled in :file:`alatty.conf`). Note that any program with the right level of
-permissions can still write to the pipes of any other program on the same
-computer and therefore can control alatty. It can, however, be useful to block
-programs running on other computers (for example, over SSH) or as other users.
-See :option:`--remote-control-password` for ways to restrict actions allowed by
-remote control.
-
-
---remote-control-password
-type=list
-Restrict the actions remote control is allowed to take. This works like
-:opt:`remote_control_password`. You can specify a password and list of actions
-just as for :opt:`remote_control_password`. For example::
-
-    --remote-control-password '"my passphrase" get-* set-colors'
-
-This password will be in effect for this window only.
-Note that any passwords you have defined for :opt:`remote_control_password`
-in :file:`alatty.conf` are also in effect. You can override them by using the same password here.
-You can also disable all :opt:`remote_control_password` global passwords for this window, by using::
-
-    --remote-control-password '!'
-
-This option only takes effect if :option:`--allow-remote-control`
-is also specified. Can be specified multiple times to create multiple passwords.
-This option was added to alatty in version 0.26.0
 
 
 --stdin-source
@@ -412,8 +378,6 @@ def load_watch_modules(watchers: Iterable[str]) -> Optional[Watchers]:
 
 class LaunchKwds(TypedDict):
 
-    allow_remote_control: bool
-    remote_control_passwords: Optional[Dict[str, Sequence[str]]]
     cwd_from: Optional[CwdRequest]
     cwd: Optional[str]
     location: Optional[str]
@@ -424,13 +388,6 @@ class LaunchKwds(TypedDict):
     overlay_for: Optional[int]
     stdin: Optional[bytes]
     hold: bool
-
-
-def apply_colors(window: Window, spec: Sequence[str]) -> None:
-    from alatty.rc.set_colors import parse_colors
-    colors = parse_colors(spec)
-    profiles = window.screen.color_profile,
-    patch_color_profiles(colors, profiles, True)
 
 
 def parse_var(defn: Iterable[str]) -> Iterator[Tuple[str, str]]:
@@ -487,16 +444,7 @@ def _launch(
         tm = boss.active_tab_manager
         opts.os_window_title = get_os_window_title(tm.os_window_id) if tm else None
     env = get_env(opts, active_child, base_env)
-    remote_control_restrictions: Optional[Dict[str, Sequence[str]]] = None
-    if opts.allow_remote_control and opts.remote_control_password:
-        from alatty.options.utils import remote_control_password
-        remote_control_restrictions = {}
-        for rcp in opts.remote_control_password:
-            for pw, rcp_items in remote_control_password(rcp, {}):
-                remote_control_restrictions[pw] = rcp_items
     kw: LaunchKwds = {
-        'allow_remote_control': opts.allow_remote_control,
-        'remote_control_passwords': remote_control_restrictions,
         'cwd_from': None,
         'cwd': None,
         'location': None,
@@ -508,10 +456,6 @@ def _launch(
         'stdin': None,
         'hold': False,
     }
-    spacing = {}
-    if opts.spacing:
-        from .rc.set_spacing import parse_spacing_settings, patch_window_edges
-        spacing = parse_spacing_settings(opts.spacing)
     if opts.cwd:
         if opts.cwd == 'current':
             if active:
@@ -598,8 +542,7 @@ def _launch(
         if not cmd:
             raise ValueError('The cmd to run must be specified when running a background process')
         boss.run_background_process(
-            cmd, cwd=kw['cwd'], cwd_from=kw['cwd_from'], env=env or None, stdin=kw['stdin'],
-            allow_remote_control=kw['allow_remote_control'], remote_control_passwords=kw['remote_control_passwords']
+            cmd, cwd=kw['cwd'], cwd_from=kw['cwd_from'], env=env or None, stdin=kw['stdin']
         )
     elif opts.type in ('clipboard', 'primary'):
         stdin = kw.get('stdin')
@@ -619,11 +562,6 @@ def _launch(
             with Window.set_ignore_focus_changes_for_new_windows(opts.keep_focus):
                 new_window: Window = tab.new_window(
                     env=env or None, watchers=watchers or None, is_clone_launch=is_clone_launch, **kw)
-            if spacing:
-                patch_window_edges(new_window, spacing)
-                tab.relayout()
-            if opts.color:
-                apply_colors(new_window, opts.color)
             if opts.keep_focus:
                 if active:
                     boss.set_active_window(active, switch_os_window_if_needed=True, for_keep_focus=True)

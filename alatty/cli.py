@@ -926,23 +926,6 @@ previous instance is found, then :italic:`{appname}` will wait anyway,
 regardless of this option.
 
 
---listen-on
-completion=type:special group:complete_alatty_listen_on
-Listen on the specified socket address for control messages. For example,
-:option:`{appname} --listen-on`=unix:/tmp/myalatty or :option:`{appname}
---listen-on`=tcp:localhost:12345. On Linux systems, you can also use abstract
-UNIX sockets, not associated with a file, like this: :option:`{appname}
---listen-on`=unix:@myalatty. Environment variables are expanded and relative
-paths are resolved with respect to the temporary directory. To control alatty,
-you can send commands to it with :italic:`kitten @` using the
-:option:`kitten @ --to` option to specify this address. Note that if you run
-:italic:`kitten @` within a alatty window, there is no need to specify the
-:option:`kitten @ --to` option as it will automatically read from the
-environment. Note that this will be ignored unless :opt:`allow_remote_control`
-is set to either: :code:`yes`, :code:`socket` or :code:`socket-only`. This can
-also be specified in :file:`alatty.conf`.
-
-
 --start-as
 type=choices
 default=normal

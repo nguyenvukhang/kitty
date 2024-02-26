@@ -14,7 +14,7 @@ from alatty.options.utils import (
     deprecated_send_text, edge_width, env, font_features, hide_window_decorations,
     macos_option_as_alt, macos_titlebar_color, menu_map, modify_font, narrow_symbols,
     notify_on_cmd_finish, optional_edge_width, parse_map, parse_mouse_map, paste_actions,
-    remote_control_password, resize_debounce_time, scrollback_lines, scrollback_pager_history_size,
+    resize_debounce_time, scrollback_lines, scrollback_pager_history_size,
     shell_integration, store_multiple, symbol_map, tab_activity_symbol, tab_bar_edge,
     tab_bar_margin_height, tab_bar_min_tabs, tab_fade, tab_font_style, tab_separator,
     tab_title_template, titlebar_color, to_cursor_shape, to_font_size, to_layout_names, to_modifiers,
@@ -53,14 +53,6 @@ class Parser:
 
     def allow_hyperlinks(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['allow_hyperlinks'] = allow_hyperlinks(val)
-
-    def allow_remote_control(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_allow_remote_control:
-            raise ValueError(f"The value {val} is not a valid choice for allow_remote_control")
-        ans["allow_remote_control"] = val
-
-    choices_for_allow_remote_control = frozenset(('password', 'socket-only', 'socket', 'no', 'n', 'false', 'yes', 'y', 'true'))
 
     def background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['background'] = to_color(val)
@@ -1029,9 +1021,6 @@ class Parser:
 
     choices_for_linux_display_server = frozenset(('auto', 'wayland', 'x11'))
 
-    def listen_on(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['listen_on'] = str(val)
-
     def macos_colorspace(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         val = val.lower()
         if val not in self.choices_for_macos_colorspace:
@@ -1143,10 +1132,6 @@ class Parser:
 
     def remember_window_size(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['remember_window_size'] = to_bool(val)
-
-    def remote_control_password(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        for k, v in remote_control_password(val, ans["remote_control_password"]):
-            ans["remote_control_password"][k] = v
 
     def repaint_delay(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['repaint_delay'] = positive_int(val)
@@ -1413,7 +1398,6 @@ def create_result_dict() -> typing.Dict[str, typing.Any]:
         'menu_map': {},
         'modify_font': {},
         'narrow_symbols': {},
-        'remote_control_password': {},
         'symbol_map': {},
         'watcher': {},
         'map': [],

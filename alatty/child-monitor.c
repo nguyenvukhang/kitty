@@ -45,7 +45,6 @@ typedef struct {
     char *data;
     size_t sz;
     id_type peer_id;
-    bool is_remote_control_peer;
 } Message;
 
 typedef struct {
@@ -509,17 +508,7 @@ parse_input(ChildMonitor *self) {
     if (msgs_count) {
         for (size_t i = 0; i < msgs_count; i++) {
             Message *msg = msgs + i;
-            PyObject *resp = NULL;
-            if (msg->data) {
-                resp = PyObject_CallMethod(global_state.boss, "peer_message_received", "y#KO", msg->data, (int)msg->sz, msg->peer_id, msg->is_remote_control_peer ? Py_True : Py_False);
-                free(msg->data);
-                if (!resp) PyErr_Print();
-            }
-            if (resp) {
-                if (PyBytes_Check(resp)) send_response_to_peer(msg->peer_id, PyBytes_AS_STRING(resp), PyBytes_GET_SIZE(resp));
-                else if (resp == Py_None) send_response_to_peer(msg->peer_id, NULL, 0);
-                Py_CLEAR(resp);
-            } else send_response_to_peer(msg->peer_id, NULL, 0);
+            send_response_to_peer(msg->peer_id, NULL, 0);
         }
         free(msgs); msgs = NULL;
     }
@@ -1608,7 +1597,6 @@ typedef struct {
         size_t capacity, used;
         bool failed;
     } write;
-    bool is_remote_control_peer;
 } Peer;
 static id_type peer_id_counter = 0;
 
@@ -1624,7 +1612,7 @@ typedef struct pollfd PollFD;
 #define nuke_socket(s) { shutdown(s, SHUT_RDWR); safe_close(s, __FILE__, __LINE__); }
 
 static id_type
-add_peer(int peer, bool is_remote_control_peer) {
+add_peer(int peer) {
     id_type ans = 0;
     if (talk_data.num_peers < PEER_LIMIT) {
         ensure_space_for(&talk_data, peers, Peer, talk_data.num_peers + 8, peers_capacity, 8, false);
@@ -1633,7 +1621,6 @@ add_peer(int peer, bool is_remote_control_peer) {
         p->fd = peer; p->id = ++peer_id_counter;
         if (!p->id) p->id = ++peer_id_counter;
         ans = p->id;
-        p->is_remote_control_peer = is_remote_control_peer;
     } else {
         log_error("Too many peers want to talk, ignoring one.");
         nuke_socket(peer);
@@ -1642,14 +1629,14 @@ add_peer(int peer, bool is_remote_control_peer) {
 }
 
 static bool
-accept_peer(int listen_fd, bool shutting_down, bool is_remote_control_peer) {
+accept_peer(int listen_fd, bool shutting_down) {
     int peer = accept(listen_fd, NULL, NULL);
     if (UNLIKELY(peer == -1)) {
         if (errno == EINTR) return true;
         if (!shutting_down) perror("accept() on talk socket failed!");
         return false;
     }
-    add_peer(peer, is_remote_control_peer);
+    add_peer(peer);
     return true;
 }
 
@@ -1676,7 +1663,6 @@ queue_peer_message(ChildMonitor *self, Peer *peer) {
         }
     }
     m->peer_id = peer->id;
-    m->is_remote_control_peer = peer->is_remote_control_peer;
     peer->num_of_unresponded_messages_sent_to_main_thread++;
     talk_mutex(unlock);
     wakeup_main_loop();
@@ -1690,7 +1676,6 @@ notify_on_peer_removal(ChildMonitor *self, const Peer *p) {
     m->data = strdup("peer_death");
     if (m->data) m->sz = strlen("peer_death");
     m->peer_id = p->id;
-    m->is_remote_control_peer = p->id;
 }
 
 static bool
@@ -1836,7 +1821,7 @@ talk_loop(void *data) {
         talk_mutex(lock);
         if (peers_to_inject.num) {
             for (size_t i = 0; i < peers_to_inject.num; i++) {
-                id_type added_peer_id = add_peer(peers_to_inject.fds[i].peer_fd, true);
+                id_type added_peer_id = add_peer(peers_to_inject.fds[i].peer_fd);
                 simple_write_to_pipe(peers_to_inject.fds[i].pipe_fd, &added_peer_id, sizeof(id_type));
                 safe_close(peers_to_inject.fds[i].pipe_fd, __FILE__, __LINE__);
             }
@@ -1864,7 +1849,7 @@ talk_loop(void *data) {
         if (ret > 0) {
             for (size_t i = 0; i < num_listen_fds - 1; i++) {
                 if (fds[i].revents & POLLIN) {
-                    if (!accept_peer(fds[i].fd, self->shutting_down, fds[i].fd == self->listen_fd)) goto end;
+                    if (!accept_peer(fds[i].fd, self->shutting_down)) goto end;
                 }
             }
             if (fds[num_listen_fds - 1].revents & POLLIN) {

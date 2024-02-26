@@ -714,12 +714,6 @@ class ColorProfile:
         pass
 
 
-def patch_color_profiles(
-    spec: Dict[str, Optional[int]], profiles: Tuple[ColorProfile, ...], change_configured: bool
-) -> None:
-    pass
-
-
 def create_canvas(d: bytes, w: int, x: int, y: int, cw: int, ch: int, bpp: int) -> bytes: ...
 
 
