@@ -88,7 +88,6 @@ from .fast_data_types import (
     run_with_activation_token,
     safe_pipe,
     set_application_quit_request,
-    set_background_image,
     set_boss,
     set_options,
     set_os_window_chrome,
@@ -1938,10 +1937,6 @@ class Boss:
             from .fast_data_types import cocoa_recreate_global_menu
             cocoa_recreate_global_menu()
         # Update misc options
-        try:
-            set_background_image(opts.background_image, tuple(self.os_window_map), True, opts.background_image_layout)
-        except Exception as e:
-            log_error(f'Failed to set background image with error: {e}')
         for tm in self.all_tab_managers:
             tm.apply_options()
         # Update colors
@@ -2178,11 +2173,6 @@ class Boss:
                 self._move_tab_to(tab=target_tab, target_os_window_id=os_window_id)
 
         self.choose_entry('Choose an OS window to move the tab to', items, chosen)
-
-    def set_background_image(self, path: Optional[str], os_windows: Tuple[int, ...], configured: bool, layout: Optional[str], png_data: bytes = b'') -> None:
-        set_background_image(path, os_windows, configured, layout, png_data)
-        for os_window_id in os_windows:
-            self.default_bg_changed_for(os_window_id)
 
     # Can be called with alatty -o "map f1 send_test_notification"
     def send_test_notification(self) -> None:
