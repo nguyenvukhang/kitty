@@ -75,103 +75,6 @@ set_alatty_run_data(RunData *run_data, bool from_source, wchar_t *extensions_dir
     return true;
 }
 
-
-#ifdef FOR_BUNDLE
-#include <bypy-freeze.h>
-
-static bool
-canonicalize_path(const char *srcpath, char *dstpath, size_t sz) {
-    // remove . and .. path segments
-    bool ok = false;
-    size_t plen = strlen(srcpath) + 1, chk;
-    RAII_ALLOC(char, wtmp, malloc(plen));
-    RAII_ALLOC(char*, tokv, malloc(sizeof(char*) * plen));
-    if (!wtmp || !tokv) goto end;
-    char *s, *tok, *sav;
-    bool relpath = *srcpath != '/';
-
-    // use a buffer as strtok modifies its input
-    memcpy(wtmp, srcpath, plen);
-
-    tok = strtok_r(wtmp, "/", &sav);
-    int ti = 0;
-    while (tok != NULL) {
-        if (strcmp(tok, "..") == 0) {
-            if (ti > 0) ti--;
-        } else if (strcmp(tok, ".") != 0) {
-            tokv[ti++] = tok;
-        }
-        tok = strtok_r(NULL, "/", &sav);
-    }
-
-    chk = 0;
-    s = dstpath;
-    for (int i = 0; i < ti; i++) {
-        size_t token_sz = strlen(tokv[i]);
-
-        if (i > 0 || !relpath) {
-            if (++chk >= sz) goto end;
-            *s++ = '/';
-        }
-
-        chk += token_sz;
-        if (chk >= sz) goto end;
-
-        memcpy(s, tokv[i], token_sz);
-        s += token_sz;
-    }
-
-    if (s == dstpath) {
-        if (++chk >= sz) goto end;
-        *s++ = relpath ? '.' : '/';
-    }
-    *s = '\0';
-    ok = true;
-
-end:
-    return ok;
-}
-
-static bool
-canonicalize_path_wide(const char *srcpath, wchar_t *dest, size_t sz) {
-    char buf[sz + 1];
-    bool ret = canonicalize_path(srcpath, buf, sz);
-    buf[sz] = 0;
-    mbstowcs(dest, buf, sz - 1);
-    dest[sz-1] = 0;
-    return ret;
-}
-
-static int
-run_embedded(RunData *run_data) {
-    bypy_pre_initialize_interpreter(false);
-    char extensions_dir_full[PATH_MAX+1] = {0}, python_home_full[PATH_MAX+1] = {0};
-#ifdef __APPLE__
-    const char *python_relpath = "../Resources/Python/lib";
-#else
-    const char *python_relpath = "../" ALATTY_LIB_DIR_NAME;
-#endif
-    int num = snprintf(extensions_dir_full, PATH_MAX, "%s/%s/alatty-extensions", run_data->exe_dir, python_relpath);
-    if (num < 0 || num >= PATH_MAX) { fprintf(stderr, "Failed to create path to extensions_dir: %s/%s\n", run_data->exe_dir, python_relpath); return 1; }
-    wchar_t extensions_dir[num+2];
-    if (!canonicalize_path_wide(extensions_dir_full, extensions_dir, num+1)) {
-        fprintf(stderr, "Failed to canonicalize the path: %s\n", extensions_dir_full); return 1; }
-
-    num = snprintf(python_home_full, PATH_MAX, "%s/%s/python%s", run_data->exe_dir, python_relpath, PYVER);
-    if (num < 0 || num >= PATH_MAX) { fprintf(stderr, "Failed to create path to python home: %s/%s\n", run_data->exe_dir, python_relpath); return 1; }
-    wchar_t python_home[num+2];
-    if (!canonicalize_path_wide(python_home_full, python_home, num+1)) {
-        fprintf(stderr, "Failed to canonicalize the path: %s\n", python_home_full); return 1; }
-
-    bypy_initialize_interpreter(
-            L"alatty", python_home, L"alatty_main", extensions_dir, run_data->argc, run_data->argv);
-    if (!set_alatty_run_data(run_data, false, extensions_dir)) return 1;
-    set_sys_bool("frozen", true);
-    return bypy_run_interpreter();
-}
-
-#else
-
 static int
 run_embedded(RunData *run_data) {
     bool from_source = false;
@@ -218,8 +121,6 @@ fail:
     if (PyStatus_IsExit(status)) return status.exitcode;
     Py_ExitStatusException(status);
 }
-
-#endif
 
 // read_exe_path() {{{
 #ifdef __APPLE__
