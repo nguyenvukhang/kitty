@@ -400,27 +400,6 @@ def kitten_clis() -> None:
 
 # Constants {{{
 
-def generate_spinners() -> str:
-    ans = ['package tui', 'import "time"', 'func NewSpinner(name string) *Spinner {', 'var ans *Spinner', 'switch name {']
-    a = ans.append
-    for name, spinner in spinners.items():
-        a(f'case "{serialize_as_go_string(name)}":')
-        a('ans = &Spinner{')
-        a(f'Name: "{serialize_as_go_string(name)}",')
-        a(f'interval: {spinner["interval"]},')
-        frames = ', '.join(f'"{serialize_as_go_string(x)}"' for x in spinner['frames'])
-        a(f'frames: []string{{{frames}}},')
-        a('}')
-    a('}')
-    a('if ans != nil {')
-    a('ans.interval *= time.Millisecond')
-    a('ans.current_frame = -1')
-    a('ans.last_change_at = time.Now().Add(-ans.interval)')
-    a('}')
-    a('return ans}')
-    return '\n'.join(ans)
-
-
 def generate_color_names() -> str:
     selfg = "" if Options.selection_foreground is None else Options.selection_foreground.as_sharp
     selbg = "" if Options.selection_background is None else Options.selection_background.as_sharp
@@ -657,8 +636,6 @@ def main(args: List[str]=sys.argv) -> None:
         f.write(generate_color_names())
     with replace_if_needed('tools/tui/readline/actions_generated.go') as f:
         f.write(generate_readline_actions())
-    with replace_if_needed('tools/tui/spinners_generated.go') as f:
-        f.write(generate_spinners())
     with replace_if_needed('tools/utils/mimetypes_generated.go') as f:
         f.write(generate_mimetypes())
     with replace_if_needed('tools/utils/mimetypes_textual_generated.go') as f:
