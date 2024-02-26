@@ -447,16 +447,6 @@ The set of URL prefixes to look for when detecting a URL under the mouse cursor.
 '''
     )
 
-opt('detect_urls', 'yes',
-    option_type='to_bool', ctype='bool',
-    long_text='''
-Detect URLs under the mouse. Detected URLs are highlighted with an underline and
-the mouse cursor becomes a hand over them. Even if this option is disabled, URLs
-are still clickable. See also the :opt:`underline_hyperlinks` option to control
-how hyperlinks (as opposed to plain text URLs) are displayed.
-'''
-    )
-
 opt('url_excluded_characters', '',
     option_type='python_string', ctype='!url_excluded_characters',
     long_text='''

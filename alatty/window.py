@@ -60,8 +60,6 @@ from .fast_data_types import (
     add_window,
     base64_decode,
     cell_size_for_window,
-    click_mouse_cmd_output,
-    click_mouse_url,
     current_focused_os_window_id,
     encode_key_for_tty,
     get_boss,
@@ -1275,9 +1273,6 @@ class Window:
             if a == 'selection':
                 if self.screen.has_selection():
                     break
-            if a == 'link':
-                if click_mouse_url(self.os_window_id, self.tab_id, self.id):
-                    break
             if a == 'prompt':
                 # Do not send move cursor events too soon after the window is
                 # focused, this is because there are people that click on
@@ -1316,24 +1311,6 @@ class Window:
         txt = get_boss().current_primary_selection_or_clipboard()
         if txt:
             self.paste_with_actions(txt)
-
-    @ac('mouse', '''
-        Select clicked command output
-
-        Requires :ref:`shell_integration` to work
-        ''')
-    def mouse_select_command_output(self) -> None:
-        click_mouse_cmd_output(self.os_window_id, self.tab_id, self.id, True)
-
-    @ac('mouse', '''
-        Show clicked command output in a pager like less
-
-        Requires :ref:`shell_integration` to work
-        ''')
-    def mouse_show_command_output(self) -> None:
-        if click_mouse_cmd_output(self.os_window_id, self.tab_id, self.id, False):
-            self.show_cmd_output(CommandOutput.last_visited, 'Clicked command output')
-    # }}}
 
     def text_for_selection(self, as_ansi: bool = False) -> str:
         sts = get_options().strip_trailing_spaces

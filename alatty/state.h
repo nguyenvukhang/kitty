@@ -83,7 +83,6 @@ typedef struct {
         size_t num, max_prefix_len;
     } url_prefixes;
     char_type *url_excluded_characters;
-    bool detect_urls;
     bool tab_bar_hidden;
     double font_size;
     struct {
@@ -372,7 +371,6 @@ void set_os_window_title_from_window(Window *w, OSWindow *os_window);
 void update_os_window_title(OSWindow *os_window);
 void fake_scroll(Window *w, int amount, bool upwards);
 Window* window_for_window_id(id_type alatty_window_id);
-bool mouse_open_url(Window *w);
 bool mouse_set_last_visited_cmd_output(Window *w);
 bool mouse_select_cmd_output(Window *w);
 bool move_cursor_to_mouse_if_at_shell_prompt(Window *w);

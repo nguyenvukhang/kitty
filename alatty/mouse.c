@@ -346,20 +346,6 @@ handle_mouse_movement_in_alatty(Window *w, int button, bool mouse_cell_changed) 
 
 }
 
-static void
-detect_url(Screen *screen, unsigned int x, unsigned int y) {
-    int hid = screen_detect_url(screen, x, y);
-    screen->current_hyperlink_under_mouse.id = 0;
-    if (hid != 0) {
-        mouse_cursor_shape = POINTER_POINTER;
-        if (hid > 0) {
-            screen->current_hyperlink_under_mouse.id = (hyperlink_id_type)hid;
-            screen->current_hyperlink_under_mouse.x = x;
-            screen->current_hyperlink_under_mouse.y = y;
-        }
-    } else set_mouse_cursor_for_screen(screen);
-}
-
 static bool
 set_mouse_position(Window *w, bool *mouse_cell_changed, bool *cell_half_changed) {
     unsigned int x = 0, y = 0;
@@ -384,7 +370,6 @@ HANDLER(handle_move_event) {
     bool cell_half_changed = false;
     if (!set_mouse_position(w, &mouse_cell_changed, &cell_half_changed)) return;
     Screen *screen = w->render_data.screen;
-    if(OPT(detect_urls)) detect_url(screen, w->mouse_pos.cell_x, w->mouse_pos.cell_y);
     bool in_tracking_mode = (
         screen->modes.mouse_tracking_mode == ANY_MODE ||
         (screen->modes.mouse_tracking_mode == MOTION_MODE && button >= 0));
@@ -462,13 +447,6 @@ add_press(Window *w, int button, int modifiers) {
     }
 }
 #undef N
-
-bool
-mouse_open_url(Window *w) {
-    Screen *screen = w->render_data.screen;
-    detect_url(screen, w->mouse_pos.cell_x, w->mouse_pos.cell_y);
-    return screen_open_url(screen);
-}
 
 bool
 mouse_set_last_visited_cmd_output(Window *w) {

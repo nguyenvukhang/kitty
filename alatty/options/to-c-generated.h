@@ -240,19 +240,6 @@ convert_from_opts_url_prefixes(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_detect_urls(PyObject *val, Options *opts) {
-    opts->detect_urls = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_detect_urls(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "detect_urls");
-    if (ret == NULL) return;
-    convert_from_python_detect_urls(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_url_excluded_characters(PyObject *val, Options *opts) {
     url_excluded_characters(val, opts);
 }
@@ -1134,8 +1121,6 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     convert_from_opts_url_style(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_url_prefixes(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_detect_urls(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_url_excluded_characters(py_opts, opts);
     if (PyErr_Occurred()) return false;

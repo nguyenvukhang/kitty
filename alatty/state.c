@@ -1243,25 +1243,6 @@ pycreate_mock_window(PyObject *self UNUSED, PyObject *args) {
 }
 
 static bool
-click_mouse_url(id_type os_window_id, id_type tab_id, id_type window_id) {
-    bool clicked = false;
-    WITH_WINDOW(os_window_id, tab_id, window_id);
-    clicked = mouse_open_url(window);
-    END_WITH_WINDOW;
-    return clicked;
-}
-
-static bool
-click_mouse_cmd_output(id_type os_window_id, id_type tab_id, id_type window_id, int select_cmd_output) {
-    bool handled = false;
-    WITH_WINDOW(os_window_id, tab_id, window_id);
-    handled = mouse_set_last_visited_cmd_output(window);
-    if (select_cmd_output && handled) handled = mouse_select_cmd_output(window);
-    END_WITH_WINDOW;
-    return handled;
-}
-
-static bool
 move_cursor_to_mouse_if_in_prompt(id_type os_window_id, id_type tab_id, id_type window_id) {
     bool moved = false;
     WITH_WINDOW(os_window_id, tab_id, window_id);
@@ -1308,18 +1289,6 @@ PYWRAP1(set_window_logo) {
     Py_RETURN_FALSE;
 }
 
-
-PYWRAP1(click_mouse_url) {
-    id_type a, b, c; PA("KKK", &a, &b, &c);
-    if (click_mouse_url(a, b, c)) { Py_RETURN_TRUE; }
-    Py_RETURN_FALSE;
-}
-
-PYWRAP1(click_mouse_cmd_output) {
-    id_type a, b, c; int d; PA("KKKp", &a, &b, &c, &d);
-    if (click_mouse_cmd_output(a, b, c, d)) { Py_RETURN_TRUE; }
-    Py_RETURN_FALSE;
-}
 
 PYWRAP1(move_cursor_to_mouse_if_in_prompt) {
     id_type a, b, c; PA("KKK", &a, &b, &c);
@@ -1372,8 +1341,6 @@ static PyMethodDef module_methods[] = {
     MW(current_focused_os_window_id, METH_NOARGS),
     MW(set_options, METH_VARARGS),
     MW(get_options, METH_NOARGS),
-    MW(click_mouse_url, METH_VARARGS),
-    MW(click_mouse_cmd_output, METH_VARARGS),
     MW(move_cursor_to_mouse_if_in_prompt, METH_VARARGS),
     MW(redirect_mouse_handling, METH_O),
     MW(mouse_selection, METH_VARARGS),

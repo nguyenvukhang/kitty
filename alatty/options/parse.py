@@ -922,9 +922,6 @@ class Parser:
 
     choices_for_default_pointer_shape = frozenset(('arrow', 'beam', 'text', 'pointer', 'hand', 'help', 'wait', 'progress', 'crosshair', 'cell', 'vertical-text', 'move', 'e-resize', 'ne-resize', 'nw-resize', 'n-resize', 'se-resize', 'sw-resize', 's-resize', 'w-resize', 'ew-resize', 'ns-resize', 'nesw-resize', 'nwse-resize', 'zoom-in', 'zoom-out', 'alias', 'copy', 'not-allowed', 'no-drop', 'grab', 'grabbing'))
 
-    def detect_urls(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['detect_urls'] = to_bool(val)
-
     def dim_opacity(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['dim_opacity'] = unit_float(val)
 
