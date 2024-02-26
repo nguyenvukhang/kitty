@@ -16,7 +16,6 @@ from typing import (
     TYPE_CHECKING,
     Any,
     Callable,
-    Container,
     Dict,
     Generator,
     Iterable,
@@ -60,12 +59,6 @@ from .constants import (
 )
 from .fast_data_types import (
     CLOSE_BEING_CONFIRMED,
-    GLFW_MOD_ALT,
-    GLFW_MOD_CONTROL,
-    GLFW_MOD_SHIFT,
-    GLFW_MOD_SUPER,
-    GLFW_MOUSE_BUTTON_LEFT,
-    GLFW_PRESS,
     IMPERATIVE_CLOSE_REQUESTED,
     NO_CLOSE_REQUESTED,
     ChildMonitor,
@@ -97,7 +90,6 @@ from .fast_data_types import (
     os_window_font_size,
     patch_global_colors,
     redirect_mouse_handling,
-    ring_bell,
     run_with_activation_token,
     safe_pipe,
     send_data_to_peer,
@@ -114,19 +106,18 @@ from .fast_data_types import (
     toggle_secure_input,
     wrapped_kitten_names,
 )
-from .key_encoding import get_name_to_functional_number_map
 from .keys import Mappings
 from .layout.base import set_layout_options
 from .notify import notification_activated
 from .options.types import Options
-from .options.utils import MINIMUM_FONT_SIZE, KeyboardMode, KeyDefinition
+from .options.utils import MINIMUM_FONT_SIZE
 from .os_window_size import initial_window_size_func
 from .rgb import color_from_int
 from .session import Session, create_sessions, get_os_window_sizing_data
 from .shaders import load_shader_programs
 from .tabs import SpecialWindow, SpecialWindowInstance, Tab, TabDict, TabManager
 from .types import _T, AsyncResponse, SingleInstanceData, WindowSystemMouseEvent, ac
-from .typing import PopenType, TypedDict
+from .typing import TypedDict
 from .utils import (
     cleanup_ssh_control_masters,
     func_name,
@@ -251,72 +242,6 @@ class DumpCommands:  # {{{
 # }}}
 
 
-class VisualSelect:
-
-    def __init__(
-        self,
-        tab_id: int,
-        os_window_id: int,
-        prev_tab_id: Optional[int],
-        prev_os_window_id: Optional[int],
-        title: str,
-        callback: Callable[[Optional[Tab], Optional[Window]], None],
-        reactivate_prev_tab: bool
-    ) -> None:
-        self.tab_id = tab_id
-        self.os_window_id = os_window_id
-        self.prev_tab_id = prev_tab_id
-        self.prev_os_window_id = prev_os_window_id
-        self.callback = callback
-        self.window_ids: List[int] = []
-        self.window_used_for_selection_id = 0
-        self.reactivate_prev_tab = reactivate_prev_tab
-        set_os_window_title(self.os_window_id, title)
-
-    def cancel(self) -> None:
-        self.clear_global_state()
-        self.activate_prev_tab()
-        self.callback(None, None)
-
-    def trigger(self, window_id: int) -> None:
-        boss = self.clear_global_state()
-        self.activate_prev_tab()
-        w = boss.window_id_map.get(window_id)
-        if w is None:
-            self.callback(None, None)
-        else:
-            tab = w.tabref()
-            if tab is None:
-                self.callback(None, None)
-            else:
-                self.callback(tab, w)
-
-    def clear_global_state(self) -> 'Boss':
-        set_os_window_title(self.os_window_id, '')
-        boss = get_boss()
-        redirect_mouse_handling(False)
-        for wid in self.window_ids:
-            w = boss.window_id_map.get(wid)
-            if w is not None:
-                w.screen.set_window_char()
-        if self.window_used_for_selection_id:
-            w = boss.window_id_map.get(self.window_used_for_selection_id)
-            if w is not None:
-                boss.mark_window_for_close(w)
-        return boss
-
-    def activate_prev_tab(self) -> None:
-        if not self.reactivate_prev_tab or self.prev_tab_id is None:
-            return None
-        boss = get_boss()
-        tm = boss.os_window_map.get(self.os_window_id)
-        if tm is not None:
-            t = tm.tab_for_id(self.prev_tab_id)
-            if t is not tm.active_tab and t is not None:
-                tm.set_active_tab(t)
-        if current_focused_os_window_id() != self.prev_os_window_id and self.prev_os_window_id is not None:
-            focus_os_window(self.prev_os_window_id, True)
-
 
 class Boss:
 
@@ -336,7 +261,6 @@ class Boss:
         self.clipboard_buffers: Dict[str, str] = {}
         self.window_id_map: WeakValueDictionary[int, Window] = WeakValueDictionary()
         self.startup_colors = {k: opts[k] for k in opts if isinstance(opts[k], Color)}
-        self.current_visual_select: Optional[VisualSelect] = None
         self.startup_cursor_text_color = opts.cursor_text_color
         # A list of events received so far that are potentially part of a sequence keybinding.
         self.cached_values = cached_values
@@ -838,8 +762,6 @@ class Boss:
             window.send_cmd_response(response)
 
     def mark_os_window_for_close(self, os_window_id: int, request_type: int = IMPERATIVE_CLOSE_REQUESTED) -> None:
-        if self.current_visual_select is not None and self.current_visual_select.os_window_id == os_window_id and request_type == IMPERATIVE_CLOSE_REQUESTED:
-            self.cancel_current_visual_select()
         mark_os_window_for_close(os_window_id, request_type)
 
     def _cleanup_tab_after_window_removal(self, src_tab: Tab) -> None:
@@ -1094,8 +1016,6 @@ class Boss:
         self.close_tab_no_confirm(tab)
 
     def close_tab_no_confirm(self, tab: Tab) -> None:
-        if self.current_visual_select is not None and self.current_visual_select.tab_id == tab.id:
-            self.cancel_current_visual_select()
         for window in tab:
             self.mark_window_for_close(window)
 
@@ -1334,77 +1254,6 @@ class Boss:
     def dispatch_possible_special_key(self, ev: KeyEvent) -> bool:
         return self.mappings.dispatch_possible_special_key(ev)
 
-    def cancel_current_visual_select(self) -> None:
-        if self.current_visual_select:
-            self.current_visual_select.cancel()
-            self.current_visual_select = None
-
-    def visual_window_select_action(
-        self, tab: Tab,
-        callback: Callable[[Optional[Tab], Optional[Window]], None],
-        choose_msg: str,
-        only_window_ids: Container[int] = (),
-        reactivate_prev_tab: bool = False
-    ) -> None:
-        import string
-        self.cancel_current_visual_select()
-        initial_tab_id: Optional[int] = None
-        initial_os_window_id = current_os_window()
-        tm = tab.tab_manager_ref()
-        if tm is not None:
-            if tm.active_tab is not None:
-                initial_tab_id = tm.active_tab.id
-            tm.set_active_tab(tab)
-        if initial_os_window_id != tab.os_window_id:
-            focus_os_window(tab.os_window_id, True)
-        self.current_visual_select = VisualSelect(tab.id, tab.os_window_id, initial_tab_id, initial_os_window_id, choose_msg, callback, reactivate_prev_tab)
-        if tab.current_layout.only_active_window_visible:
-            self.select_window_in_tab_using_overlay(tab, choose_msg, only_window_ids)
-            return
-        km = KeyboardMode('__visual_select__')
-        km.on_action = 'end'
-        fmap = get_name_to_functional_number_map()
-        alphanumerics = get_options().visual_window_select_characters
-        for idx, window in tab.windows.iter_windows_with_number(only_visible=True):
-            if only_window_ids and window.id not in only_window_ids:
-                continue
-            ac = KeyDefinition(definition=f'visual_window_select_action_trigger {window.id}')
-            if idx >= len(alphanumerics):
-                break
-            ch = alphanumerics[idx]
-            window.screen.set_window_char(ch)
-            self.current_visual_select.window_ids.append(window.id)
-            for mods in (0, GLFW_MOD_CONTROL, GLFW_MOD_CONTROL | GLFW_MOD_SHIFT, GLFW_MOD_SUPER, GLFW_MOD_ALT, GLFW_MOD_SHIFT):
-                km.keymap[SingleKey(mods=mods, key=ord(ch.lower()))].append(ac)
-                if ch in string.digits:
-                    km.keymap[SingleKey(mods=mods, key=fmap[f'KP_{ch}'])].append(ac)
-        if len(self.current_visual_select.window_ids) > 1:
-            self.mappings._push_keyboard_mode(km)
-            redirect_mouse_handling(True)
-            self.mouse_handler = self.visual_window_select_mouse_handler
-        else:
-            self.visual_window_select_action_trigger(self.current_visual_select.window_ids[0] if self.current_visual_select.window_ids else 0)
-            if get_options().enable_audio_bell:
-                ring_bell()
-
-    def visual_window_select_action_trigger(self, window_id: int = 0) -> None:
-        if self.current_visual_select:
-            self.current_visual_select.trigger(int(window_id))
-        self.current_visual_select = None
-
-    def visual_window_select_mouse_handler(self, ev: WindowSystemMouseEvent) -> None:
-        tab = self.active_tab
-        if ev.button == GLFW_MOUSE_BUTTON_LEFT and ev.action == GLFW_PRESS and ev.window_id:
-            w = self.window_id_map.get(ev.window_id)
-            if w is not None and tab is not None and w in tab:
-                if self.current_visual_select and self.current_visual_select.tab_id == tab.id:
-                    self.visual_window_select_action_trigger(w.id)
-                else:
-                    self.visual_window_select_action_trigger()
-                return
-        if ev.button > -1 and tab is not None:
-            self.visual_window_select_action_trigger()
-
     def mouse_event(
         self, in_tab_bar: bool, window_id: int, action: int, modifiers: int, button: int,
         currently_pressed_button: int, x: float, y: float
@@ -1412,30 +1261,6 @@ class Boss:
         if self.mouse_handler is not None:
             ev = WindowSystemMouseEvent(in_tab_bar, window_id, action, modifiers, button, currently_pressed_button, x, y)
             self.mouse_handler(ev)
-
-    def select_window_in_tab_using_overlay(self, tab: Tab, msg: str, only_window_ids: Container[int] = ()) -> Optional[Window]:
-        windows: List[Tuple[Optional[int], str]] = []
-        selectable_windows: List[Tuple[int, str]] = []
-        for i, w in tab.windows.iter_windows_with_number(only_visible=False):
-            if only_window_ids and w.id not in only_window_ids:
-                windows.append((None, f'Current window: {w.title}' if w is self.active_window else w.title))
-            else:
-                windows.append((w.id, w.title))
-                selectable_windows.append((w.id, w.title))
-        if len(selectable_windows) < 2:
-            self.visual_window_select_action_trigger(selectable_windows[0][0] if selectable_windows else 0)
-            if get_options().enable_audio_bell:
-                ring_bell()
-            return None
-        cvs = self.current_visual_select
-
-        def chosen(ans: Union[None, int, str]) -> None:
-            q = self.current_visual_select
-            self.current_visual_select = None
-            if cvs and q is cvs:
-                q.trigger(ans if isinstance(ans, int) else 0)
-
-        return self.choose_entry(msg, windows, chosen, hints_args=('--hints-offset=0', '--alphabet', get_options().visual_window_select_characters.lower()))
 
     @ac('win', '''
         Resize the active window interactively
