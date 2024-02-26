@@ -18,7 +18,6 @@ import (
 	"alatty/tools/config"
 	"alatty/tools/tty"
 	"alatty/tools/tui/loop"
-	"alatty/tools/tui/shell_integration"
 	"alatty/tools/utils"
 	"alatty/tools/utils/shlex"
 )
@@ -35,8 +34,6 @@ func read_relevant_alatty_opts(path string) AlattyOpts {
 		switch key {
 		case "shell":
 			ans.Shell = strings.TrimSpace(val)
-		case "shell_integration":
-			ans.Shell_integration = strings.TrimSpace(val)
 		}
 		return nil
 	}
@@ -90,12 +87,6 @@ func find_shell_parent_process() string {
 		if err != nil {
 			return ""
 		}
-		if cmdline, err := p.CmdlineSlice(); err == nil && len(cmdline) > 0 {
-			exe := get_shell_name(filepath.Base(cmdline[0]))
-			if shell_integration.IsSupportedShell(exe) {
-				return exe
-			}
-		}
 	}
 }
 
@@ -126,14 +117,6 @@ func ResolveShellIntegration(shell_integration string) string {
 	return get_effective_ksi_env_var(shell_integration)
 }
 
-func get_shell_name(argv0 string) (ans string) {
-	ans = filepath.Base(argv0)
-	if strings.HasSuffix(strings.ToLower(ans), ".exe") {
-		ans = ans[:len(ans)-4]
-	}
-	return strings.TrimPrefix(ans, "-")
-}
-
 func rc_modification_allowed(ksi string) bool {
 	for _, x := range strings.Split(ksi, " ") {
 		switch x {
@@ -144,24 +127,8 @@ func rc_modification_allowed(ksi string) bool {
 	return ksi != ""
 }
 
-func RunShell(shell_cmd []string, shell_integration_env_var_val, cwd string) (err error) {
-	shell_name := get_shell_name(shell_cmd[0])
+func RunShell(shell_cmd []string, cwd string) (err error) {
 	var shell_env map[string]string
-	if rc_modification_allowed(shell_integration_env_var_val) && shell_integration.IsSupportedShell(shell_name) {
-		oenv := os.Environ()
-		env := make(map[string]string, len(oenv))
-		for _, x := range oenv {
-			if k, v, found := strings.Cut(x, "="); found {
-				env[k] = v
-			}
-		}
-		argv, env, err := shell_integration.Setup(shell_name, shell_integration_env_var_val, shell_cmd, env)
-		if err != nil {
-			return err
-		}
-		shell_cmd = argv
-		shell_env = env
-	}
 	exe := shell_cmd[0]
 	if runtime.GOOS == "darwin" {
 		// ensure shell runs in login mode. On macOS lots of people use ~/.bash_profile instead of ~/.bashrc

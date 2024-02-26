@@ -10,7 +10,6 @@ import (
 
 	"alatty/tools/cli"
 	"alatty/tools/tui"
-	"alatty/tools/tui/shell_integration"
 )
 
 var _ = fmt.Print
@@ -44,17 +43,7 @@ func main(args []string, opts *Options) (rc int, err error) {
 	if os.Getenv("TERM") == "" {
 		os.Setenv("TERM", alatty.DefaultTermName)
 	}
-	if term := os.Getenv("TERM"); term == alatty.DefaultTermName && shell_integration.PathToTerminfoDb(term) == "" {
-		if terminfo_dir, err := shell_integration.EnsureTerminfoFiles(); err == nil {
-			os.Unsetenv("TERMINFO")
-			existing := os.Getenv("TERMINFO_DIRS")
-			if existing != "" {
-				existing = string(os.PathListSeparator) + existing
-			}
-			os.Setenv("TERMINFO_DIRS", terminfo_dir+existing)
-		}
-	}
-	err = tui.RunShell(tui.ResolveShell(opts.Shell), tui.ResolveShellIntegration(opts.ShellIntegration), opts.Cwd)
+	err = tui.RunShell(tui.ResolveShell(opts.Shell), opts.Cwd)
 	if changed {
 		os.Clearenv()
 		for _, entry := range env_before {
