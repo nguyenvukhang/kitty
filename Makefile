@@ -1,71 +1,21 @@
-ifdef V
-	VVAL=--verbose
-endif
-ifdef VERBOSE
-	VVAL=--verbose
-endif
+RG := \rg
+RG += --iglob='!alatty/gl-wrapper.h'
+RG += --iglob='!*.txt'
+RG += '[^a-z0-9_]5[^a-z0-9]'
 
-ifdef FAIL_WARN
-export FAIL_WARN
-endif
+current: build c
 
-all:
-	python3 setup.py $(VVAL)
+build:
+	python3 build.py
 
-test:
-	python3 setup.py $(VVAL) test
+c:
+	./kitty.app/Contents/MacOS/kitty
 
-clean:
-	python3 setup.py $(VVAL) clean
+open:
+	open kitty.app
 
-# A debug build
-debug:
-	python3 setup.py build $(VVAL) --debug
+size:
+	-du -sh ./alatty.app
+	-du -s ./alatty.app
 
-debug-event-loop:
-	python3 setup.py build $(VVAL) --debug --extra-logging=event-loop
-
-# Build with the ASAN and UBSAN sanitizers
-asan:
-	python3 setup.py build $(VVAL) --debug --sanitize
-
-profile:
-	python3 setup.py build $(VVAL) --profile
-
-app:
-	python3 setup.py kitty.app $(VVAL)
-
-linux-package: FORCE
-	rm -rf linux-package
-	python3 setup.py linux-package
-
-FORCE:
-
-man:
-	$(MAKE) -C docs man
-
-html:
-	$(MAKE) -C docs html
-
-dirhtml:
-	$(MAKE) -C docs dirhtml
-
-linkcheck:
-	$(MAKE) -C docs linkcheck
-
-website:
-	./publish.py --only website
-
-docs: man html
-
-
-develop-docs:
-	$(MAKE) -C docs develop-docs
-
-
-prepare-for-cross-compile: clean all
-	python3 setup.py $(VVAL) clean --clean-for-cross-compile
-
-cross-compile:
-	python3 setup.py linux-package --skip-code-generation
-	
+.PHONY: build
