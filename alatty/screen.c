@@ -2183,12 +2183,6 @@ clipboard_control(Screen *self, int code, PyObject *data) {
     else { CALLBACK("clipboard_control", "OO", data, Py_None);}
 }
 
-void
-file_transmission(Screen *self, PyObject *data) {
-    if (PyUnicode_READY(data) != 0) { PyErr_Clear(); return; }
-    CALLBACK("file_transmission", "O", data);
-}
-
 static void
 parse_prompt_mark(Screen *self, PyObject *parts, PromptKind *pk) {
     for (Py_ssize_t i = 0; i < PyList_GET_SIZE(parts); i++) {

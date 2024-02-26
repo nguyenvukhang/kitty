@@ -115,10 +115,6 @@ from .utils import (
 MatchPatternType = Union[Pattern[str], Tuple[Pattern[str], Optional[Pattern[str]]]]
 
 
-if TYPE_CHECKING:
-    from .file_transmission import FileTransmission
-
-
 class CwdRequestType(Enum):
     current: int = auto()
     last_reported: int = auto()
@@ -577,14 +573,6 @@ class Window:
             return False
         from .remote_control import remote_control_allowed
         return remote_control_allowed(pcmd, self.remote_control_passwords, self, extra_data)
-
-    @property
-    def file_transmission_control(self) -> 'FileTransmission':
-        ans: Optional['FileTransmission'] = getattr(self, '_file_transmission', None)
-        if ans is None:
-            from .file_transmission import FileTransmission
-            ans = self._file_transmission = FileTransmission(self.id)
-        return ans
 
     def on_dpi_change(self, font_sz: float) -> None:
         self.update_effective_padding()
@@ -1295,9 +1283,6 @@ class Window:
 
     def send_cmd_response(self, response: Any) -> None:
         self.screen.send_escape_code_to_child(DCS, '@kitty-cmd' + json.dumps(response))
-
-    def file_transmission(self, data: str) -> None:
-        self.file_transmission_control.handle_serialized_command(data)
 
     def clipboard_control(self, data: str, is_partial: Optional[bool] = False) -> None:
         if is_partial is None:

@@ -238,6 +238,3 @@
 
 // Change cursor shape/blink
 #define DECSCUSR 'q'
-
-// File transfer OSC number
-# define FILE_TRANSFER_CODE 5113

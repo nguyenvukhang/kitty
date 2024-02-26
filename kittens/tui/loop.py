@@ -16,7 +16,7 @@ from functools import partial
 from typing import Any, Callable, Dict, Generator, List, NamedTuple, Optional
 
 from alatty.constants import is_macos
-from alatty.fast_data_types import FILE_TRANSFER_CODE, close_tty, normal_tty, open_tty, parse_input_from_terminal, raw_tty
+from alatty.fast_data_types import close_tty, normal_tty, open_tty, parse_input_from_terminal, raw_tty
 from alatty.key_encoding import ALT, CTRL, SHIFT, backspace_key, decode_key_event, enter_key
 from alatty.typing import ImageManagerType, KeyEventType, Protocol
 from alatty.utils import ScreenSize, ScreenSizeGetter, screen_size_function, write_all
@@ -58,7 +58,6 @@ class Debug:
 
 
 debug = Debug()
-ftc_code = str(FILE_TRANSFER_CODE)
 
 
 class TermManager:
@@ -345,10 +344,6 @@ class Loop:
                 data = memoryview(osc.encode('ascii'))
                 payload = standard_b64decode(data[widx+1:]).decode('utf-8')
             self.handler.on_clipboard_response(payload, from_primary)
-        elif q == ftc_code:
-            from alatty.file_transmission import FileTransmissionCommand
-            data = memoryview(osc.encode('ascii'))
-            self.handler.on_file_transfer_response(FileTransmissionCommand.deserialize(data[idx+1:]))
 
     def _on_apc(self, apc: str) -> None:
         if apc.startswith('G'):
