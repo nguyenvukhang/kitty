@@ -292,7 +292,7 @@ class AppRunner:
         set_scale(opts.box_drawing_scale)
         set_options(opts, is_wayland(), args.debug_rendering, args.debug_font_fallback)
         try:
-            set_font_family(opts, debug_font_matching=args.debug_font_fallback)
+            set_font_family(opts)
             _run_app(opts, args, bad_lines)
         finally:
             set_options(None)

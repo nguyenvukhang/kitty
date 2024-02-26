@@ -285,10 +285,8 @@ TINT_PROGRAM: int
 FC_MONO: int = 100
 FC_DUAL: int
 FC_WEIGHT_REGULAR: int
-FC_WEIGHT_BOLD: int
 FC_WIDTH_NORMAL: int
 FC_SLANT_ROMAN: int
-FC_SLANT_ITALIC: int
 BORDERS_PROGRAM: int
 PRESS: int
 RELEASE: int
@@ -400,8 +398,6 @@ def fc_list(
 
 def fc_match(
     family: Optional[str] = None,
-    bold: bool = False,
-    italic: bool = False,
     spacing: int = FC_MONO,
     allow_bitmapped_fonts: bool = False,
     size_in_pts: float = 0.,
@@ -421,8 +417,6 @@ class CoreTextFont(TypedDict):
     postscript_name: str
     family: str
     style: str
-    bold: bool
-    italic: bool
     expanded: bool
     condensed: bool
     color_glyphs: bool
@@ -1003,7 +997,7 @@ def set_font_data(
         [int, int, int, int, int, int, int, float, float, float, float],
         Tuple[Tuple[int, ...], Tuple[Array[c_ubyte], ...]]],
     descriptor_for_idx: Callable[[int], Tuple[FontObject, bool, bool]],
-    bold: int, italic: int, bold_italic: int, num_symbol_fonts: int,
+    num_symbol_fonts: int,
     symbol_maps: Tuple[Tuple[int, int, int], ...], font_sz_in_pts: float,
     font_feature_settings: Dict[str, Tuple[FontFeature, ...]],
     narrow_symbols: Tuple[Tuple[int, int, int], ...],
@@ -1011,7 +1005,7 @@ def set_font_data(
     pass
 
 
-def get_fallback_font(text: str, bold: bool, italic: bool) -> Any:
+def get_fallback_font(text: str) -> Any:
     pass
 
 
@@ -1043,8 +1037,6 @@ class Cursor:
     y: int
     bg: int
     fg: int
-    bold: bool
-    italic: bool
     blink: bool
     shape: int
 

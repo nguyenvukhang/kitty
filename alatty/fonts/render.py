@@ -46,7 +46,7 @@ def get_font_files(opts: Options) -> Dict[str, Any]:
     return get_font_files_fontconfig(opts)
 
 
-def font_for_family(family: str) -> Tuple[FontObject, bool, bool]:
+def font_for_family(family: str) -> FontObject:
     if is_macos:
         return font_for_family_macos(family)
     return font_for_family_fontconfig(family)
@@ -148,10 +148,10 @@ def create_symbol_map(opts: Options) -> Tuple[Tuple[int, int, int], ...]:
     count = 0
     for family in val.values():
         if family not in family_map:
-            font, bold, italic = font_for_family(family)
+            font = font_for_family(family)
             family_map[family] = count
             count += 1
-            current_faces.append((font, bold, italic))
+            current_faces.append((font, False, False))
     sm = tuple((a, b, family_map[f]) for (a, b), f in val.items())
     return sm
 
@@ -184,18 +184,12 @@ def dump_faces(ftypes: List[str], indices: Dict[str, int]) -> None:
             log_error(face_str(face))
 
 
-def set_font_family(opts: Optional[Options] = None, override_font_size: Optional[float] = None, debug_font_matching: bool = False) -> None:
+def set_font_family(opts: Optional[Options] = None, override_font_size: Optional[float] = None) -> None:
     global current_faces
     opts = opts or defaults
     sz = override_font_size or opts.font_size
     font_map = get_font_files(opts)
     current_faces = [(font_map['medium'], False, False)]
-    ftypes = 'bold italic bi'.split()
-    indices = {k: 0 for k in ftypes}
-    for k in ftypes:
-        if k in font_map:
-            indices[k] = len(current_faces)
-            current_faces.append((font_map[k], 'b' in k, 'i' in k))
     before = len(current_faces)
     sm = create_symbol_map(opts)
     ns = create_narrow_symbols(opts)
@@ -204,12 +198,9 @@ def set_font_family(opts: Optional[Options] = None, override_font_size: Optional
     for face, _, _ in current_faces:
         font_features[face['postscript_name']] = find_font_features(face['postscript_name'])
     font_features.update(opts.font_features)
-    if debug_font_matching:
-        dump_faces(ftypes, indices)
     set_font_data(
         render_box_drawing, prerender_function, descriptor_for_idx,
-        indices['bold'], indices['italic'], indices['bi'], num_symbol_fonts,
-        sm, sz, font_features, ns
+        num_symbol_fonts, sm, sz, font_features, ns
     )
 
 
@@ -504,47 +495,3 @@ def display_bitmap(rgb_data: bytes, width: int, height: int) -> None:
         f.write(rgb_data)
     assert len(rgb_data) == 4 * width * height
     show(f.name, width, height, 32)
-
-
-def test_render_string(
-        text: str = 'Hello, world!',
-        family: str = 'monospace',
-        size: float = 64.0,
-        dpi: float = 96.0
-) -> None:
-    from alatty.fast_data_types import concat_cells, current_fonts
-
-    cell_width, cell_height, cells = render_string(text, family, size, dpi)
-    rgb_data = concat_cells(cell_width, cell_height, True, tuple(cells))
-    cf = current_fonts()
-    fonts = [cf['medium'].display_name()]
-    fonts.extend(f.display_name() for f in cf['fallback'])
-    msg = 'Rendered string {} below, with fonts: {}\n'.format(text, ', '.join(fonts))
-    try:
-        print(msg)
-    except UnicodeEncodeError:
-        sys.stdout.buffer.write(msg.encode('utf-8') + b'\n')
-    display_bitmap(rgb_data, cell_width * len(cells), cell_height)
-    print('\n')
-
-
-def test_fallback_font(qtext: Optional[str] = None, bold: bool = False, italic: bool = False) -> None:
-    with setup_for_testing():
-        if qtext:
-            trials = [qtext]
-        else:
-            trials = ['你', 'He\u0347\u0305', '\U0001F929']
-        for text in trials:
-            f = get_fallback_font(text, bold, italic)
-            try:
-                print(text, f)
-            except UnicodeEncodeError:
-                sys.stdout.buffer.write(f'{text} {f}\n'.encode('utf-8'))
-
-
-def showcase() -> None:
-    f = 'monospace' if is_macos else 'Liberation Mono'
-    test_render_string('He\u0347\u0305llo\u0337, w\u0302or\u0306l\u0354d!', family=f)
-    test_render_string('你好,世界', family=f)
-    test_render_string('│😁│🙏│😺│', family=f)
-    test_render_string('A=>>B!=C', family='Fira Code')

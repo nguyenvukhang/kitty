@@ -273,7 +273,7 @@ func (self underline_value) as_sgr(prefix, suffix []string) ([]string, []string)
 // }}}
 
 type sgr_code struct {
-	bold, italic, reverse, dim, strikethrough bool_value
+	reverse, dim, strikethrough bool_value
 	fg, bg, uc                                color_value
 	underline                                 underline_value
 
@@ -311,9 +311,7 @@ func (self url_code) is_empty() bool {
 func (self *sgr_code) update() {
 	p := make([]string, 0, 1)
 	s := make([]string, 0, 1)
-	p, s = self.bold.as_sgr("1", "221", p, s)
 	p, s = self.dim.as_sgr("2", "222", p, s)
-	p, s = self.italic.as_sgr("3", "23", p, s)
 	p, s = self.reverse.as_sgr("7", "27", p, s)
 	p, s = self.strikethrough.as_sgr("9", "29", p, s)
 	p, s = self.underline.as_sgr(p, s)
@@ -346,10 +344,6 @@ func parse_spec(spec string) []escape_code {
 			sgr.fg.from_string(val)
 		case "bg":
 			sgr.bg.from_string(val)
-		case "bold", "b":
-			sgr.bold.from_string(val)
-		case "italic", "i":
-			sgr.italic.from_string(val)
 		case "reverse":
 			sgr.reverse.from_string(val)
 		case "dim", "faint":

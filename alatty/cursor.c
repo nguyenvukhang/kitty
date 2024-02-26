@@ -24,7 +24,7 @@ dealloc(Cursor* self) {
 
 #define EQ(x) (a->x == b->x)
 static int __eq__(Cursor *a, Cursor *b) {
-    return EQ(bold) && EQ(italic) && EQ(strikethrough) && EQ(dim) && EQ(reverse) && EQ(decoration) && EQ(fg) && EQ(bg) && EQ(decoration_fg) && EQ(x) && EQ(y) && EQ(shape) && EQ(non_blinking);
+    return EQ(strikethrough) && EQ(dim) && EQ(reverse) && EQ(decoration) && EQ(fg) && EQ(bg) && EQ(decoration_fg) && EQ(x) && EQ(y) && EQ(shape) && EQ(non_blinking);
 }
 
 static const char* cursor_names[NUM_OF_CURSOR_SHAPES] = { "NO_SHAPE", "BLOCK", "BEAM", "UNDERLINE" };
@@ -33,16 +33,16 @@ static const char* cursor_names[NUM_OF_CURSOR_SHAPES] = { "NO_SHAPE", "BLOCK", "
 static PyObject *
 repr(Cursor *self) {
     return PyUnicode_FromFormat(
-        "Cursor(x=%u, y=%u, shape=%s, blink=%R, fg=#%08x, bg=#%08x, bold=%R, italic=%R, reverse=%R, strikethrough=%R, dim=%R, decoration=%d, decoration_fg=#%08x)",
+        "Cursor(x=%u, y=%u, shape=%s, blink=%R, fg=#%08x, bg=#%08x, reverse=%R, strikethrough=%R, dim=%R, decoration=%d, decoration_fg=#%08x)",
         self->x, self->y, (self->shape < NUM_OF_CURSOR_SHAPES ? cursor_names[self->shape] : "INVALID"),
-        BOOL(!self->non_blinking), self->fg, self->bg, BOOL(self->bold), BOOL(self->italic), BOOL(self->reverse), BOOL(self->strikethrough), BOOL(self->dim), self->decoration, self->decoration_fg
+        BOOL(!self->non_blinking), self->fg, self->bg, BOOL(self->reverse), BOOL(self->strikethrough), BOOL(self->dim), self->decoration, self->decoration_fg
     );
 }
 
 void
 cursor_reset_display_attrs(Cursor *self) {
     self->bg = 0; self->fg = 0; self->decoration_fg = 0;
-    self->decoration = 0; self->bold = false; self->italic = false; self->reverse = false; self->strikethrough = false; self->dim = false;
+    self->decoration = 0; self->reverse = false; self->strikethrough = false; self->dim = false;
 }
 
 
@@ -84,11 +84,11 @@ START_ALLOW_CASE_RANGE
             case 0:
                 cursor_reset_display_attrs(self);  break;
             case 1:
-                self->bold = true;  break;
+                break;
             case 2:
                 self->dim = true; break;
             case 3:
-                self->italic = true;  break;
+                break;
             case 4:
                 if (i < count) { self->decoration = MIN(5, params[i]); i++; }
                 else self->decoration = 1;
@@ -100,13 +100,13 @@ START_ALLOW_CASE_RANGE
             case 21:
                 self->decoration = 2; break;
             case 221:
-                self->bold = false; break;
+                break;
             case 222:
                 self->dim = false; break;
             case 22:
-                self->bold = false;  self->dim = false; break;
+                self->dim = false; break;
             case 23:
-                self->italic = false;  break;
+                break;
             case 24:
                 self->decoration = 0;  break;
             case 27:
@@ -158,11 +158,9 @@ apply_sgr_to_cells(GPUCell *first_cell, unsigned int cell_count, int *params, un
             }
                 break;
             case 1:
-                S(bold, true);
             case 2:
                 S(dim, true);
             case 3:
-                S(italic, true);
             case 4: {
                 uint8_t val = 1;
                 if (i < count) { val = MIN(5, params[i]); i++; }
@@ -175,13 +173,11 @@ apply_sgr_to_cells(GPUCell *first_cell, unsigned int cell_count, int *params, un
             case 21:
                 S(decoration, 2);
             case 221:
-                S(bold, false);
             case 222:
                 S(dim, false);
             case 22:
-                RANGE { cell->attrs.bold = false; cell->attrs.dim = false; } break;
+                RANGE { cell->attrs.dim = false; } break;
             case 23:
-                S(italic, false);
             case 24:
                 S(decoration, 0);
             case 27:
@@ -245,7 +241,7 @@ void cursor_reset(Cursor *self) {
 void cursor_copy_to(Cursor *src, Cursor *dest) {
 #define CCY(x) dest->x = src->x;
     CCY(x); CCY(y); CCY(shape); CCY(non_blinking);
-    CCY(bold); CCY(italic); CCY(strikethrough); CCY(dim); CCY(reverse); CCY(decoration); CCY(fg); CCY(bg); CCY(decoration_fg);
+    CCY(strikethrough); CCY(dim); CCY(reverse); CCY(decoration); CCY(fg); CCY(bg); CCY(decoration_fg);
 }
 
 static PyObject*
@@ -254,8 +250,6 @@ copy(Cursor *self, PyObject*);
 
 // Boilerplate {{{
 
-BOOL_GETSET(Cursor, bold)
-BOOL_GETSET(Cursor, italic)
 BOOL_GETSET(Cursor, reverse)
 BOOL_GETSET(Cursor, strikethrough)
 BOOL_GETSET(Cursor, dim)
@@ -277,8 +271,6 @@ static PyMemberDef members[] = {
 };
 
 static PyGetSetDef getseters[] = {
-    GETSET(bold)
-    GETSET(italic)
     GETSET(reverse)
     GETSET(strikethrough)
     GETSET(dim)

@@ -11,8 +11,8 @@
 
 typedef struct {bool created;} *FreeTypeRenderCtx;
 
-FreeTypeRenderCtx create_freetype_render_context(const char *family, bool bold, bool italic);
-void set_main_face_family(FreeTypeRenderCtx ctx, const char *family, bool bold, bool italic);
+FreeTypeRenderCtx create_freetype_render_context(const char *family);
+void set_main_face_family(FreeTypeRenderCtx ctx, const char *family);
 bool render_single_line(FreeTypeRenderCtx ctx, const char *text, unsigned sz_px, uint32_t fg, uint32_t bg, uint8_t *output_buf, size_t width, size_t height, float x_offset, float y_offset, size_t right_margin);
 uint8_t* render_single_ascii_char_as_mask(FreeTypeRenderCtx ctx_, const char ch, size_t *result_width, size_t *result_height);
 void release_freetype_render_context(FreeTypeRenderCtx ctx);
@@ -24,9 +24,9 @@ typedef struct FontConfigFace {
     int hintstyle;
 } FontConfigFace;
 
-bool information_for_font_family(const char *family, bool bold, bool italic, FontConfigFace *ans);
+bool information_for_font_family(const char *family, FontConfigFace *ans);
 FT_Face native_face_from_path(const char *path, int index);
-bool fallback_font(char_type ch, const char *family, bool bold, bool italic, bool prefer_color, FontConfigFace *ans);
+bool fallback_font(char_type ch, const char *family, bool prefer_color, FontConfigFace *ans);
 bool freetype_convert_mono_bitmap(FT_Bitmap *src, FT_Bitmap *dest);
 FT_Library freetype_library(void);
 void set_freetype_error(const char* prefix, int err_code);

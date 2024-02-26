@@ -56,8 +56,6 @@ option_names = (  # {{{
  'bell_border_color',
  'bell_on_tab',
  'bell_path',
- 'bold_font',
- 'bold_italic_font',
  'box_drawing_scale',
  'clear_all_mouse_actions',
  'clear_all_shortcuts',
@@ -360,7 +358,6 @@ option_names = (  # {{{
  'initial_window_height',
  'initial_window_width',
  'input_delay',
- 'italic_font',
  'kitten_alias',
  'alatty_mod',
  'linux_bell_theme',
@@ -481,8 +478,6 @@ class Options:
     bell_border_color: Color = Color(255, 90, 0)
     bell_on_tab: str = '🔔 '
     bell_path: typing.Optional[str] = None
-    bold_font: str = 'auto'
-    bold_italic_font: str = 'auto'
     box_drawing_scale: typing.Tuple[float, float, float, float] = (0.001, 1.0, 1.5, 2.0)
     clear_all_mouse_actions: bool = False
     clear_all_shortcuts: bool = False
@@ -526,7 +521,6 @@ class Options:
     initial_window_height: typing.Tuple[int, str] = (400, 'px')
     initial_window_width: typing.Tuple[int, str] = (640, 'px')
     input_delay: int = 3
-    italic_font: str = 'auto'
     alatty_mod: int = 5
     linux_bell_theme: str = '__custom'
     linux_display_server: choices_for_linux_display_server = 'auto'

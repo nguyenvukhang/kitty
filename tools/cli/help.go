@@ -29,7 +29,7 @@ func ShowError(err error) {
 }
 
 func (self *Command) version_string(formatter *markup.Context) string {
-	return fmt.Sprintln(formatter.Italic(self.CommandStringForUsage()), formatter.Opt(alatty.VersionString), "created by", formatter.Title("Kovid Goyal"))
+	return fmt.Sprintln(self.CommandStringForUsage(), formatter.Opt(alatty.VersionString), "created by", formatter.Title("Kovid Goyal"))
 }
 
 func (self *Command) ShowVersion() {
@@ -114,7 +114,7 @@ func (self *Option) FormatOption(output io.Writer, formatter *markup.Context, sc
 		defval = ""
 	}
 	if defval != "" {
-		fmt.Fprintf(output, " [=%s]", formatter.Italic(defval))
+		fmt.Fprintf(output, " [=%s]", defval)
 	}
 	fmt.Fprintln(output)
 	format_with_indent(output, formatter.Prettify(prepare_help_text_for_display(self.Help)), "    ", screen_width)
@@ -241,7 +241,7 @@ func (self *Command) ShowHelpWithCommandString(cs string) {
 		self.FormatSubCommands(&output, formatter, screen_width)
 		fmt.Fprintln(&output)
 		format_with_indent(&output, "Get help for an individual command by running:", "", screen_width)
-		fmt.Fprintln(&output, "   ", strings.TrimSpace(self.CommandStringForUsage()), formatter.Italic("command"), "-h")
+		fmt.Fprintln(&output, "   ", strings.TrimSpace(self.CommandStringForUsage()), "command", "-h")
 	}
 
 	group_titles, gmap := self.GetVisibleOptions()

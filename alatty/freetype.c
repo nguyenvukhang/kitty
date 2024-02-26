@@ -437,7 +437,7 @@ freetype_convert_mono_bitmap(FT_Bitmap *src, FT_Bitmap *dest) {
 }
 
 static bool
-render_bitmap(Face *self, int glyph_id, ProcessedBitmap *ans, unsigned int cell_width, unsigned int cell_height, unsigned int num_cells, bool bold, bool italic, bool rescale, FONTS_DATA_HANDLE fg) {
+render_bitmap(Face *self, int glyph_id, ProcessedBitmap *ans, unsigned int cell_width, unsigned int cell_height, unsigned int num_cells, bool rescale, FONTS_DATA_HANDLE fg) {
     if (!load_glyph(self, glyph_id, FT_LOAD_RENDER)) return false;
     unsigned int max_width = cell_width * num_cells;
 
@@ -453,7 +453,7 @@ render_bitmap(Face *self, int glyph_id, ProcessedBitmap *ans, unsigned int cell_
 
     if (ans->width > max_width) {
         size_t extra = ans->width - max_width;
-        if (italic && extra < cell_width / 2) {
+        if (extra < cell_width / 2) {
             trim_borders(ans, extra);
         } else if (extra == 2 && num_cells == 1) {
             // there exist fonts that have bitmaps just a couple of pixels
@@ -464,7 +464,7 @@ render_bitmap(Face *self, int glyph_id, ProcessedBitmap *ans, unsigned int cell_
             float ar = (float)max_width / (float)ans->width;
             if (set_font_size(self, (FT_F26Dot6)((float)self->char_width * ar), (FT_F26Dot6)((float)self->char_height * ar), self->xdpi, self->ydpi, 0, fg->cell_height)) {
                 free_processed_bitmap(ans);
-                if (!render_bitmap(self, glyph_id, ans, cell_width, cell_height, num_cells, bold, italic, false, fg)) return false;
+                if (!render_bitmap(self, glyph_id, ans, cell_width, cell_height, num_cells, false, fg)) return false;
                 if (!set_font_size(self, char_width, char_height, self->xdpi, self->ydpi, 0, fg->cell_height)) return false;
             } else return false;
         }
@@ -603,7 +603,7 @@ place_bitmap_in_canvas(pixel *cell, ProcessedBitmap *bm, size_t cell_width, size
 static const ProcessedBitmap EMPTY_PBM = {.factor = 1};
 
 bool
-render_glyphs_in_cells(PyObject *f, bool bold, bool italic, hb_glyph_info_t *info, hb_glyph_position_t *positions, unsigned int num_glyphs, pixel *canvas, unsigned int cell_width, unsigned int cell_height, unsigned int num_cells, unsigned int baseline, bool *was_colored, FONTS_DATA_HANDLE fg, bool center_glyph) {
+render_glyphs_in_cells(PyObject *f, hb_glyph_info_t *info, hb_glyph_position_t *positions, unsigned int num_glyphs, pixel *canvas, unsigned int cell_width, unsigned int cell_height, unsigned int num_cells, unsigned int baseline, bool *was_colored, FONTS_DATA_HANDLE fg, bool center_glyph) {
     Face *self = (Face*)f;
     bool is_emoji = *was_colored; *was_colored = is_emoji && self->has_color;
     float x = 0.f, y = 0.f, x_offset = 0.f;
@@ -616,14 +616,14 @@ render_glyphs_in_cells(PyObject *f, bool bold, bool italic, hb_glyph_info_t *inf
             if (*was_colored) {
                 if (!render_color_bitmap(self, info[i].codepoint, &bm, cell_width, cell_height, num_cells, baseline)) {
                     if (PyErr_Occurred()) PyErr_Print();
-                    if (!render_bitmap(self, info[i].codepoint, &bm, cell_width, cell_height, num_cells, bold, italic, true, fg)) {
+                    if (!render_bitmap(self, info[i].codepoint, &bm, cell_width, cell_height, num_cells, true, fg)) {
                         free_processed_bitmap(&bm);
                         return false;
                     }
                     *was_colored = false;
                 }
             } else {
-                if (!render_bitmap(self, info[i].codepoint, &bm, cell_width, cell_height, num_cells, bold, italic, true, fg)) {
+                if (!render_bitmap(self, info[i].codepoint, &bm, cell_width, cell_height, num_cells, true, fg)) {
                     free_processed_bitmap(&bm);
                     return false;
                 }

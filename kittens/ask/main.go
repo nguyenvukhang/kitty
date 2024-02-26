@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"alatty/tools/cli"
-	"alatty/tools/cli/markup"
 	"alatty/tools/tui"
 )
 
@@ -20,8 +19,7 @@ type Response struct {
 
 func show_message(msg string) {
 	if msg != "" {
-		m := markup.New(true)
-		fmt.Println(m.Bold(msg))
+		fmt.Println(msg)
 	}
 }
 

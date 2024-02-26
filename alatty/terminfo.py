@@ -248,10 +248,6 @@ string_capabilities = {
     'dsl': r'\E]2;\E\\',
     # Move to specified line
     'vpa': r'\E[%i%p1%dd',
-    # Enter italics mode
-    'sitm': r'\E[3m',
-    # Leave italics mode
-    'ritm': r'\E[23m',
     # Select alternate charset
     'smacs': r'\E(0',
     'rmacs': r'\E(B',

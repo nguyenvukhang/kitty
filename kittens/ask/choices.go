@@ -142,7 +142,7 @@ func GetChoices(o *Options) (response string, err error) {
 				var t string
 				t, text = truncate_at_space(text, width)
 				t = strings.TrimSpace(t)
-				msg_lines = append(msg_lines, strings.Repeat(" ", extra_for(wcswidth.Stringwidth(t), width))+m.Bold(prefix+t))
+				msg_lines = append(msg_lines, strings.Repeat(" ", extra_for(wcswidth.Stringwidth(t), width))+prefix+t)
 			}
 		}
 		return msg_lines

@@ -677,11 +677,7 @@ def tab_bar_edge(x: str) -> int:
 
 
 def tab_font_style(x: str) -> Tuple[bool, bool]:
-    return {
-        'bold-italic': (True, True),
-        'bold': (True, False),
-        'italic': (False, True)
-    }.get(x.lower().replace('_', '-'), (False, False))
+    return (False, False)
 
 
 def tab_bar_min_tabs(x: str) -> int:

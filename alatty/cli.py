@@ -246,23 +246,13 @@ def yellow(x: str) -> str:
 
 
 @role
-def italic(x: str) -> str:
-    return surround(x, 3, 23)
-
-
-@role
-def bold(x: str) -> str:
-    return surround(x, 1, 22)
-
-
-@role
 def title(x: str) -> str:
-    return blue(bold(x))
+    return blue(x)
 
 
 @role
 def opt(text: str) -> str:
-    return bold(text)
+    return text
 
 
 @role
@@ -272,7 +262,7 @@ def option(x: str) -> str:
         idx = x.find('-')
     if idx > -1:
         x = x[idx:]
-    return bold(x.rstrip('>'))
+    return x.rstrip('>')
 
 
 @role
@@ -326,7 +316,7 @@ def hyperlink_for_path(path: str, text: str) -> str:
 def file(x: str) -> str:
     if x == 'alatty.conf':
         x = hyperlink_for_path(os.path.join(config_dir, x), x)
-    return italic(x)
+    return x
 
 
 @role
@@ -489,7 +479,7 @@ def version(add_rev: bool = False) -> str:
     if add_rev:
         if getattr(fast_data_types, 'ALATTY_VCS_REV', ''):
             rev = f' ({fast_data_types.ALATTY_VCS_REV[:10]})'
-    return '{} {}{} created by {}'.format(italic(appname), green(str_version), rev, title('Kovid Goyal'))
+    return '{} {}{} created by {}'.format(appname, green(str_version), rev, title('Kovid Goyal'))
 
 
 def wrap(text: str, limit: int = 80) -> Iterator[str]:
@@ -588,7 +578,7 @@ class PrintHelpForSeq:
 
         usage = '[program-to-run ...]' if usage is None else usage
         optstring = '[options] ' if seq else ''
-        a('{}: {} {}{}'.format(title('Usage'), bold(yellow(appname)), optstring, usage))
+        a('{}: {} {}{}'.format(title('Usage'), yellow(appname), optstring, usage))
         a('')
         message = message or default_msg
         # replace rst literal code block syntax
@@ -608,7 +598,7 @@ class PrintHelpForSeq:
             defval = opt.get('default')
             if not opt.get('type', '').startswith('bool-'):
                 if defval:
-                    dt = '=[{}]'.format(italic(defval))
+                    dt = '=[{}]'.format(defval)
                     blocks[-1] += dt
             if opt.get('help'):
                 t = help_text.replace('%default', str(defval)).strip()

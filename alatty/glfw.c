@@ -663,7 +663,7 @@ static FreeTypeRenderCtx csd_title_render_ctx = NULL;
 static bool
 ensure_csd_title_render_ctx(void) {
     if (!csd_title_render_ctx) {
-        csd_title_render_ctx = create_freetype_render_context(NULL, true, false);
+        csd_title_render_ctx = create_freetype_render_context(NULL);
         if (!csd_title_render_ctx) {
             if (PyErr_Occurred()) PyErr_Print();
             return false;

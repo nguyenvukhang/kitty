@@ -55,7 +55,7 @@ func (self *sgr_color) from_extended(nums []int) bool {
 }
 
 type sgr_state struct {
-	italic, reverse, bold, dim, strikethrough bool
+	reverse, dim, strikethrough bool
 	underline_style                           underline_style
 	fg, bg, uc                                sgr_color
 }
@@ -67,14 +67,8 @@ func (self *sgr_state) reset() {
 func (self sgr_state) as_sgr(for_close bool) string {
 	ans := make([]byte, 0, 32)
 	if for_close {
-		if self.bold {
-			ans = append(ans, "221;"...)
-		}
 		if self.dim {
 			ans = append(ans, "222;"...)
-		}
-		if self.italic {
-			ans = append(ans, "23;"...)
 		}
 		if self.reverse {
 			ans = append(ans, "27;"...)
@@ -95,14 +89,8 @@ func (self sgr_state) as_sgr(for_close bool) string {
 			ans = append(ans, "59;"...)
 		}
 	} else {
-		if self.bold {
-			ans = append(ans, "1;"...)
-		}
 		if self.dim {
 			ans = append(ans, "2;"...)
-		}
-		if self.italic {
-			ans = append(ans, "3;"...)
 		}
 		if self.reverse {
 			ans = append(ans, "7;"...)
@@ -166,19 +154,13 @@ func (self *sgr_state) apply_csi(raw string) {
 		case 0:
 			self.reset()
 		case 1:
-			self.dim, self.bold = false, true
-		case 221:
-			self.bold = false
+      self.dim = false
 		case 2:
-			self.dim, self.bold = true, false
+			self.dim = true
 		case 222:
 			self.dim = false
 		case 22:
-			self.dim, self.bold = false, false
-		case 3:
-			self.italic = true
-		case 23:
-			self.italic = false
+			self.dim = false
 		case 7:
 			self.reverse = true
 		case 27:

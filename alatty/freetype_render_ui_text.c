@@ -17,7 +17,6 @@
 
 typedef struct FamilyInformation {
     char *name;
-    bool bold, italic;
 } FamilyInformation;
 
 typedef struct Face {
@@ -77,15 +76,13 @@ cleanup(RenderCtx *ctx) {
 }
 
 void
-set_main_face_family(FreeTypeRenderCtx ctx_, const char *family, bool bold, bool italic) {
+set_main_face_family(FreeTypeRenderCtx ctx_, const char *family) {
     RenderCtx *ctx = (RenderCtx*)ctx_;
     if (
-        (family == main_face_family.name || (main_face_family.name && strcmp(family, main_face_family.name) == 0)) &&
-        main_face_family.bold == bold && main_face_family.italic == italic
+        (family == main_face_family.name || (main_face_family.name && strcmp(family, main_face_family.name) == 0))
     ) return;
     cleanup(ctx);
     main_face_family.name = family ? strdup(family) : NULL;
-    main_face_family.bold = bold; main_face_family.italic = italic;
 }
 
 static int
@@ -264,7 +261,7 @@ find_fallback_font_for(RenderCtx *ctx, char_type codep, char_type next_codep) {
     bool prefer_color = false;
     char_type string[3] = {codep, next_codep, 0};
     if (wcswidth_string(string) >= 2 && is_emoji_presentation_base(codep)) prefer_color = true;
-    if (!fallback_font(codep, main_face_family.name, main_face_family.bold, main_face_family.italic, prefer_color, &q)) return NULL;
+    if (!fallback_font(codep, main_face_family.name, prefer_color, &q)) return NULL;
     ensure_space_for(&main_face, fallbacks, Face, main_face.count + 1, capacity, 8, true);
     Face *ans = main_face.fallbacks + main_face.count;
     bool ok = load_font(&q, ans);
@@ -553,11 +550,10 @@ render_single_ascii_char_as_mask(FreeTypeRenderCtx ctx_, const char ch, size_t *
 }
 
 FreeTypeRenderCtx
-create_freetype_render_context(const char *family, bool bold, bool italic) {
+create_freetype_render_context(const char *family) {
     RenderCtx *ctx = calloc(1, sizeof(RenderCtx));
     main_face_family.name = family ? strdup(family) : NULL;
-    main_face_family.bold = bold; main_face_family.italic = italic;
-    if (!information_for_font_family(main_face_family.name, main_face_family.bold, main_face_family.italic, &main_face_information)) return NULL;
+    if (!information_for_font_family(main_face_family.name, &main_face_information)) return NULL;
     if (!load_font(&main_face_information, &main_face)) return NULL;
     hb_buffer = hb_buffer_create();
     if (!hb_buffer) { PyErr_NoMemory(); return NULL; }
@@ -574,15 +570,14 @@ render_line(PyObject *self UNUSED, PyObject *args, PyObject *kw) {
     // alatty +runpy "from alatty.fast_data_types import *; open('/tmp/test.rgba', 'wb').write(freetype_render_line())" && convert -size 800x60 -depth 8 /tmp/test.rgba /tmp/test.png && icat /tmp/test.png
     const char *text = "Test 猫 H🐱🚀b rendering with ellipsis for cut off text", *family = NULL;
     unsigned int width = 800, height = 60, right_margin = 0;
-    int bold = 0, italic = 0;
     unsigned long fg = 0, bg = 0xfffefefe;
     float x_offset = 0, y_offset = 0;
-    static const char* kwlist[] = {"text", "width", "height", "font_family", "bold", "italic", "fg", "bg", "x_offset", "y_offset", "right_margin", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "|sIIzppkkffI", (char**)kwlist, &text, &width, &height, &family, &bold, &italic, &fg, &bg, &x_offset, &y_offset, &right_margin)) return NULL;
+    static const char* kwlist[] = {"text", "width", "height", "font_family", "fg", "bg", "x_offset", "y_offset", "right_margin", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "|sIIzkkffI", (char**)kwlist, &text, &width, &height, &family, &fg, &bg, &x_offset, &y_offset, &right_margin)) return NULL;
     PyObject *ans = PyBytes_FromStringAndSize(NULL, (Py_ssize_t)width * height * 4);
     if (!ans) return NULL;
     uint8_t *buffer = (uint8_t*) PyBytes_AS_STRING(ans);
-    RenderCtx *ctx = (RenderCtx*)create_freetype_render_context(family, bold, italic);
+    RenderCtx *ctx = (RenderCtx*)create_freetype_render_context(family);
     if (!ctx) return NULL;
     if (!render_single_line((FreeTypeRenderCtx)ctx, text, 3 * height / 4, 0, 0xffffffff, buffer, width, height, x_offset, y_offset, right_margin)) {
         Py_CLEAR(ans);
@@ -605,10 +600,10 @@ render_line(PyObject *self UNUSED, PyObject *args, PyObject *kw) {
 
 static PyObject*
 path_for_font(PyObject *self UNUSED, PyObject *args) {
-    const char *family = NULL; int bold = 0, italic = 0;
-    if (!PyArg_ParseTuple(args, "|zpp", &family, &bold, &italic)) return NULL;
+    const char *family = NULL;
+    if (!PyArg_ParseTuple(args, "|z", &family)) return NULL;
     FontConfigFace f;
-    if (!information_for_font_family(family, bold, italic, &f)) return NULL;
+    if (!information_for_font_family(family, &f)) return NULL;
     PyObject *ret = Py_BuildValue("{ss si si si}", "path", f.path, "index", f.index, "hinting", f.hinting, "hintstyle", f.hintstyle);
     free(f.path);
     return ret;
@@ -616,11 +611,11 @@ path_for_font(PyObject *self UNUSED, PyObject *args) {
 
 static PyObject*
 fallback_for_char(PyObject *self UNUSED, PyObject *args) {
-    const char *family = NULL; int bold = 0, italic = 0;
+    const char *family = NULL;
     unsigned int ch;
-    if (!PyArg_ParseTuple(args, "I|zpp", &ch, &family, &bold, &italic)) return NULL;
+    if (!PyArg_ParseTuple(args, "I|z", &ch, &family)) return NULL;
     FontConfigFace f;
-    if (!fallback_font(ch, family, bold, italic, false, &f)) return NULL;
+    if (!fallback_font(ch, family, false, &f)) return NULL;
     PyObject *ret = Py_BuildValue("{ss si si si}", "path", f.path, "index", f.index, "hinting", f.hinting, "hintstyle", f.hintstyle);
     free(f.path);
     return ret;

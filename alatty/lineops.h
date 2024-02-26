@@ -15,7 +15,7 @@ static inline bool
 set_named_attribute_on_line(GPUCell *cells, const char* which, uint16_t val, index_type xnum) {
     // Set a single attribute on all cells in the line
 #define s(q) if (strcmp(#q, which) == 0) { set_attribute_on_line(cells, q, val, xnum); return true; }
-    s(reverse); s(width); s(strike); s(dim); s(mark); s(bold); s(italic); s(decoration);
+    s(reverse); s(width); s(strike); s(dim); s(mark); s(decoration);
     return false;
 #undef s
 }

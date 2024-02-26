@@ -194,8 +194,6 @@ typedef union CellAttrs {
     struct {
         uint16_t width : 2;
         uint16_t decoration : 3;
-        uint16_t bold : 1;
-        uint16_t italic : 1;
         uint16_t reverse : 1;
         uint16_t strike : 1;
         uint16_t dim : 1;
@@ -289,7 +287,7 @@ typedef struct {
 typedef struct {
     PyObject_HEAD
 
-    bool bold, italic, reverse, strikethrough, dim, non_blinking;
+    bool reverse, strikethrough, dim, non_blinking;
     unsigned int x, y;
     uint8_t decoration;
     CursorShape shape;
@@ -367,14 +365,14 @@ typedef struct {FONTS_DATA_HEAD} *FONTS_DATA_HANDLE;
 static inline CellAttrs
 cursor_to_attrs(const Cursor *c, const uint16_t width) {
     CellAttrs ans = {
-        .width=width, .decoration=c->decoration, .bold=c->bold, .italic=c->italic, .reverse=c->reverse,
+        .width=width, .decoration=c->decoration, .reverse=c->reverse,
         .strike=c->strikethrough, .dim=c->dim};
     return ans;
 }
 
 static inline void
 attrs_to_cursor(const CellAttrs attrs, Cursor *c) {
-    c->decoration = attrs.decoration; c->bold = attrs.bold;  c->italic = attrs.italic;
+    c->decoration = attrs.decoration;
     c->reverse = attrs.reverse; c->strikethrough = attrs.strike; c->dim = attrs.dim;
 }
 

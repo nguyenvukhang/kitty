@@ -19,7 +19,7 @@ var _ = fmt.Print
 type Context struct {
 	fmt_ctx style.Context
 
-	Cyan, Green, Blue, Magenta, Red, BrightRed, Yellow, Italic, Bold, Dim, Title, Exe, Opt, Emph, Err, Code func(args ...interface{}) string
+	Cyan, Green, Blue, Magenta, Red, BrightRed, Yellow, Dim, Title, Exe, Opt, Emph, Err, Code func(args ...interface{}) string
 	Url                                                                                                     func(string, string) string
 }
 
@@ -39,14 +39,12 @@ func New(allow_escape_codes bool) *Context {
 	ans.Blue = fmt_ctx.SprintFunc("fg=blue")
 	ans.BrightRed = fmt_ctx.SprintFunc("fg=bright-red")
 	ans.Yellow = fmt_ctx.SprintFunc("fg=bright-yellow")
-	ans.Italic = fmt_ctx.SprintFunc("italic")
-	ans.Bold = fmt_ctx.SprintFunc("bold")
 	ans.Dim = fmt_ctx.SprintFunc("dim")
-	ans.Title = fmt_ctx.SprintFunc("bold fg=blue")
-	ans.Exe = fmt_ctx.SprintFunc("bold fg=bright-yellow")
+	ans.Title = fmt_ctx.SprintFunc("fg=blue")
+	ans.Exe = fmt_ctx.SprintFunc("fg=bright-yellow")
 	ans.Opt = ans.Green
 	ans.Emph = ans.BrightRed
-	ans.Err = fmt_ctx.SprintFunc("bold fg=bright-red")
+	ans.Err = fmt_ctx.SprintFunc("fg=bright-red")
 	ans.Code = ans.Cyan
 	ans.Url = fmt_ctx.UrlFunc("u=curly uc=cyan")
 
@@ -137,7 +135,7 @@ func (self *Context) Prettify(text string) string {
 				path := filepath.Join(utils.ConfigDir(), val)
 				val = self.hyperlink_for_path(path, val)
 			}
-			return self.Italic(val)
+			return val
 		case "env", "envvar":
 			return self.ref_hyperlink(val, "envvar-")
 		case "doc":
@@ -174,9 +172,9 @@ func (self *Context) Prettify(text string) string {
 			if idx > -1 {
 				val = strings.TrimSuffix(val[idx:], ">")
 			}
-			return self.Bold(val)
+			return val
 		case "opt":
-			return self.Bold(val)
+			return val
 		case "yellow":
 			return self.Yellow(val)
 		case "blue":
@@ -187,8 +185,6 @@ func (self *Context) Prettify(text string) string {
 			return self.Cyan(val)
 		case "magenta":
 			return self.Magenta(val)
-		case "emph":
-			return self.Italic(val)
 		default:
 			return val
 		}

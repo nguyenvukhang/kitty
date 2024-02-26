@@ -12,10 +12,7 @@ from alatty.utils import log_error
 
 from . import ListedFont
 
-attr_map = {(False, False): 'font_family',
-            (True, False): 'bold_font',
-            (False, True): 'italic_font',
-            (True, True): 'bold_italic_font'}
+attr_map = {(False, False): 'font_family'}
 
 
 FontMap = Dict[str, Dict[str, List[CoreTextFont]]]
@@ -55,14 +52,12 @@ def find_font_features(postscript_name: str) -> Tuple[FontFeature, ...]:
     return ()
 
 
-def find_best_match(family: str, bold: bool = False, italic: bool = False, ignore_face: Optional[CoreTextFont] = None) -> CoreTextFont:
+def find_best_match(family: str, ignore_face: Optional[CoreTextFont] = None) -> CoreTextFont:
     q = re.sub(r'\s+', ' ', family.lower())
     font_map = all_fonts_map()
 
     def score(candidate: CoreTextFont) -> Tuple[int, int, int, float]:
-        style_match = 1 if candidate['bold'] == bold and candidate[
-            'italic'
-        ] == italic else 0
+        style_match = 0
         monospace_match = 1 if candidate['monospace'] else 0
         is_regular_width = not candidate['expanded'] and not candidate['condensed']
         # prefer semi-bold to bold to heavy, less bold means less chance of
@@ -87,9 +82,7 @@ def find_best_match(family: str, bold: bool = False, italic: bool = False, ignor
     return sorted(candidates, key=score)[-1]
 
 
-def resolve_family(f: str, main_family: str, bold: bool = False, italic: bool = False) -> str:
-    if (bold or italic) and f == 'auto':
-        f = main_family
+def resolve_family(f: str) -> str:
     if f.lower() == 'monospace':
         f = 'Menlo'
     return f
@@ -97,20 +90,11 @@ def resolve_family(f: str, main_family: str, bold: bool = False, italic: bool = 
 
 def get_font_files(opts: Options) -> Dict[str, CoreTextFont]:
     ans: Dict[str, CoreTextFont] = {}
-    for (bold, italic) in sorted(attr_map):
-        attr = attr_map[(bold, italic)]
-        key = {(False, False): 'medium',
-               (True, False): 'bold',
-               (False, True): 'italic',
-               (True, True): 'bi'}[(bold, italic)]
-        ignore_face = None if key == 'medium' else ans['medium']
-        face = find_best_match(resolve_family(getattr(opts, attr), opts.font_family, bold, italic), bold, italic, ignore_face=ignore_face)
-        ans[key] = face
-        if key == 'medium':
-            setattr(get_font_files, 'medium_family', face['family'])
+    face = find_best_match(getattr(opts, 'font_family'))
+    ans['medium'] = face
+    setattr(get_font_files, 'medium_family', face['family'])
     return ans
 
 
-def font_for_family(family: str) -> Tuple[CoreTextFont, bool, bool]:
-    ans = find_best_match(resolve_family(family, getattr(get_font_files, 'medium_family')))
-    return ans, ans['bold'], ans['italic']
+def font_for_family(family: str) -> CoreTextFont:
+    return find_best_match(resolve_family(family))

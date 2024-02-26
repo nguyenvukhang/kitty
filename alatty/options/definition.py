@@ -34,27 +34,10 @@ and even specify special fonts for particular characters.
 
 opt('font_family', 'monospace',
     long_text='''
-You can specify different fonts for the bold/italic/bold-italic variants.
-To get a full list of supported fonts use the ``alatty +list-fonts`` command.
-By default they are derived automatically, by the OSes font system. When
-:opt:`bold_font` or :opt:`bold_italic_font` is set to :code:`auto` on macOS, the
-priority of bold fonts is semi-bold, bold, heavy. Setting them manually is
-useful for font families that have many weight variants like Book, Medium,
-Thick, etc.
 For example::
-
     font_family      Operator Mono Book
-    bold_font        Operator Mono Medium
-    italic_font      Operator Mono Book Italic
-    bold_italic_font Operator Mono Medium Italic
 '''
     )
-
-opt('bold_font', 'auto')
-
-opt('italic_font', 'auto')
-
-opt('bold_italic_font', 'auto')
 
 opt('font_size', '11.0',
     option_type='to_font_size', ctype='double',

@@ -461,7 +461,7 @@ PyInit_fast_data_types(void) {
 
     CellAttrs a;
 #define s(name, attr) { a.val = 0; a.attr = 1; PyModule_AddIntConstant(m, #name, shift_to_first_set_bit(a)); }
-    s(BOLD, bold); s(ITALIC, italic); s(REVERSE, reverse); s(MARK, mark);
+    s(REVERSE, reverse); s(MARK, mark);
     s(STRIKETHROUGH, strike); s(DIM, dim); s(DECORATION, decoration);
 #undef s
     PyModule_AddIntConstant(m, "MARK_MASK", MARK_MASK);

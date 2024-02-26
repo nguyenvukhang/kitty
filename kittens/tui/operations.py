@@ -212,8 +212,6 @@ def styled(
     bg: Optional[ColorSpec] = None,
     fg_intense: bool = False,
     bg_intense: bool = False,
-    italic: Optional[bool] = None,
-    bold: Optional[bool] = None,
     underline: Optional[UnderlineLiteral] = None,
     underline_color: Optional[ColorSpec] = None,
     reverse: Optional[bool] = None,
@@ -234,14 +232,6 @@ def styled(
     if underline is not None:
         start.append(f'4:{UNDERLINE_STYLES[underline]}')
         end.append('4:0')
-    if italic is not None:
-        s, e = (start, end) if italic else (end, start)
-        s.append('3')
-        e.append('23')
-    if bold is not None:
-        s, e = (start, end) if bold else (end, start)
-        s.append('1')
-        e.append('22')
     if dim is not None:
         s, e = (start, end) if dim else (end, start)
         s.append('2')

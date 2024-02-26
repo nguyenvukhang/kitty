@@ -661,7 +661,7 @@ class Boss:
                   hidden_text, styled(pcmd['cmd'], fg='magenta'),
                   '\x1b[m' + styled(_(
                       'Note that allowing the password will allow all future actions using the same password, in this alatty instance.'
-                  ), dim=True, italic=True)),
+                  ), dim=True)),
             partial(self.remote_cmd_permission_received, pcmd, wid, peer_id, self_window),
             'a;green:Allow request', 'p;yellow:Allow password', 'r;magenta:Deny request', 'd;red:Deny password',
             window=window, default='a', hidden_text=hidden_text, title=_('Allow remote control?'),
@@ -2520,7 +2520,7 @@ class Boss:
         # Update font data
         set_scale(opts.box_drawing_scale)
         from .fonts.render import set_font_family
-        set_font_family(opts, debug_font_matching=self.args.debug_font_fallback)
+        set_font_family(opts)
         for os_window_id, tm in self.os_window_map.items():
             if tm is not None:
                 os_window_font_size(os_window_id, opts.font_size, True)

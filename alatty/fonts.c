@@ -61,7 +61,7 @@ typedef struct {
     hb_feature_t* ffs_hb_features;
     size_t num_ffs_hb_features;
     GlyphProperties *glyph_properties_hash_table;
-    bool bold, italic, emoji_presentation;
+    bool emoji_presentation;
     SpacerStrategy spacer_strategy;
 } Font;
 
@@ -81,7 +81,7 @@ typedef struct {
     id_type id;
     unsigned int baseline, underline_position, underline_thickness, strikethrough_position, strikethrough_thickness;
     size_t fonts_capacity, fonts_count, fallback_fonts_count;
-    ssize_t medium_font_idx, bold_font_idx, italic_font_idx, bi_font_idx, first_symbol_font_idx, first_fallback_font_idx;
+    ssize_t medium_font_idx, first_symbol_font_idx, first_fallback_font_idx;
     Font *fonts;
     Canvas canvas;
     GPUSpriteTracker sprite_tracker;
@@ -151,7 +151,6 @@ del_font(Font *f) {
     Py_CLEAR(f->face);
     free(f->ffs_hb_features); f->ffs_hb_features = NULL;
     free_maps(f);
-    f->bold = false; f->italic = false;
 }
 
 static void
@@ -290,9 +289,9 @@ desc_to_face(PyObject *desc, FONTS_DATA_HANDLE fg) {
 }
 
 static bool
-init_font(Font *f, PyObject *face, bool bold, bool italic, bool emoji_presentation) {
+init_font(Font *f, PyObject *face, bool emoji_presentation) {
     f->face = face; Py_INCREF(f->face);
-    f->bold = bold; f->italic = italic; f->emoji_presentation = emoji_presentation;
+    f->emoji_presentation = emoji_presentation;
     f->num_ffs_hb_features = 0;
     const char *psname = postscript_name_for_face(face);
     if (font_feature_settings != NULL){
@@ -453,13 +452,11 @@ has_cell_text(Font *self, CPUCell *cell) {
 }
 
 static void
-output_cell_fallback_data(CPUCell *cell, bool bold, bool italic, bool emoji_presentation, PyObject *face, bool new_face) {
+output_cell_fallback_data(CPUCell *cell, bool emoji_presentation, PyObject *face, bool new_face) {
     printf("U+%x ", cell->ch);
     for (unsigned i = 0; i < arraysz(cell->cc_idx) && cell->cc_idx[i]; i++) {
         printf("U+%x ", codepoint_for_mark(cell->cc_idx[i]));
     }
-    if (bold) printf("bold ");
-    if (italic) printf("italic ");
     if (emoji_presentation) printf("emoji_presentation ");
     PyObject_Print(face, stdout, 0);
     if (new_face) printf(" (new face)");
@@ -477,25 +474,24 @@ iter_fallback_faces(FONTS_DATA_HANDLE fgh, ssize_t *idx) {
 }
 
 static ssize_t
-load_fallback_font(FontGroup *fg, CPUCell *cell, bool bold, bool italic, bool emoji_presentation) {
+load_fallback_font(FontGroup *fg, CPUCell *cell, bool emoji_presentation) {
     if (fg->fallback_fonts_count > 100) { log_error("Too many fallback fonts"); return MISSING_FONT; }
     ssize_t f;
 
-    if (bold) f = italic ? fg->bi_font_idx : fg->bold_font_idx;
-    else f = italic ? fg->italic_font_idx : fg->medium_font_idx;
+    f = fg->medium_font_idx;
     if (f < 0) f = fg->medium_font_idx;
 
-    PyObject *face = create_fallback_face(fg->fonts[f].face, cell, bold, italic, emoji_presentation, (FONTS_DATA_HANDLE)fg);
+    PyObject *face = create_fallback_face(fg->fonts[f].face, cell, emoji_presentation, (FONTS_DATA_HANDLE)fg);
     if (face == NULL) { PyErr_Print(); return MISSING_FONT; }
     if (face == Py_None) { Py_DECREF(face); return MISSING_FONT; }
-    if (global_state.debug_font_fallback) output_cell_fallback_data(cell, bold, italic, emoji_presentation, face, true);
+    if (global_state.debug_font_fallback) output_cell_fallback_data(cell, emoji_presentation, face, true);
     if (PyLong_Check(face)) { ssize_t ans = fg->first_fallback_font_idx + PyLong_AsSsize_t(face); Py_DECREF(face); return ans; }
     set_size_for_face(face, fg->cell_height, true, (FONTS_DATA_HANDLE)fg);
 
     ensure_space_for(fg, fonts, Font, fg->fonts_count + 1, fonts_capacity, 5, true);
     ssize_t ans = fg->first_fallback_font_idx + fg->fallback_fonts_count;
     Font *af = &fg->fonts[ans];
-    if (!init_font(af, face, bold, italic, emoji_presentation)) fatal("Out of memory");
+    if (!init_font(af, face, emoji_presentation)) fatal("Out of memory");
     Py_DECREF(face);
     if (!has_cell_text(af, cell)) {
         if (global_state.debug_font_fallback) {
@@ -518,11 +514,8 @@ load_fallback_font(FontGroup *fg, CPUCell *cell, bool bold, bool italic, bool em
 
 static ssize_t
 fallback_font(FontGroup *fg, CPUCell *cpu_cell, GPUCell *gpu_cell) {
-    bool bold = gpu_cell->attrs.bold;
-    bool italic = gpu_cell->attrs.italic;
     bool emoji_presentation = has_emoji_presentation(cpu_cell, gpu_cell);
     char style = emoji_presentation ? 'a' : 'A';
-    if (bold) style += italic ? 3 : 2; else style += italic ? 1 : 0;
     char cell_text[8 + arraysz(cpu_cell->cc_idx) * 4] = {style};
     const size_t cell_text_len = 1 + cell_as_utf8(cpu_cell, true, cell_text + 1, ' ');
     if (fg->fallback_font_map) {
@@ -531,7 +524,7 @@ fallback_font(FontGroup *fg, CPUCell *cpu_cell, GPUCell *gpu_cell) {
         /* printf("cache %s\n", (s ? "hit" : "miss")); */
         if (s) return s->font_idx;
     }
-    ssize_t idx = load_fallback_font(fg, cpu_cell, bold, italic, emoji_presentation);
+    ssize_t idx = load_fallback_font(fg, cpu_cell, emoji_presentation);
     fallback_font_map_t *ffm = calloc(1, sizeof(fallback_font_map_t));
     if (ffm) {
         ffm->font_idx = idx;
@@ -583,17 +576,7 @@ START_ALLOW_CASE_RANGE
             *is_emoji_presentation = has_emoji_presentation(cpu_cell, gpu_cell);
             ans = in_symbol_maps(fg, cpu_cell->ch);
             if (ans > -1) return ans;
-            switch(gpu_cell->attrs.bold | (gpu_cell->attrs.italic << 1)) {
-                case 0:
-                    ans = fg->medium_font_idx; break;
-                case 1:
-                    ans = fg->bold_font_idx ; break;
-                case 2:
-                    ans = fg->italic_font_idx; break;
-                case 3:
-                    ans = fg->bi_font_idx; break;
-            }
-            if (ans < 0) ans = fg->medium_font_idx;
+            ans = fg->medium_font_idx;
             if (!*is_emoji_presentation && has_cell_text(fg->fonts + ans, cpu_cell)) { *is_main_font = true; return ans; }
             return fallback_font(fg, cpu_cell, gpu_cell);
     }
@@ -728,7 +711,7 @@ render_group(FontGroup *fg, unsigned int num_cells, unsigned int num_glyphs, CPU
 
     ensure_canvas_can_fit(fg, num_cells + 1);
     bool was_colored = gpu_cells->attrs.width == 2 && is_emoji(cpu_cells->ch);
-    render_glyphs_in_cells(font->face, font->bold, font->italic, info, positions, num_glyphs, fg->canvas.buf, fg->cell_width, fg->cell_height, num_cells, fg->baseline, &was_colored, (FONTS_DATA_HANDLE)fg, center_glyph);
+    render_glyphs_in_cells(font->face, info, positions, num_glyphs, fg->canvas.buf, fg->cell_width, fg->cell_height, num_cells, fg->baseline, &was_colored, (FONTS_DATA_HANDLE)fg, center_glyph);
     if (PyErr_Occurred()) PyErr_Print();
 
     for (unsigned i = 0; i < num_cells; i++) {
@@ -1406,7 +1389,7 @@ clear_symbol_maps(void) {
 }
 
 typedef struct {
-    unsigned int main, bold, italic, bi, num_symbol_fonts;
+    unsigned int main, num_symbol_fonts;
 } DescriptorIndices;
 
 DescriptorIndices descriptor_indices = {0};
@@ -1429,9 +1412,9 @@ static PyObject*
 set_font_data(PyObject UNUSED *m, PyObject *args) {
     PyObject *sm, *ns;
     Py_CLEAR(box_drawing_function); Py_CLEAR(prerender_function); Py_CLEAR(descriptor_for_idx); Py_CLEAR(font_feature_settings);
-    if (!PyArg_ParseTuple(args, "OOOIIIIO!dOO!",
+    if (!PyArg_ParseTuple(args, "OOOIO!dOO!",
                 &box_drawing_function, &prerender_function, &descriptor_for_idx,
-                &descriptor_indices.bold, &descriptor_indices.italic, &descriptor_indices.bi, &descriptor_indices.num_symbol_fonts,
+                &descriptor_indices.num_symbol_fonts,
                 &PyTuple_Type, &sm, &OPT(font_size), &font_feature_settings, &PyTuple_Type, &ns)) return NULL;
     Py_INCREF(box_drawing_function); Py_INCREF(prerender_function); Py_INCREF(descriptor_for_idx); Py_INCREF(font_feature_settings);
     free_font_groups();
@@ -1471,13 +1454,11 @@ static size_t
 initialize_font(FontGroup *fg, unsigned int desc_idx, const char *ftype) {
     PyObject *d = PyObject_CallFunction(descriptor_for_idx, "I", desc_idx);
     if (d == NULL) { PyErr_Print(); fatal("Failed for %s font", ftype); }
-    bool bold = PyObject_IsTrue(PyTuple_GET_ITEM(d, 1));
-    bool italic = PyObject_IsTrue(PyTuple_GET_ITEM(d, 2));
     PyObject *face = desc_to_face(PyTuple_GET_ITEM(d, 0), (FONTS_DATA_HANDLE)fg);
     Py_CLEAR(d);
     if (face == NULL) { PyErr_Print(); fatal("Failed to convert descriptor to face for %s font", ftype); }
     size_t idx = fg->fonts_count++;
-    bool ok = init_font(fg->fonts + idx, face, bold, italic, false);
+    bool ok = init_font(fg->fonts + idx, face, false);
     Py_CLEAR(face);
     if (!ok) {
         if (PyErr_Occurred()) { PyErr_Print(); }
@@ -1492,16 +1473,9 @@ initialize_font_group(FontGroup *fg) {
     fg->fonts = calloc(fg->fonts_capacity, sizeof(Font));
     if (fg->fonts == NULL) fatal("Out of memory allocating fonts array");
     fg->fonts_count = 1;  // the 0 index font is the box font
-#define I(attr)  if (descriptor_indices.attr) fg->attr##_font_idx = initialize_font(fg, descriptor_indices.attr, #attr); else fg->attr##_font_idx = -1;
     fg->medium_font_idx = initialize_font(fg, 0, "medium");
-    I(bold); I(italic); I(bi);
-#undef I
     fg->first_symbol_font_idx = fg->fonts_count; fg->first_fallback_font_idx = fg->fonts_count;
     fg->fallback_fonts_count = 0;
-    for (size_t i = 0; i < descriptor_indices.num_symbol_fonts; i++) {
-        initialize_font(fg, descriptor_indices.bi + 1 + i, "symbol_map");
-        fg->first_fallback_font_idx++;
-    }
 #undef I
     calc_cell_metrics(fg);
     // rescale the symbol_map faces for the desired cell height, this is how fallback fonts are sized as well
@@ -1641,9 +1615,6 @@ current_fonts(PYNOARG) {
     FontGroup *fg = font_groups;
 #define SET(key, val) {if (PyDict_SetItemString(ans, #key, fg->fonts[val].face) != 0) { goto error; }}
     SET(medium, fg->medium_font_idx);
-    if (fg->bold_font_idx > 0) SET(bold, fg->bold_font_idx);
-    if (fg->italic_font_idx > 0) SET(italic, fg->italic_font_idx);
-    if (fg->bi_font_idx > 0) SET(bi, fg->bi_font_idx);
     PyObject *ff = PyTuple_New(fg->fallback_fonts_count);
     if (!ff) goto error;
     for (size_t i = 0; i < fg->fallback_fonts_count; i++) {
@@ -1662,16 +1633,13 @@ static PyObject*
 get_fallback_font(PyObject UNUSED *self, PyObject *args) {
     if (!num_font_groups) { PyErr_SetString(PyExc_RuntimeError, "must create font group first"); return NULL; }
     PyObject *text;
-    int bold, italic;
-    if (!PyArg_ParseTuple(args, "Upp", &text, &bold, &italic)) return NULL;
+    if (!PyArg_ParseTuple(args, "U", &text)) return NULL;
     CPUCell cpu_cell = {0};
     GPUCell gpu_cell = {0};
     static Py_UCS4 char_buf[2 + arraysz(cpu_cell.cc_idx)];
     if (!PyUnicode_AsUCS4(text, char_buf, arraysz(char_buf), 1)) return NULL;
     cpu_cell.ch = char_buf[0];
     for (unsigned i = 0; i + 1 < (unsigned) PyUnicode_GetLength(text) && i < arraysz(cpu_cell.cc_idx); i++) cpu_cell.cc_idx[i] = mark_for_codepoint(char_buf[i + 1]);
-    if (bold) gpu_cell.attrs.bold = true;
-    if (italic) gpu_cell.attrs.italic = true;
     FontGroup *fg = font_groups;
     ssize_t ans = fallback_font(fg, &cpu_cell, &gpu_cell);
     if (ans == MISSING_FONT) { PyErr_SetString(PyExc_ValueError, "No fallback font found"); return NULL; }

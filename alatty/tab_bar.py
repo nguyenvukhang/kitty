@@ -136,10 +136,6 @@ class Formatter:
     reset = '\x1b[0m'
     fg = ColorFormatter('3')
     bg = ColorFormatter('4')
-    bold = '\x1b[1m'
-    nobold = '\x1b[22m'
-    italic = '\x1b[3m'
-    noitalic = '\x1b[23m'
 
 
 @run_once
@@ -341,7 +337,6 @@ def draw_tab_with_separator(
     if trailing_spaces:
         screen.draw(' ' * trailing_spaces)
     end = screen.cursor.x
-    screen.cursor.bold = screen.cursor.italic = False
     screen.cursor.fg = 0
     if not is_last:
         screen.cursor.bg = as_rgb(color_as_int(draw_data.inactive_bg))
@@ -641,7 +636,6 @@ class TabBar:
             ed.next_tab = data[i + 1] if i + 1 < len(data) else None
             s.cursor.bg = as_rgb(self.draw_data.tab_bg(t))
             s.cursor.fg = as_rgb(self.draw_data.tab_fg(t))
-            s.cursor.bold, s.cursor.italic = self.active_font_style if t.is_active else self.inactive_font_style
             before = s.cursor.x
             end = self.draw_func(self.draw_data, s, t, before, max_tab_length, i + 1, t is last_tab, ed)
             s.cursor.bg = s.cursor.fg = 0

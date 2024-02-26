@@ -321,15 +321,13 @@ end:
 
 
 bool
-information_for_font_family(const char *family, bool bold, bool italic, FontConfigFace *ans) {
+information_for_font_family(const char *family, FontConfigFace *ans) {
     ensure_initialized();
     memset(ans, 0, sizeof(FontConfigFace));
     FcPattern *pat = FcPatternCreate();
     bool ok = false;
     if (pat == NULL) { PyErr_NoMemory(); return ok; }
     if (family && strlen(family) > 0) AP(FcPatternAddString, FC_FAMILY, (const FcChar8*)family, "family");
-    if (bold) { AP(FcPatternAddInteger, FC_WEIGHT, FC_WEIGHT_BOLD, "weight"); }
-    if (italic) { AP(FcPatternAddInteger, FC_SLANT, FC_SLANT_ITALIC, "slant"); }
     ok = _native_fc_match(pat, ans);
 end:
     if (pat != NULL) FcPatternDestroy(pat);
@@ -341,12 +339,12 @@ static PyObject*
 fc_match(PyObject UNUSED *self, PyObject *args) {
     ensure_initialized();
     char *family = NULL;
-    int bold = 0, italic = 0, allow_bitmapped_fonts = 0, spacing = FC_MONO;
+    int allow_bitmapped_fonts = 0, spacing = FC_MONO;
     double size_in_pts = 0, dpi = 0;
     FcPattern *pat = NULL;
     PyObject *ans = NULL;
 
-    if (!PyArg_ParseTuple(args, "|zppipdd", &family, &bold, &italic, &spacing, &allow_bitmapped_fonts, &size_in_pts, &dpi)) return NULL;
+    if (!PyArg_ParseTuple(args, "|zipdd", &family, &spacing, &allow_bitmapped_fonts, &size_in_pts, &dpi)) return NULL;
     pat = FcPatternCreate();
     if (pat == NULL) return PyErr_NoMemory();
 
@@ -363,8 +361,6 @@ fc_match(PyObject UNUSED *self, PyObject *args) {
     }
     if (size_in_pts > 0) { AP(FcPatternAddDouble, FC_SIZE, size_in_pts, "size"); }
     if (dpi > 0) { AP(FcPatternAddDouble, FC_DPI, dpi, "dpi"); }
-    if (bold) { AP(FcPatternAddInteger, FC_WEIGHT, FC_WEIGHT_BOLD, "weight"); }
-    if (italic) { AP(FcPatternAddInteger, FC_SLANT, FC_SLANT_ITALIC, "slant"); }
     ans = _fc_match(pat);
 
 end:
@@ -419,15 +415,13 @@ end:
 }
 
 bool
-fallback_font(char_type ch, const char *family, bool bold, bool italic, bool prefer_color, FontConfigFace *ans) {
+fallback_font(char_type ch, const char *family, bool prefer_color, FontConfigFace *ans) {
     ensure_initialized();
     memset(ans, 0, sizeof(FontConfigFace));
     bool ok = false;
     FcPattern *pat = FcPatternCreate();
     if (pat == NULL) { PyErr_NoMemory(); return ok; }
     if (family) AP(FcPatternAddString, FC_FAMILY, (const FcChar8*)family, "family");
-    if (bold) { AP(FcPatternAddInteger, FC_WEIGHT, FC_WEIGHT_BOLD, "weight"); }
-    if (italic) { AP(FcPatternAddInteger, FC_SLANT, FC_SLANT_ITALIC, "slant"); }
     if (prefer_color) { AP(FcPatternAddBool, FC_COLOR, true, "color"); }
     char_buf[0] = ch;
     add_charset(pat, 1);
@@ -438,14 +432,12 @@ end:
 }
 
 PyObject*
-create_fallback_face(PyObject UNUSED *base_face, CPUCell* cell, bool bold, bool italic, bool emoji_presentation, FONTS_DATA_HANDLE fg) {
+create_fallback_face(PyObject UNUSED *base_face, CPUCell* cell, bool emoji_presentation, FONTS_DATA_HANDLE fg) {
     ensure_initialized();
     PyObject *ans = NULL;
     FcPattern *pat = FcPatternCreate();
     if (pat == NULL) return PyErr_NoMemory();
     AP(FcPatternAddString, FC_FAMILY, (const FcChar8*)(emoji_presentation ? "emoji" : "monospace"), "family");
-    if (!emoji_presentation && bold) { AP(FcPatternAddInteger, FC_WEIGHT, FC_WEIGHT_BOLD, "weight"); }
-    if (!emoji_presentation && italic) { AP(FcPatternAddInteger, FC_SLANT, FC_SLANT_ITALIC, "slant"); }
     if (emoji_presentation) { AP(FcPatternAddBool, FC_COLOR, true, "color"); }
     size_t num = cell_as_unicode_for_fallback(cell, char_buf);
     add_charset(pat, num);
@@ -479,8 +471,6 @@ init_fontconfig_library(PyObject *module) {
     PyModule_AddIntMacro(module, FC_WEIGHT_REGULAR);
     PyModule_AddIntMacro(module, FC_WEIGHT_MEDIUM);
     PyModule_AddIntMacro(module, FC_WEIGHT_SEMIBOLD);
-    PyModule_AddIntMacro(module, FC_WEIGHT_BOLD);
-    PyModule_AddIntMacro(module, FC_SLANT_ITALIC);
     PyModule_AddIntMacro(module, FC_SLANT_ROMAN);
     PyModule_AddIntMacro(module, FC_PROPORTIONAL);
     PyModule_AddIntMacro(module, FC_DUAL);

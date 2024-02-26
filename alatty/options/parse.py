@@ -100,12 +100,6 @@ class Parser:
     def bell_path(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['bell_path'] = config_or_absolute_path(val)
 
-    def bold_font(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['bold_font'] = str(val)
-
-    def bold_italic_font(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['bold_italic_font'] = str(val)
-
     def box_drawing_scale(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['box_drawing_scale'] = box_drawing_scale(val)
 
@@ -1019,9 +1013,6 @@ class Parser:
 
     def input_delay(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['input_delay'] = positive_int(val)
-
-    def italic_font(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['italic_font'] = str(val)
 
     def kitten_alias(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         for k, v in action_alias(val):

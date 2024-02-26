@@ -111,10 +111,10 @@ class PathCompleter:
 
         ss = screen_size_function()()
         if dirs:
-            print(styled('Directories', bold=True, fg_intense=True))
+            print(styled('Directories', fg_intense=True))
             print_table(dirs, ss, self.dircolors)
         if files:
-            print(styled('Files', bold=True, fg_intense=True))
+            print(styled('Files', fg_intense=True))
             print_table(files, ss, self.dircolors)
 
         buf = readline.get_line_buffer()

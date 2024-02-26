@@ -195,12 +195,6 @@ func indent_of_line(x string) int {
 }
 
 func escape_text_for_man(raw string) string {
-	italic := func(x string) string {
-		return "\n.I " + x
-	}
-	bold := func(x string) string {
-		return "\n.B " + x
-	}
 	text_without_target := func(val string) string {
 		text, target := markup.Text_and_target(val)
 		no_title := text == target
@@ -216,10 +210,8 @@ func escape_text_for_man(raw string) string {
 	raw = markup.ReplaceAllRSTRoles(raw, func(group markup.Rst_format_match) string {
 		val := group.Payload
 		switch group.Role {
-		case "file":
-			return italic(val)
 		case "env", "envvar":
-			return bold(val)
+			return val
 		case "doc":
 			return text_without_target(val)
 		case "iss":
@@ -246,9 +238,9 @@ func escape_text_for_man(raw string) string {
 			if idx > -1 {
 				val = strings.TrimSuffix(val[idx:], ">")
 			}
-			return bold(val)
+			return val
 		case "opt":
-			return bold(val)
+			return val
 		case "yellow":
 			return val
 		case "blue":
