@@ -955,9 +955,6 @@ static void
 report_reaped_pids(void) {
     children_mutex(lock);
     if (reaped_pids_count) {
-        for (size_t i = 0; i < reaped_pids_count; i++) {
-            call_boss(on_monitored_pid_death, "ii", (int)reaped_pids[i].pid, reaped_pids[i].status);
-        }
         reaped_pids_count = 0;
     }
     children_mutex(unlock);

@@ -330,12 +330,10 @@ class Boss:
         set_layout_options(opts)
         self.clipboard = Clipboard()
         self.primary_selection = Clipboard(ClipboardType.primary_selection)
-        self.update_check_started = False
         self.peer_data_map: Dict[int, Optional[Dict[str, Sequence[str]]]] = {}
         self.encryption_key = EllipticCurveKey()
         self.encryption_public_key = f'{RC_ENCRYPTION_PROTOCOL_VERSION}:{base64.b85encode(self.encryption_key.public).decode("ascii")}'
         self.clipboard_buffers: Dict[str, str] = {}
-        self.update_check_process: Optional['PopenType[bytes]'] = None
         self.window_id_map: WeakValueDictionary[int, Window] = WeakValueDictionary()
         self.startup_colors = {k: opts[k] for k in opts if isinstance(opts[k], Color)}
         self.current_visual_select: Optional[VisualSelect] = None
@@ -1141,11 +1139,6 @@ class Boss:
                 self.launch_urls(*urls)
             else:
                 self.startup_first_child(first_os_window_id, startup_sessions=startup_sessions)
-
-        if get_options().update_check_interval > 0 and not self.update_check_started and getattr(sys, 'frozen', False):
-            from .update_check import run_update_check
-            run_update_check(get_options().update_check_interval * 60 * 60)
-            self.update_check_started = True
 
     def handle_click_on_tab(self, os_window_id: int, x: int, button: int, modifiers: int, action: int) -> None:
         tm = self.os_window_map.get(os_window_id)
@@ -2067,8 +2060,6 @@ class Boss:
     def destroy(self) -> None:
         self.shutting_down = True
         self.child_monitor.shutdown_monitor()
-        self.set_update_check_process()
-        self.update_check_process = None
         del self.child_monitor
         for tm in self.os_window_map.values():
             tm.destroy()
@@ -2559,29 +2550,6 @@ class Boss:
 
     def is_ok_to_read_image_file(self, path: str, fd: int) -> bool:
         return is_ok_to_read_image_file(path, fd)
-
-    def set_update_check_process(self, process: Optional['PopenType[bytes]'] = None) -> None:
-        if self.update_check_process is not None:
-            with suppress(Exception):
-                if self.update_check_process.poll() is None:
-                    self.update_check_process.kill()
-        self.update_check_process = process
-
-    def on_monitored_pid_death(self, pid: int, exit_status: int) -> None:
-        update_check_process = self.update_check_process
-        if update_check_process is not None and pid == update_check_process.pid:
-            self.update_check_process = None
-            from .update_check import process_current_release
-            try:
-                assert update_check_process.stdout is not None
-                raw = update_check_process.stdout.read().decode('utf-8')
-            except Exception as e:
-                log_error(f'Failed to read data from update check process, with error: {e}')
-            else:
-                try:
-                    process_current_release(raw)
-                except Exception as e:
-                    log_error(f'Failed to process update check data {raw!r}, with error: {e}')
 
     def dbus_notification_callback(self, activated: bool, a: int, b: Union[int, str]) -> None:
         from .notify import dbus_notification_activated, dbus_notification_created

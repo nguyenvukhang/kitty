@@ -434,7 +434,6 @@ option_names = (  # {{{
  'touch_scroll_multiplier',
  'undercurl_style',
  'underline_hyperlinks',
- 'update_check_interval',
  'url_color',
  'url_excluded_characters',
  'url_prefixes',
@@ -588,7 +587,6 @@ class Options:
     touch_scroll_multiplier: float = 1.0
     undercurl_style: choices_for_undercurl_style = 'thin-sparse'
     underline_hyperlinks: choices_for_underline_hyperlinks = 'hover'
-    update_check_interval: float = 24.0
     url_color: Color = Color(0, 135, 189)
     url_excluded_characters: str = ''
     url_prefixes: typing.Tuple[str, ...] = ('file', 'ftp', 'ftps', 'gemini', 'git', 'gopher', 'http', 'https', 'irc', 'ircs', 'alatty', 'mailto', 'news', 'sftp', 'ssh')

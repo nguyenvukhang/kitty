@@ -158,7 +158,6 @@ class Options:
     extra_include_dirs: List[str] = []
     extra_library_dirs: List[str] = []
     link_time_optimization: bool = 'ALATTY_NO_LTO' not in os.environ
-    update_check_interval: float = 24.0
     shell_integration: str = 'enabled'
     egl_library: Optional[str] = os.getenv('ALATTY_EGL_LIBRARY')
     startup_notification_library: Optional[str] = os.getenv('ALATTY_STARTUP_NOTIFICATION_LIBRARY')
@@ -1427,7 +1426,6 @@ def package(args: Options, bundle_type: str) -> None:
 
     with open(os.path.join(libdir, 'alatty/options/types.py'), 'r+', encoding='utf-8') as f:
         oraw = raw = f.read()
-        raw = repl('update_check_interval', raw, Options.update_check_interval, args.update_check_interval)
         raw = repl('shell_integration', raw, frozenset(Options.shell_integration.split()), frozenset(args.shell_integration.split()))
         if raw != oraw:
             f.seek(0), f.truncate(), f.write(raw)
@@ -1625,13 +1623,6 @@ def option_parser() -> argparse.ArgumentParser:  # {{{
         action='append',
         default=Options.extra_library_dirs,
         help='Extra library directories to use while linking'
-    )
-    p.add_argument(
-        '--update-check-interval',
-        type=float,
-        default=Options.update_check_interval,
-        help='When building a package, the default value for the update_check_interval setting will'
-        ' be set to this number. Use zero to disable update checking.'
     )
     p.add_argument(
         '--shell-integration',

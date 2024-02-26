@@ -1307,9 +1307,6 @@ class Parser:
 
     choices_for_underline_hyperlinks = frozenset(('hover', 'always', 'never'))
 
-    def update_check_interval(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['update_check_interval'] = float(val)
-
     def url_color(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['url_color'] = to_color(val)
 

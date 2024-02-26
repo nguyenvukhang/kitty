@@ -3000,18 +3000,6 @@ For example::
 '''
     )
 
-opt('update_check_interval', '24',
-    option_type='float',
-    long_text='''
-The interval to periodically check if an update to alatty is available (in
-hours). If an update is found, a system notification is displayed informing you
-of the available update. The default is to check every 24 hours, set to zero to
-disable. Update checking is only done by the official binary builds. Distro
-packages or source builds do not do update checking. Changing this option by
-reloading the config is not supported.
-'''
-    )
-
 opt('startup_session', 'none',
     option_type='config_or_absolute_path',
     long_text='''
