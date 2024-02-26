@@ -797,44 +797,6 @@ def compile_glfw(compilation_database: CompilationDatabase) -> None:
             sources, all_headers, desc_prefix=f'[{module}] ')
 
 
-def kittens_env(args: Options) -> Env:
-    kenv = env.copy()
-    cflags = kenv.cflags
-    cflags.append('-pthread')
-    cflags.append('-Ialatty')
-    pylib = get_python_flags(args, cflags)
-    kenv.ldpaths += pylib
-    return kenv
-
-
-def compile_kittens(args: Options) -> None:
-    kenv = kittens_env(args)
-
-    def list_files(q: str) -> List[str]:
-        return sorted(glob.glob(q))
-
-    def files(
-            kitten: str,
-            output: str,
-            extra_headers: Sequence[str] = (),
-            extra_sources: Sequence[str] = (),
-            filter_sources: Optional[Callable[[str], bool]] = None,
-            includes: Sequence[str] = (), libraries: Sequence[str] = (),
-    ) -> Tuple[str, List[str], List[str], str, Sequence[str], Sequence[str]]:
-        sources = list(filter(filter_sources, list(extra_sources) + list_files(os.path.join('kittens', kitten, '*.c'))))
-        headers = list_files(os.path.join('kittens', kitten, '*.h')) + list(extra_headers)
-        return kitten, sources, headers, f'kittens/{kitten}/{output}', includes, libraries
-
-    for kitten, sources, all_headers, dest, includes, libraries in (
-        files('transfer', 'rsync', libraries=pkg_config('libxxhash', '--libs'), includes=pkg_config('libxxhash', '--cflags-only-I')),
-    ):
-        final_env = kenv.copy()
-        final_env.cflags.extend(f'-I{x}' for x in includes)
-        final_env.ldpaths[:0] = list(libraries)
-        compile_c_extension(
-            final_env, dest, args.compilation_database, sources, all_headers + ['alatty/data-types.h'])
-
-
 def init_env_from_args(args: Options, native_optimizations: bool = False) -> None:
     global env
     env = init_env(
@@ -910,7 +872,7 @@ def build_uniforms_header(skip_generation: bool = False) -> str:
 
 @lru_cache
 def wrapped_kittens() -> str:
-    return "clipboard icat hyperlinked_grep ask hints unicode_input ssh themes diff show_key transfer"
+    return "ask"
 
 
 def build(args: Options, native_optimizations: bool = True, call_init: bool = True) -> None:
@@ -923,7 +885,6 @@ def build(args: Options, native_optimizations: bool = True, call_init: bool = Tr
         alatty_env(args), 'alatty/fast_data_types', args.compilation_database, sources, headers
     )
     compile_glfw(args.compilation_database)
-    compile_kittens(args)
 
 
 def safe_makedirs(path: str) -> None:

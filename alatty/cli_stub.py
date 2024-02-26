@@ -36,45 +36,6 @@ def generate_stub() -> None:
     from kittens.ask.main import option_text
     do(option_text(), 'AskCLIOptions')
 
-    from kittens.remote_file.main import option_text
-    do(option_text(), 'RemoteFileCLIOptions')
-
-    from kittens.clipboard.main import OPTIONS
-    do(OPTIONS(), 'ClipboardCLIOptions')
-
-    from kittens.show_key.main import OPTIONS
-    do(OPTIONS(), 'ShowKeyCLIOptions')
-
-    from kittens.diff.main import OPTIONS
-    do(OPTIONS(), 'DiffCLIOptions')
-
-    from kittens.hints.main import OPTIONS
-    do(OPTIONS(), 'HintsCLIOptions')
-
-    from kittens.broadcast.main import OPTIONS
-    do(OPTIONS(), 'BroadcastCLIOptions')
-
-    from kittens.icat.main import OPTIONS
-    do(OPTIONS, 'IcatCLIOptions')
-
-    from kittens.query_terminal.main import options_spec
-    do(options_spec(), 'QueryTerminalCLIOptions')
-
-    from kittens.panel.main import OPTIONS
-    do(OPTIONS(), 'PanelCLIOptions')
-
-    from kittens.resize_window.main import OPTIONS
-    do(OPTIONS(), 'ResizeCLIOptions')
-
-    from kittens.unicode_input.main import OPTIONS
-    do(OPTIONS(), 'UnicodeCLIOptions')
-
-    from kittens.themes.main import OPTIONS
-    do(OPTIONS(), 'ThemesCLIOptions')
-
-    from kittens.transfer.main import option_text as OPTIONS
-    do(OPTIONS(), 'TransferCLIOptions')
-
     from alatty.rc.base import all_command_names, command_for_name
     for cmd_name in all_command_names():
         cmd = command_for_name(cmd_name)

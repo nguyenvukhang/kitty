@@ -5,7 +5,6 @@ package pytest
 import (
 	"fmt"
 
-	"alatty/kittens/ssh"
 	"alatty/tools/cli"
 	"alatty/tools/utils/shm"
 )

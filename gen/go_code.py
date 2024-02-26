@@ -178,7 +178,6 @@ def stringify() -> None:
     for path in (
         'tools/tui/graphics/command.go',
         'tools/rsync/algorithm.go',
-        'kittens/transfer/ftc.go',
     ):
         stringify_file(path)
 # }}}
@@ -427,7 +426,7 @@ def go_code_for_remote_command(name: str, cmd: RemoteCommand, template: str) -> 
 
 @lru_cache
 def wrapped_kittens() -> Tuple[str, ...]:
-    return ("clipboard", "icat", "hyperlinked_grep", "ask", "hints", "unicode_input", "ssh", "themes", "diff", "show_key", "transfer")
+    return ("ask",)
 
 
 def generate_conf_parser(kitten: str, defn: Definition) -> None:
@@ -457,18 +456,7 @@ def generate_extra_cli_parser(name: str, spec: str) -> None:
 
 
 def kitten_clis() -> None:
-    from kittens.runner import get_kitten_conf_docs, get_kitten_extra_cli_parsers
-    for kitten in wrapped_kittens() + ('pager',):
-        defn = get_kitten_conf_docs(kitten)
-        if defn is not None:
-            generate_conf_parser(kitten, defn)
-        ecp = get_kitten_extra_cli_parsers(kitten)
-        if ecp:
-            for name, spec in ecp.items():
-                with replace_if_needed(f'kittens/{kitten}/{name}_cli_generated.go'):
-                    print(f'package {kitten}')
-                    generate_extra_cli_parser(name, spec)
-
+    for kitten in wrapped_kittens():
         with replace_if_needed(f'kittens/{kitten}/cli_generated.go'):
             od = []
             kcd = kitten_cli_docs(kitten)
@@ -564,11 +552,9 @@ def load_ref_map() -> Dict[str, Dict[str, str]]:
 
 
 def generate_constants() -> str:
-    from kittens.hints.main import DEFAULT_REGEX
     from alatty.config import option_names_for_completion
     from alatty.fast_data_types import FILE_TRANSFER_CODE
     from alatty.options.utils import allowed_shell_integration_values
-    del sys.modules['kittens.hints.main']
     ref_map = load_ref_map()
     with open('alatty/data-types.h') as dt:
         m = re.search(r'^#define IMAGE_PLACEHOLDER_CHAR (\S+)', dt.read(), flags=re.M)
@@ -593,7 +579,6 @@ var VCSRevision string = ""
 var IsFrozenBuild string = ""
 var IsStandaloneBuild string = ""
 const HandleTermiosSignals = {Mode.HANDLE_TERMIOS_SIGNALS.value[0]}
-const HintsDefaultRegex = `{DEFAULT_REGEX}`
 const DefaultTermName = `{Options.term}`
 var Version VersionType = VersionType{{Major: {kc.version.major}, Minor: {kc.version.minor}, Patch: {kc.version.patch},}}
 var DefaultPager []string = []string{{ {dp} }}
