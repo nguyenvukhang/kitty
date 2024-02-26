@@ -384,13 +384,12 @@ cell_prepare_to_render(ssize_t vao_idx, Screen *screen, GLfloat xstart, GLfloat 
 
     bool cursor_pos_changed = screen->cursor->x != screen->last_rendered.cursor_x
                            || screen->cursor->y != screen->last_rendered.cursor_y;
-    bool disable_ligatures = screen->disable_ligatures == DISABLE_LIGATURES_CURSOR;
     bool screen_resized = screen->last_rendered.columns != screen->columns || screen->last_rendered.lines != screen->lines;
 
-    if (screen->reload_all_gpu_data || screen->scroll_changed || screen->is_dirty || screen_resized || (disable_ligatures && cursor_pos_changed)) {
+    if (screen->reload_all_gpu_data || screen->scroll_changed || screen->is_dirty || screen_resized || cursor_pos_changed) {
         sz = sizeof(GPUCell) * screen->lines * screen->columns;
         address = alloc_and_map_vao_buffer(vao_idx, sz, cell_data_buffer, GL_STREAM_DRAW, GL_WRITE_ONLY);
-        screen_update_cell_data(screen, address, fonts_data, disable_ligatures && cursor_pos_changed);
+        screen_update_cell_data(screen, address, fonts_data, cursor_pos_changed);
         unmap_vao_buffer(vao_idx, cell_data_buffer); address = NULL;
         changed = true;
     }

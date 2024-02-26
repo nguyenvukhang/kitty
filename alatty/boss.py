@@ -2467,28 +2467,6 @@ class Boss:
         if tm is not None:
             tm.move_tab(-1)
 
-    @ac('misc', '''
-        Turn on/off ligatures in the specified window
-
-        See :opt:`disable_ligatures` for details
-        ''')
-    def disable_ligatures_in(self, where: Union[str, Iterable[Window]], strategy: int) -> None:
-        if isinstance(where, str):
-            windows: List[Window] = []
-            if where == 'active':
-                if self.active_window is not None:
-                    windows = [self.active_window]
-            elif where == 'all':
-                windows = list(self.all_windows)
-            elif where == 'tab':
-                if self.active_tab is not None:
-                    windows = list(self.active_tab)
-        else:
-            windows = list(where)
-        for window in windows:
-            window.screen.disable_ligatures = strategy
-            window.refresh()
-
     def patch_colors(self, spec: Dict[str, Optional[int]], configured: bool = False) -> None:
         from alatty.rc.set_colors import nullable_colors
         opts = get_options()

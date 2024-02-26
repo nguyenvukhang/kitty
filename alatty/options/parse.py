@@ -11,7 +11,7 @@ from alatty.options.utils import (
     clear_all_mouse_actions, clear_all_shortcuts, clipboard_control, clone_source_strategies,
     config_or_absolute_path, copy_on_select, cursor_text_color, deprecated_adjust_line_height,
     deprecated_hide_window_decorations_aliases, deprecated_macos_show_window_title_in_menubar_alias,
-    deprecated_send_text, disable_ligatures, edge_width, env, font_features, hide_window_decorations,
+    deprecated_send_text, edge_width, env, font_features, hide_window_decorations,
     macos_option_as_alt, macos_titlebar_color, menu_map, modify_font, narrow_symbols,
     notify_on_cmd_finish, optional_edge_width, parse_map, parse_mouse_map, paste_actions,
     remote_control_password, resize_debounce_time, scrollback_lines, scrollback_pager_history_size,
@@ -935,9 +935,6 @@ class Parser:
 
     def dim_opacity(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['dim_opacity'] = unit_float(val)
-
-    def disable_ligatures(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['disable_ligatures'] = disable_ligatures(val)
 
     def draw_minimal_borders(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['draw_minimal_borders'] = to_bool(val)

@@ -1052,7 +1052,6 @@ class Screen:
     cursor_visible: bool
     scrolled_by: int
     cursor: Cursor
-    disable_ligatures: int
     cursor_key_mode: bool
     auto_repeat_enabled: bool
     render_unfocused_cursor: int

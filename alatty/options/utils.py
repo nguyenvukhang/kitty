@@ -337,20 +337,6 @@ def sleep(func: str, sleep_time: str) -> FuncArgsType:
     return func, [abs(float(sleep_time)) * mult]
 
 
-@func_with_args('disable_ligatures_in')
-def disable_ligatures_in(func: str, rest: str) -> FuncArgsType:
-    parts = rest.split(maxsplit=1)
-    if len(parts) == 1:
-        where, strategy = 'active', parts[0]
-    else:
-        where, strategy = parts
-    if where not in ('active', 'all', 'tab'):
-        raise ValueError(f'{where} is not a valid set of windows to disable ligatures in')
-    if strategy not in ('never', 'always', 'cursor'):
-        raise ValueError(f'{strategy} is not a valid disable ligatures strategy')
-    return func, [where, strategy]
-
-
 @func_with_args('layout_action')
 def layout_action(func: str, rest: str) -> FuncArgsType:
     parts = rest.split(maxsplit=1)
@@ -494,11 +480,6 @@ def parse_shortcut(sc: str) -> SingleKey:
 
 def to_font_size(x: str) -> float:
     return max(MINIMUM_FONT_SIZE, float(x))
-
-
-def disable_ligatures(x: str) -> int:
-    cmap = {'never': 0, 'cursor': 1, 'always': 2}
-    return cmap.get(x.lower(), 0)
 
 
 def box_drawing_scale(x: str) -> Tuple[float, float, float, float]:

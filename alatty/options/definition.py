@@ -95,26 +95,6 @@ This option can be specified multiple times. The syntax is::
     )
 
 
-opt('disable_ligatures', 'never',
-    option_type='disable_ligatures', ctype='int',
-    long_text='''
-Choose how you want to handle multi-character ligatures. The default is to
-always render them. You can tell alatty to not render them when the cursor is
-over them by using :code:`cursor` to make editing easier, or have alatty never
-render them at all by using :code:`always`, if you don't like them. The ligature
-strategy can be set per-window either using the alatty remote control facility
-or by defining shortcuts for it in :file:`alatty.conf`, for example::
-
-    map alt+1 disable_ligatures_in active always
-    map alt+2 disable_ligatures_in all never
-    map alt+3 disable_ligatures_in tab cursor
-
-Note that this refers to programming ligatures, typically implemented using the
-:code:`calt` OpenType feature. For disabling general ligatures, use the
-:opt:`font_features` option.
-'''
-    )
-
 opt('+font_features', 'none',
     option_type='font_features',
     add_to_default=False,

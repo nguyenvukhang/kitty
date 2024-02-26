@@ -333,7 +333,6 @@ option_names = (  # {{{
  'default_pointer_shape',
  'detect_urls',
  'dim_opacity',
- 'disable_ligatures',
  'draw_minimal_borders',
  'dynamic_background_opacity',
  'editor',
@@ -499,7 +498,6 @@ class Options:
     default_pointer_shape: choices_for_default_pointer_shape = 'beam'
     detect_urls: bool = True
     dim_opacity: float = 0.4
-    disable_ligatures: int = 0
     draw_minimal_borders: bool = True
     dynamic_background_opacity: bool = False
     editor: str = '.'

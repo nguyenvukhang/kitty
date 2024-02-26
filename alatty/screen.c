@@ -141,7 +141,6 @@ new(PyTypeObject *type, PyObject *args, PyObject UNUSED *kwds) {
 
         self->grman = self->main_grman;
         self->pending_mode.wait_time = s_double_to_monotonic_t(2.0);
-        self->disable_ligatures = OPT(disable_ligatures);
         self->main_tabstops = PyMem_Calloc(2 * self->columns, sizeof(bool));
         if (
             self->cursor == NULL || self->main_linebuf == NULL || self->alt_linebuf == NULL ||
@@ -2568,7 +2567,7 @@ screen_update_cell_data(Screen *self, void *address, FONTS_DATA_HANDLE fonts_dat
         // the unicode placeholder was first scanned can alter it.
         screen_render_line_graphics(self, self->historybuf->line, y - self->scrolled_by);
         if (self->historybuf->line->attrs.has_dirty_text) {
-            render_line(fonts_data, self->historybuf->line, lnum, self->cursor, self->disable_ligatures);
+            render_line(fonts_data, self->historybuf->line, self->cursor);
             if (screen_has_marker(self)) mark_text_in_line(self->marker, self->historybuf->line);
             historybuf_mark_line_clean(self->historybuf, lnum);
         }
@@ -2579,7 +2578,7 @@ screen_update_cell_data(Screen *self, void *address, FONTS_DATA_HANDLE fonts_dat
         linebuf_init_line(self->linebuf, lnum);
         if (self->linebuf->line->attrs.has_dirty_text ||
             (cursor_has_moved && (self->cursor->y == lnum || self->last_rendered.cursor_y == lnum))) {
-            render_line(fonts_data, self->linebuf->line, lnum, self->cursor, self->disable_ligatures);
+            render_line(fonts_data, self->linebuf->line, self->cursor);
             screen_render_line_graphics(self, self->linebuf->line, y - self->scrolled_by);
             if (self->linebuf->line->attrs.has_dirty_text && screen_has_marker(self)) mark_text_in_line(self->marker, self->linebuf->line);
             if (is_overlay_active && lnum == self->overlay_line.ynum) render_overlay_line(self, self->linebuf->line, fonts_data);
@@ -3212,7 +3211,7 @@ render_overlay_line(Screen *self, Line *line, FONTS_DATA_HANDLE fonts_data) {
 #define ol self->overlay_line
     line_save_cells(line, 0, line->xnum, ol.original_line.gpu_cells, ol.original_line.cpu_cells);
     screen_draw_overlay_line(self);
-    render_line(fonts_data, line, ol.ynum, self->cursor, self->disable_ligatures);
+    render_line(fonts_data, line, self->cursor);
     line_save_cells(line, 0, line->xnum, ol.gpu_cells, ol.cpu_cells);
     line_reset_cells(line, 0, line->xnum, ol.original_line.gpu_cells, ol.original_line.cpu_cells);
     ol.is_dirty = false;
@@ -3646,37 +3645,6 @@ MODE_GETSET(focus_tracking_enabled, FOCUS_TRACKING)
 MODE_GETSET(auto_repeat_enabled, DECARM)
 MODE_GETSET(cursor_visible, DECTCEM)
 MODE_GETSET(cursor_key_mode, DECCKM)
-
-static PyObject* disable_ligatures_get(Screen *self, void UNUSED *closure) {
-    const char *ans = NULL;
-    switch(self->disable_ligatures) {
-        case DISABLE_LIGATURES_NEVER:
-            ans = "never";
-            break;
-        case DISABLE_LIGATURES_CURSOR:
-            ans = "cursor";
-            break;
-        case DISABLE_LIGATURES_ALWAYS:
-            ans = "always";
-            break;
-    }
-    return PyUnicode_FromString(ans);
-}
-
-static int disable_ligatures_set(Screen *self, PyObject *val, void UNUSED *closure) {
-    if (val == NULL) { PyErr_SetString(PyExc_TypeError, "Cannot delete attribute"); return -1; }
-    if (!PyUnicode_Check(val)) { PyErr_SetString(PyExc_TypeError, "unicode string expected"); return -1; }
-    if (PyUnicode_READY(val) != 0) return -1;
-    const char *q = PyUnicode_AsUTF8(val);
-    DisableLigature dl = DISABLE_LIGATURES_NEVER;
-    if (strcmp(q, "always") == 0) dl = DISABLE_LIGATURES_ALWAYS;
-    else if (strcmp(q, "cursor") == 0) dl = DISABLE_LIGATURES_CURSOR;
-    if (dl != self->disable_ligatures) {
-        self->disable_ligatures = dl;
-        screen_dirty_sprite_positions(self);
-    }
-    return 0;
-}
 
 static PyObject*
 cursor_up(Screen *self, PyObject *args) {
@@ -4616,7 +4584,6 @@ static PyGetSetDef getsetters[] = {
     GETSET(focus_tracking_enabled)
     GETSET(cursor_visible)
     GETSET(cursor_key_mode)
-    GETSET(disable_ligatures)
     {NULL}  /* Sentinel */
 };
 

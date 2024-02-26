@@ -32,19 +32,6 @@ convert_from_opts_force_ltr(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_disable_ligatures(PyObject *val, Options *opts) {
-    opts->disable_ligatures = PyLong_AsLong(val);
-}
-
-static void
-convert_from_opts_disable_ligatures(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "disable_ligatures");
-    if (ret == NULL) return;
-    convert_from_python_disable_ligatures(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_modify_font(PyObject *val, Options *opts) {
     modify_font(val, opts);
 }
@@ -1115,8 +1102,6 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     convert_from_opts_font_size(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_force_ltr(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_disable_ligatures(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_modify_font(py_opts, opts);
     if (PyErr_Occurred()) return false;
