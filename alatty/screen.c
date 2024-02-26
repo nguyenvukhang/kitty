@@ -2042,15 +2042,6 @@ screen_report_size(Screen *self, unsigned int which) {
 }
 
 void
-screen_manipulate_title_stack(Screen *self, unsigned int op, unsigned int which) {
-    CALLBACK("manipulate_title_stack", "OOO",
-        op == 23 ? Py_True : Py_False,
-        which == 0 || which == 2 ? Py_True : Py_False,
-        which == 0 || which == 1 ? Py_True : Py_False
-    );
-}
-
-void
 report_device_status(Screen *self, unsigned int which, bool private) {
     // We don't implement the private device status codes, since I haven't come
     // across any programs that use them
@@ -2153,11 +2144,6 @@ screen_set_cursor(Screen *self, unsigned int mode, uint8_t secondary) {
             }
             break;
     }
-}
-
-void
-set_title(Screen *self, PyObject *title) {
-    CALLBACK("title_changed", "O", title);
 }
 
 void

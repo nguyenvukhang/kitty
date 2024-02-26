@@ -301,7 +301,6 @@ bool is_mouse_hidden(OSWindow *w);
 void destroy_os_window(OSWindow *w);
 void focus_os_window(OSWindow *w, bool also_raise, const char *activation_token);
 void run_with_activation_token_in_os_window(OSWindow *w, PyObject *callback);
-void set_os_window_title(OSWindow *w, const char *title);
 OSWindow* os_window_for_alatty_window(id_type);
 OSWindow* os_window_for_id(id_type);
 OSWindow* add_os_window(void);
@@ -367,8 +366,6 @@ void update_main_loop_timer(id_type timer_id, monotonic_t interval, bool enabled
 void run_main_loop(tick_callback_fun, void*);
 void stop_main_loop(void);
 void os_window_update_size_increments(OSWindow *window);
-void set_os_window_title_from_window(Window *w, OSWindow *os_window);
-void update_os_window_title(OSWindow *os_window);
 void fake_scroll(Window *w, int amount, bool upwards);
 Window* window_for_window_id(id_type alatty_window_id);
 bool mouse_set_last_visited_cmd_output(Window *w);

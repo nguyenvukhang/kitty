@@ -314,28 +314,6 @@ update_window_title(id_type os_window_id, id_type tab_id, id_type window_id, PyO
     END_WITH_WINDOW;
 }
 
-void
-set_os_window_title_from_window(Window *w, OSWindow *os_window) {
-    if (os_window->disallow_title_changes || os_window->title_is_overriden) return;
-    if (w->title && w->title != os_window->window_title) {
-        Py_XDECREF(os_window->window_title);
-        os_window->window_title = w->title;
-        Py_INCREF(os_window->window_title);
-        set_os_window_title(os_window, PyUnicode_AsUTF8(w->title));
-    }
-}
-
-void
-update_os_window_title(OSWindow *os_window) {
-    if (os_window->num_tabs) {
-        Tab *tab = os_window->tabs + os_window->active_tab;
-        if (tab->num_windows) {
-            Window *w = tab->windows + tab->active_window;
-            set_os_window_title_from_window(w, os_window);
-        }
-    }
-}
-
 static void
 destroy_window(Window *w) {
     Py_CLEAR(w->render_data.screen); Py_CLEAR(w->title);
@@ -960,46 +938,6 @@ PYWRAP1(update_window_visibility) {
 }
 
 
-PYWRAP1(sync_os_window_title) {
-    id_type os_window_id;
-    PA("K", &os_window_id);
-    WITH_OS_WINDOW(os_window_id)
-        update_os_window_title(os_window);
-    END_WITH_OS_WINDOW
-    Py_RETURN_NONE;
-}
-
-PYWRAP1(set_os_window_title) {
-    id_type os_window_id;
-    PyObject *title;
-    PA("KU", &os_window_id, &title);
-    WITH_OS_WINDOW(os_window_id)
-        if (PyUnicode_GetLength(title)) {
-            os_window->title_is_overriden = true;
-            Py_XDECREF(os_window->window_title);
-            os_window->window_title = title;
-            Py_INCREF(title);
-            set_os_window_title(os_window, PyUnicode_AsUTF8(title));
-        } else {
-            os_window->title_is_overriden = false;
-            if (os_window->window_title) set_os_window_title(os_window, PyUnicode_AsUTF8(os_window->window_title));
-            update_os_window_title(os_window);
-        }
-    END_WITH_OS_WINDOW
-    Py_RETURN_NONE;
-}
-
-PYWRAP1(get_os_window_title) {
-    id_type os_window_id;
-    PA("K", &os_window_id);
-    WITH_OS_WINDOW(os_window_id)
-        if (os_window->window_title) return Py_BuildValue("O", os_window->window_title);
-    END_WITH_OS_WINDOW
-    Py_RETURN_NONE;
-}
-
-
-
 PYWRAP1(pt_to_px) {
     double pt;
     id_type os_window_id = 0;
@@ -1034,8 +972,6 @@ PYWRAP1(os_window_font_size) {
                 }
             }
             os_window_update_size_increments(os_window);
-            // On Wayland with CSD title needs to be re-rendered in a different font size
-            if (os_window->window_title && global_state.is_wayland) set_os_window_title(os_window, NULL);
         }
         return Py_BuildValue("d", os_window->font_sz_in_pts);
     END_WITH_OS_WINDOW
@@ -1377,9 +1313,6 @@ static PyMethodDef module_methods[] = {
     MW(change_background_opacity, METH_VARARGS),
     MW(background_opacity_of, METH_O),
     MW(update_window_visibility, METH_VARARGS),
-    MW(sync_os_window_title, METH_VARARGS),
-    MW(get_os_window_title, METH_VARARGS),
-    MW(set_os_window_title, METH_VARARGS),
     MW(get_os_window_pos, METH_VARARGS),
     MW(set_os_window_pos, METH_VARARGS),
     MW(global_font_size, METH_VARARGS),

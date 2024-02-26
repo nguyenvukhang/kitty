@@ -186,10 +186,6 @@ def draw(*a: str) -> None:
     write(' '.join(a))
 
 
-def screen_manipulate_title_stack(op: int, which: int) -> None:
-    write(f'{CSI}{op};{which}t')
-
-
 def report_device_attributes(mode: int, char: int) -> None:
     x = CSI
     if char:

@@ -885,49 +885,6 @@ class Window:
             if get_boss().child_monitor.needs_write(self.id, data) is not True:
                 log_error(f'Failed to write to child {self.id} as it does not exist')
 
-    def title_updated(self) -> None:
-        update_window_title(self.os_window_id, self.tab_id, self.id, self.title)
-        t = self.tabref()
-        if t is not None:
-            t.title_changed(self)
-
-    def set_title(self, title: Optional[str]) -> None:
-        if title:
-            title = sanitize_title(title)
-        self.override_title = title or None
-        self.call_watchers(self.watchers.on_title_change, {'title': self.title, 'from_child': False})
-        self.title_updated()
-
-    @ac(
-        'win', '''
-        Change the title of the active window interactively, by typing in the new title.
-        If you specify an argument to this action then that is used as the title instead of asking for it.
-        Use the empty string ("") to reset the title to default. Use a space (" ") to indicate that the
-        prompt should not be pre-filled. For example::
-
-            # interactive usage
-            map f1 set_window_title
-            # set a specific title
-            map f2 set_window_title some title
-            # reset to default
-            map f3 set_window_title ""
-            # interactive usage without prefilled prompt
-            map f3 set_window_title " "
-        '''
-    )
-    def set_window_title(self, title: Optional[str] = None) -> None:
-        if title is not None and title not in ('" "', "' '"):
-            if title in ('""', "''"):
-                title = ''
-            self.set_title(title)
-            return
-        prefilled = self.title
-        if title in ('" "', "' '"):
-            prefilled = ''
-        get_boss().get_line(
-            _('Enter the new title for this window below. An empty title will cause the default title to be used.'),
-            self.set_title, window=self, initial_value=prefilled)
-
     def set_user_var(self, key: str, val: Optional[Union[str, bytes]]) -> None:
         key = sanitize_control_codes(key).replace('\n', ' ')
         self.user_vars.pop(key, None)  # ensure key will be newest in user_vars even if already present
@@ -1036,12 +993,6 @@ class Window:
         elif self.os_window_id == current_focused_os_window_id():
             # Cancel IME composition after loses focus
             update_ime_position_for_window(self.id, False, -1)
-
-    def title_changed(self, new_title: Optional[str], is_base64: bool = False) -> None:
-        self.child_title = process_title_from_child(new_title or self.default_title, is_base64)
-        self.call_watchers(self.watchers.on_title_change, {'title': self.child_title, 'from_child': True})
-        if self.override_title is None:
-            self.title_updated()
 
     def icon_changed(self, new_icon: object) -> None:
         pass  # TODO: Implement this
@@ -1206,17 +1157,6 @@ class Window:
             self.clipboard_request_manager.parse_osc_5522(data)
         else:
             self.clipboard_request_manager.parse_osc_52(data, is_partial)
-
-    def manipulate_title_stack(self, pop: bool, title: str, icon: Any) -> None:
-        if title:
-            if pop:
-                if self.title_stack:
-                    self.child_title = self.title_stack.pop()
-                    self.call_watchers(self.watchers.on_title_change, {'title': self.child_title, 'from_child': True})
-                    self.title_updated()
-            else:
-                if self.child_title:
-                    self.title_stack.append(self.child_title)
 
     def cmd_output_marking(self, is_start: bool) -> None:
         if is_start:

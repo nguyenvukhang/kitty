@@ -527,10 +527,6 @@ def update_window_visibility(
     pass
 
 
-def sync_os_window_title(os_window_id: int) -> None:
-    pass
-
-
 def set_options(
     opts: Optional[Options],
     is_wayland: bool = False,
@@ -1395,14 +1391,6 @@ def get_click_interval() -> float:
 
 
 def send_data_to_peer(peer_id: int, data: Union[str, bytes]) -> None:
-    pass
-
-
-def set_os_window_title(os_window_id: int, title: str) -> None:
-    pass
-
-
-def get_os_window_title(os_window_id: int) -> Optional[str]:
     pass
 
 

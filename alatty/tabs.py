@@ -51,7 +51,6 @@ from .fast_data_types import (
     set_active_tab,
     set_active_window,
     swap_tabs,
-    sync_os_window_title,
 )
 from .layout.base import Layout
 from .layout.interface import create_layout_object_for, evict_cached_layouts
@@ -288,7 +287,7 @@ class Tab:  # {{{
         if window is self.active_window:
             tm = self.tab_manager_ref()
             if tm is not None:
-                tm.title_changed(self)
+                tm.title_changed()
 
     def on_bell(self, window: Window) -> None:
         self.mark_tab_bar_dirty()
@@ -948,10 +947,8 @@ class TabManager:  # {{{
     def update_tab_bar_data(self) -> None:
         self.tab_bar.update(self.tab_bar_data)
 
-    def title_changed(self, tab: Tab) -> None:
+    def title_changed(self) -> None:
         self.mark_tab_bar_dirty()
-        if tab is self.active_tab:
-            sync_os_window_title(self.os_window_id)
 
     def resize(self, only_tabs: bool = False) -> None:
         if not only_tabs:

@@ -93,7 +93,6 @@ from .fast_data_types import (
     set_options,
     set_os_window_chrome,
     set_os_window_size,
-    set_os_window_title,
     thread_write,
     toggle_fullscreen,
     toggle_maximized,
@@ -214,7 +213,6 @@ class DumpCommands:  # {{{
                     self.draw_dump_buf = []
                 safe_print(*a)
 # }}}
-
 
 
 class Boss:

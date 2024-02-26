@@ -9,7 +9,6 @@ from .child import Child
 from .cli import parse_args
 from .cli_stub import LaunchCLIOptions
 from .clipboard import set_clipboard_string, set_primary_selection
-from .fast_data_types import get_os_window_title
 from .options.utils import env as parse_env
 from .tabs import Tab, TabManager
 from .types import OverlayType, run_once
@@ -438,8 +437,7 @@ def _launch(
         atab = boss.active_tab
         opts.tab_title = atab.effective_title if atab else None
     if opts.os_window_title == 'current':
-        tm = boss.active_tab_manager
-        opts.os_window_title = get_os_window_title(tm.os_window_id) if tm else None
+        opts.os_window_title = None
     env = get_env(opts, active_child, base_env)
     kw: LaunchKwds = {
         'cwd_from': None,

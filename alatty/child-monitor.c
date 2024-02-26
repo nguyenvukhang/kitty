@@ -741,7 +741,6 @@ prepare_to_render_os_window(OSWindow *os_window, monotonic_t now, unsigned int *
                 *active_window_id = w->id;
                 if (collect_cursor_info(&WD.screen->cursor_render_info, w, now, os_window)) needs_render = true;
                 WD.screen->cursor_render_info.is_focused = os_window->is_focused;
-                set_os_window_title_from_window(w, os_window);
                 *active_window_bg = window_bg;
             } else {
                 if (WD.screen->render_unfocused_cursor) {
@@ -827,7 +826,6 @@ bool
 render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames, bool scan_for_animated_images) {
     if (!w->num_tabs) return false;
     if (!should_os_window_be_rendered(w)) {
-        update_os_window_title(w);
         if (w->is_focused) change_menubar_title(w->window_title);
         return false;
     }
