@@ -845,16 +845,10 @@ def init_env_from_args(args: Options, native_optimizations: bool = False) -> Non
     )
 
 
-@lru_cache
-def extract_rst_targets() -> Dict[str, Dict[str, str]]:
-    m = runpy.run_path('docs/extract-rst-targets.py')
-    return cast(Dict[str, Dict[str, str]], m['main']())
-
-
 def build_ref_map(skip_generation: bool = False) -> str:
     dest = 'alatty/docs_ref_map_generated.h'
     if not skip_generation:
-        d = extract_rst_targets()
+        d = {'ref': {}, 'doc': {}}
         h = 'static const char docs_ref_map[] = {\n' + textwrap.fill(', '.join(map(str, bytearray(json.dumps(d, sort_keys=True).encode('utf-8'))))) + '\n};\n'
         q = ''
         with suppress(FileNotFoundError), open(dest) as f:
