@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"kitty/tools/cli/markup"
-	"kitty/tools/utils"
+	"alatty/tools/cli/markup"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

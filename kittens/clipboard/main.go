@@ -5,7 +5,7 @@ package clipboard
 import (
 	"os"
 
-	"kitty/tools/cli"
+	"alatty/tools/cli"
 )
 
 func run_mime_loop(opts *Options, args []string) (err error) {

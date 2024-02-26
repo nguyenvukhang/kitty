@@ -23,18 +23,18 @@ from pygments.token import Comment, Error, Keyword, Literal, Name, Number, Strin
 from sphinx import addnodes, version_info
 from sphinx.util.logging import getLogger
 
-kitty_src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if kitty_src not in sys.path:
-    sys.path.insert(0, kitty_src)
+alatty_src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if alatty_src not in sys.path:
+    sys.path.insert(0, alatty_src)
 
-from kitty.conf.types import Definition, expand_opt_references  # noqa
-from kitty.constants import str_version, website_url # noqa
-from kitty.fast_data_types import Shlex  # noqa
+from alatty.conf.types import Definition, expand_opt_references  # noqa
+from alatty.constants import str_version, website_url # noqa
+from alatty.fast_data_types import Shlex  # noqa
 
 # config {{{
 # -- Project information -----------------------------------------------------
 
-project = 'kitty'
+project = 'alatty'
 copyright = time.strftime('%Y, Kovid Goyal')
 author = 'Kovid Goyal'
 building_man_pages = 'man' in sys.argv
@@ -69,7 +69,7 @@ extensions = [
 ogp_site_url = website_url()
 # OGP needs a PNG image because of: https://github.com/wpilibsuite/sphinxext-opengraph/issues/96
 ogp_social_cards = {
-    'image': '../logo/kitty.png'
+    'image': '../logo/alatty.png'
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -100,9 +100,9 @@ exclude_patterns = [
 ]
 
 rst_prolog = '''
-.. |kitty| replace:: *kitty*
+.. |alatty| replace:: *alatty*
 .. |version| replace:: VERSION
-.. _tarball: https://github.com/kovidgoyal/kitty/releases/download/vVERSION/kitty-VERSION.tar.xz
+.. _tarball: https://github.com/kovidgoyal/alatty/releases/download/vVERSION/alatty-VERSION.tar.xz
 .. role:: italic
 
 '''.replace('VERSION', str_version)
@@ -117,7 +117,7 @@ def go_version(go_mod_path: str) -> str:  # {{{
 # }}}
 
 string_replacements = {
-    '_kitty_install_cmd': 'curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin',
+    '_alatty_install_cmd': 'curl -L https://sw.kovidgoyal.net/alatty/installer.sh | sh /dev/stdin',
     '_build_go_version': go_version('../go.mod'),
 }
 
@@ -128,7 +128,7 @@ string_replacements = {
 # a list of builtin themes.
 #
 html_theme = 'furo'
-html_title = 'kitty'
+html_title = 'alatty'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -141,7 +141,7 @@ html_theme_options: Dict[str, Any] = {
     'footer_icons': [
         {
             "name": "GitHub",
-            "url": "https://github.com/kovidgoyal/kitty",
+            "url": "https://github.com/kovidgoyal/alatty",
             "html": f"""
                 <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16">
                     <path fill-rule="evenodd" d="{github_icon_path}"></path>
@@ -157,7 +157,7 @@ html_theme_options: Dict[str, Any] = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
-html_favicon = html_logo = '../logo/kitty.svg'
+html_favicon = html_logo = '../logo/alatty.svg'
 html_css_files = ['custom.css', 'timestamps.css']
 html_js_files = ['custom.js', 'timestamps.js']
 
@@ -178,8 +178,8 @@ manpages_url = 'https://man7.org/linux/man-pages/man{section}/{page}.{section}.h
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('invocation', 'kitty', 'The fast, feature rich terminal emulator', [author], 1),
-    ('conf', 'kitty.conf', 'Configuration file for kitty', [author], 5)
+    ('invocation', 'alatty', 'The fast, feature rich terminal emulator', [author], 1),
+    ('conf', 'alatty.conf', 'Configuration file for alatty', [author], 5)
 ]
 
 
@@ -189,8 +189,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'kitty', 'kitty Documentation',
-     author, 'kitty', 'Cross-platform, fast, feature-rich, GPU based terminal',
+    (master_doc, 'alatty', 'alatty Documentation',
+     author, 'alatty', 'Cross-platform, fast, feature-rich, GPU based terminal',
      'Miscellaneous'),
 ]
 # }}}
@@ -199,9 +199,9 @@ texinfo_documents = [
 # GitHub linking inline roles {{{
 
 extlinks = {
-    'iss': ('https://github.com/kovidgoyal/kitty/issues/%s', '#%s'),
-    'pull': ('https://github.com/kovidgoyal/kitty/pull/%s', '#%s'),
-    'disc': ('https://github.com/kovidgoyal/kitty/discussions/%s', '#%s'),
+    'iss': ('https://github.com/kovidgoyal/alatty/issues/%s', '#%s'),
+    'pull': ('https://github.com/kovidgoyal/alatty/pull/%s', '#%s'),
+    'disc': ('https://github.com/kovidgoyal/alatty/discussions/%s', '#%s'),
 }
 
 
@@ -217,7 +217,7 @@ def commit_role(
             f'git commit id "{text}" not recognized.', line=lineno)
         prb = inliner.problematic(rawtext, rawtext, msg)
         return [prb], [msg]
-    url = f'https://github.com/kovidgoyal/kitty/commit/{commit_id}'
+    url = f'https://github.com/kovidgoyal/alatty/commit/{commit_id}'
     set_classes(options)
     short_id = subprocess.check_output(
         f'git rev-list --max-count=1 --abbrev-commit {commit_id}'.split()).decode('utf-8').strip()
@@ -229,7 +229,7 @@ def commit_role(
 # CLI docs {{{
 def write_cli_docs(all_kitten_names: Iterable[str]) -> None:
     from kittens.ssh.main import copy_message, option_text
-    from kitty.cli import option_spec_as_rst
+    from alatty.cli import option_spec_as_rst
     with open('generated/ssh-copy.rst', 'w') as f:
         f.write(option_spec_as_rst(
             appname='copy', ospec=option_text, heading_char='^',
@@ -237,22 +237,22 @@ def write_cli_docs(all_kitten_names: Iterable[str]) -> None:
         ))
     del sys.modules['kittens.ssh.main']
 
-    from kitty.launch import options_spec as launch_options_spec
+    from alatty.launch import options_spec as launch_options_spec
     with open('generated/launch.rst', 'w') as f:
         f.write(option_spec_as_rst(
             appname='launch', ospec=launch_options_spec, heading_char='_',
             message='''\
-Launch an arbitrary program in a new kitty window/tab. Note that
+Launch an arbitrary program in a new alatty window/tab. Note that
 if you specify a program-to-run you can use the special placeholder
 :code:`@selection` which will be replaced by the current selection.
 '''
         ))
-    with open('generated/cli-kitty.rst', 'w') as f:
-        f.write(option_spec_as_rst(appname='kitty').replace(
-            'kitty --to', 'kitty @ --to'))
+    with open('generated/cli-alatty.rst', 'w') as f:
+        f.write(option_spec_as_rst(appname='alatty').replace(
+            'alatty --to', 'alatty @ --to'))
     as_rst = partial(option_spec_as_rst, heading_char='_')
-    from kitty.rc.base import all_command_names, command_for_name
-    from kitty.remote_control import cli_msg, global_options_spec
+    from alatty.rc.base import all_command_names, command_for_name
+    from alatty.remote_control import cli_msg, global_options_spec
     with open('generated/cli-kitten-at.rst', 'w') as f:
         p = partial(print, file=f)
         p('kitten @')
@@ -260,7 +260,7 @@ if you specify a program-to-run you can use the special placeholder
         p('.. program::', 'kitten @')
         p('\n\n' + as_rst(
             global_options_spec, message=cli_msg, usage='command ...', appname='kitten @'))
-        from kitty.rc.base import cli_params_for
+        from alatty.rc.base import cli_params_for
         for cmd_name in sorted(all_command_names()):
             func = command_for_name(cmd_name)
             p(f'.. _at-{func.name}:\n')
@@ -275,22 +275,22 @@ if you specify a program-to-run you can use the special placeholder
         if data:
             with open(f'generated/cli-kitten-{kitten}.rst', 'w') as f:
                 p = partial(print, file=f)
-                p('.. program::', 'kitty +kitten', kitten)
+                p('.. program::', 'alatty +kitten', kitten)
                 p('\nSource code for', kitten)
                 p('-' * 72)
-                scurl = f'https://github.com/kovidgoyal/kitty/tree/master/kittens/{kitten}'
+                scurl = f'https://github.com/kovidgoyal/alatty/tree/master/kittens/{kitten}'
                 p(f'\nThe source code for this kitten is `available on GitHub <{scurl}>`_.')
                 p('\nCommand Line Interface')
                 p('-' * 72)
                 p('\n\n' + option_spec_as_rst(
-                    data['options'], message=data['help_text'], usage=data['usage'], appname=f'kitty +kitten {kitten}',
+                    data['options'], message=data['help_text'], usage=data['usage'], appname=f'alatty +kitten {kitten}',
                     heading_char='^'))
 
 # }}}
 
 
 def write_remote_control_protocol_docs() -> None:  # {{{
-    from kitty.rc.base import RemoteCommand, all_command_names, command_for_name
+    from alatty.rc.base import RemoteCommand, all_command_names, command_for_name
     field_pat = re.compile(r'\s*([^:]+?)\s*:\s*(.+)')
 
     def format_cmd(p: Callable[..., None], name: str, cmd: RemoteCommand) -> None:
@@ -349,7 +349,7 @@ class ConfLexer(RegexLexer):  # type: ignore
     def map_flags(self: RegexLexer, val: str, start_pos: int) -> Iterator[Tuple[int, Any, str]]:
             expecting_arg = ''
             s = Shlex(val)
-            from kitty.options.utils import allowed_key_map_options
+            from alatty.options.utils import allowed_key_map_options
             last_pos = 0
             while (tok := s.next_word())[0] > -1:
                 x = tok[1]
@@ -513,7 +513,7 @@ def parse_action_node(env: Any, sig: str, signode: Any) -> str:
 def process_opt_link(env: Any, refnode: Any, has_explicit_title: bool, title: str, target: str) -> Tuple[str, str]:
     conf_name, opt = target.partition('.')[::2]
     if not opt:
-        conf_name, opt = 'kitty', conf_name
+        conf_name, opt = 'alatty', conf_name
     full_name = f'{conf_name}.{opt}'
     return title, opt_aliases.get(full_name, full_name)
 
@@ -525,7 +525,7 @@ def process_action_link(env: Any, refnode: Any, has_explicit_title: bool, title:
 def process_shortcut_link(env: Any, refnode: Any, has_explicit_title: bool, title: str, target: str) -> Tuple[str, str]:
     conf_name, slug = target.partition('.')[::2]
     if not slug:
-        conf_name, slug = 'kitty', conf_name
+        conf_name, slug = 'alatty', conf_name
     full_name = f'{conf_name}.{slug}'
     try:
         target, stitle = shortcut_slugs[full_name]
@@ -578,8 +578,8 @@ def write_conf_docs(app: Any, all_kitten_names: Iterable[str]) -> None:
             text = '\n'.join(definition.as_conf(commented=True))
             print(text, file=f)
 
-    from kitty.options.definition import definition
-    generate_default_config(definition, 'kitty')
+    from alatty.options.definition import definition
+    generate_default_config(definition, 'alatty')
 
     from kittens.runner import get_kitten_conf_docs
     for kitten in all_kitten_names:
@@ -587,11 +587,11 @@ def write_conf_docs(app: Any, all_kitten_names: Iterable[str]) -> None:
         if defn is not None:
             generate_default_config(defn, f'kitten-{kitten}')
 
-    from kitty.actions import as_rst
+    from alatty.actions import as_rst
     with open('generated/actions.rst', 'w', encoding='utf-8') as f:
         f.write(as_rst())
 
-    from kitty.rc.base import MATCH_TAB_OPTION, MATCH_WINDOW_OPTION
+    from alatty.rc.base import MATCH_TAB_OPTION, MATCH_WINDOW_OPTION
     with open('generated/matching.rst', 'w') as f:
         print('Matching windows', file=f)
         print('______________________________', file=f)
@@ -711,11 +711,11 @@ def setup_man_pages() -> None:
 
 def build_extra_man_pages() -> None:
     base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    kitten = os.environ.get('KITTEN_EXE_FOR_DOCS', os.path.join(base, 'kitty/launcher/kitten'))
+    kitten = os.environ.get('KITTEN_EXE_FOR_DOCS', os.path.join(base, 'alatty/launcher/kitten'))
     if not os.path.exists(kitten):
-        kitten = os.path.join(base, 'kitty/launcher/kitty.app/Contents/MacOS/kitten')
+        kitten = os.path.join(base, 'alatty/launcher/alatty.app/Contents/MacOS/kitten')
         if not os.path.exists(kitten):
-            subprocess.call(['find', os.path.join(base, 'kitty/launcher')])
+            subprocess.call(['find', os.path.join(base, 'alatty/launcher')])
             raise Exception(f'The kitten binary {kitten} is not built cannot generate man pages')
     raw = subprocess.check_output([kitten, '-h']).decode()
     started = 0

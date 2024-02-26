@@ -1,15 +1,15 @@
 :orphan:
 
-The kitty command line interface
+The alatty command line interface
 ====================================
 
-.. program:: kitty
+.. program:: alatty
 
-.. include:: generated/cli-kitty.rst
+.. include:: generated/cli-alatty.rst
 
 .. include:: basic.rst
 
 See also
 -----------
 
-See kitty.conf(5)
+See alatty.conf(5)

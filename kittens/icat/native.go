@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"image"
 	"image/gif"
-	"kitty/tools/tty"
-	"kitty/tools/tui/graphics"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/utils/shm"
+	"alatty/tools/tty"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/utils/shm"
 
 	"github.com/disintegration/imaging"
 )
@@ -28,7 +28,7 @@ func resize_frame(imgd *image_data, img image.Image) (image.Image, image.Rectang
 	return img, image.Rect(newleft, newtop, newleft+new_width, newtop+new_height)
 }
 
-const shm_template = "kitty-icat-*"
+const shm_template = "alatty-icat-*"
 
 func add_frame(ctx *images.Context, imgd *image_data, img image.Image) *image_frame {
 	is_opaque := false

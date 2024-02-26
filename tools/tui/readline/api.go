@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty/tools/cli"
-	"kitty/tools/cli/markup"
-	"kitty/tools/tui/loop"
-	"kitty/tools/wcswidth"
+	"alatty/tools/cli"
+	"alatty/tools/cli/markup"
+	"alatty/tools/tui/loop"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

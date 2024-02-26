@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 
 	"golang.org/x/sys/unix"
 )

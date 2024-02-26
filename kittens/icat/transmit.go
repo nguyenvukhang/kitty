@@ -9,19 +9,19 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kitty"
+	"alatty"
 	"math"
 	not_rand "math/rand"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"kitty/tools/tui"
-	"kitty/tools/tui/graphics"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/utils/shm"
+	"alatty/tools/tui"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/utils/shm"
 )
 
 var _ = fmt.Print
@@ -270,7 +270,7 @@ func write_unicode_placeholder(imgd *image_data) {
 			os.Stdout.WriteString(prefix)
 		}
 		for c := 0; c < imgd.width_cells; c++ {
-			os.Stdout.WriteString(string(kitty.ImagePlaceholderChar) + string(images.NumberToDiacritic[r]) + string(images.NumberToDiacritic[c]) + id_char)
+			os.Stdout.WriteString(string(alatty.ImagePlaceholderChar) + string(images.NumberToDiacritic[r]) + string(images.NumberToDiacritic[c]) + id_char)
 		}
 		os.Stdout.WriteString("\n\r")
 	}

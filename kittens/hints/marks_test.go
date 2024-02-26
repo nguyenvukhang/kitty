@@ -5,8 +5,8 @@ package hints
 import (
 	"errors"
 	"fmt"
-	"kitty"
-	"kitty/tools/utils"
+	"alatty"
+	"alatty/tools/utils"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -25,7 +25,7 @@ func TestHintMarking(t *testing.T) {
 	cli_args := []string{}
 
 	reset := func() {
-		opts = &Options{Type: "url", UrlPrefixes: "default", Regex: kitty.HintsDefaultRegex}
+		opts = &Options{Type: "url", UrlPrefixes: "default", Regex: alatty.HintsDefaultRegex}
 		cols = 20
 		cli_args = []string{}
 	}

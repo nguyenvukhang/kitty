@@ -4,12 +4,12 @@ The :command:`launch` command
 .. program:: launch
 
 
-|kitty| has a :code:`launch` action that can be used to run arbitrary programs
+|alatty| has a :code:`launch` action that can be used to run arbitrary programs
 in new windows/tabs. It can be mapped to user defined shortcuts in
-:file:`kitty.conf`. It is very powerful and allows sending the contents of the
+:file:`alatty.conf`. It is very powerful and allows sending the contents of the
 current window to the launched program, as well as many other options.
 
-In the simplest form, you can use it to open a new kitty window running the
+In the simplest form, you can use it to open a new alatty window running the
 shell, as shown below::
 
     map f1 launch
@@ -54,12 +54,12 @@ The piping environment
 --------------------------
 
 When using :option:`launch --stdin-source`, the program to which the data is
-piped has a special environment variable declared, :envvar:`KITTY_PIPE_DATA`
+piped has a special environment variable declared, :envvar:`ALATTY_PIPE_DATA`
 whose contents are::
 
-   KITTY_PIPE_DATA={scrolled_by}:{cursor_x},{cursor_y}:{lines},{columns}
+   ALATTY_PIPE_DATA={scrolled_by}:{cursor_x},{cursor_y}:{lines},{columns}
 
-where ``scrolled_by`` is the number of lines kitty is currently scrolled by,
+where ``scrolled_by`` is the number of lines alatty is currently scrolled by,
 ``cursor_(x|y)`` is the position of the cursor on the screen with ``(1,1)``
 being the top left corner and ``{lines},{columns}`` being the number of rows
 and columns of the screen.
@@ -75,8 +75,8 @@ the command line:
 ``@selection``
     Replaced by the currently selected text.
 
-``@active-kitty-window-id``
-    Replaced by the id of the currently active kitty window.
+``@active-alatty-window-id``
+    Replaced by the id of the currently active alatty window.
 
 ``@line-count``
     Replaced by the number of lines in STDIN. Only present when passing some
@@ -84,10 +84,10 @@ the command line:
 
 ``@input-line-number``
     Replaced by the number of lines a pager should scroll to match the current
-    scroll position in kitty. See :opt:`scrollback_pager` for details.
+    scroll position in alatty. See :opt:`scrollback_pager` for details.
 
 ``@scrolled-by``
-    Replaced by the number of lines kitty is currently scrolled by.
+    Replaced by the number of lines alatty is currently scrolled by.
 
 ``@cursor-x``
     Replaced by the current cursor x position with 1 being the leftmost cell.
@@ -104,7 +104,7 @@ the command line:
 
 For example::
 
-    map f1 launch my-program @active-kitty-window-id
+    map f1 launch my-program @active-alatty-window-id
 
 
 .. _watchers:
@@ -121,8 +121,8 @@ functions for the events you are interested in, for example:
 
     from typing import Any, Dict
 
-    from kitty.boss import Boss
-    from kitty.window import Window
+    from alatty.boss import Boss
+    from alatty.window import Window
 
 
     def on_resize(boss: Boss, window: Window, data: Dict[str, Any]) -> None:
@@ -156,7 +156,7 @@ that contains event dependent data. Some useful methods and attributes for the
 add_wrap_markers=False, alternate_screen=False)`` with which you can get the
 contents of the window and its scrollback buffer. Similarly,
 ``window.child.pid`` is the PID of the processes that was launched
-in the window and ``window.id`` is the internal kitty ``id`` of the window.
+in the window and ``window.id`` is the internal alatty ``id`` of the window.
 
 
 Finding executables

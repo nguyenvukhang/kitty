@@ -32,8 +32,8 @@
  * ibus engine name
  * You can list available engines with:
  * ibus list-engine
- * Then run kitty as:
- * GLFW_IM_MODULE=ibus kitty
+ * Then run alatty as:
+ * GLFW_IM_MODULE=ibus alatty
  */
 #define _GNU_SOURCE
 #include <stdio.h>

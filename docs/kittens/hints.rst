@@ -7,7 +7,7 @@ Hints
     --------------
 
 
-|kitty| has a *hints mode* to select and act on arbitrary text snippets
+|alatty| has a *hints mode* to select and act on arbitrary text snippets
 currently visible on the screen.  For example, you can press :sc:`open_url`
 to choose any URL visible on the screen and then open it using your default web
 browser.
@@ -51,7 +51,7 @@ You can also :doc:`customize what actions are taken for different types of URLs
 
 The hints kitten is very powerful to see more detailed help on its various
 options and modes of operation, see below. You can use these options to
-create mappings in :file:`kitty.conf` to select various different text
+create mappings in :file:`alatty.conf` to select various different text
 snippets. See :sc:`insert_selected_path <insert_selected_path>` for examples.
 
 
@@ -63,7 +63,7 @@ completely customize how it finds matches and what happens when a match is
 selected. This allows the hints kitten to provide the user interface, while you
 can provide the logic for finding matches and performing actions on them. This
 is best illustrated with an example. Create the file :file:`custom-hints.py` in
-the :ref:`kitty config directory <confloc>` with the following contents:
+the :ref:`alatty config directory <confloc>` with the following contents:
 
 .. code-block:: python
 
@@ -97,9 +97,9 @@ the :ref:`kitty config directory <confloc>` with the following contents:
             # will open the provided url in the system browser
             boss.open_url(f'https://www.google.com/search?q=define:{word}')
 
-Now run kitty with::
+Now run alatty with::
 
-    kitty -o 'map f1 kitten hints --customize-processing custom-hints.py'
+    alatty -o 'map f1 kitten hints --customize-processing custom-hints.py'
 
 When you press the :kbd:`F1` key you will be able to select a word to
 look it up in the Google dictionary.
@@ -110,7 +110,7 @@ look it up in the Google dictionary.
 
     To avoid having to specify the same command line options on every
     invocation, you can use the :opt:`action_alias` option in
-    :file:`kitty.conf`, creating aliases that have common sets of options.
+    :file:`alatty.conf`, creating aliases that have common sets of options.
     For example::
 
         action_alias myhints kitten hints --alphabet qfjdkslaureitywovmcxzpq1234567890

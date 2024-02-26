@@ -1,1 +1,1 @@
-See https://sw.kovidgoyal.net/kitty/changelog/
+See https://sw.kovidgoyal.net/alatty/changelog/

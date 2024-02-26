@@ -306,7 +306,7 @@ def create_header(path: str, include_data_types: bool = True) -> Generator[Calla
 
 
 def gen_emoji() -> None:
-    with create_header('kitty/emoji.h') as p:
+    with create_header('alatty/emoji.h') as p:
         p('static inline bool\nis_emoji(char_type code) {')
         p('\tswitch(code) {')
         for spec in get_ranges(list(all_emoji)):
@@ -402,7 +402,7 @@ def classes_to_regex(classes: Iterable[str], exclude: str = '', for_go: bool = T
 
 def gen_ucd() -> None:
     cz = {c for c in class_maps if c[0] in 'CZ'}
-    with create_header('kitty/unicode-data.c') as p:
+    with create_header('alatty/unicode-data.c') as p:
         p('#include "unicode-data.h"')
         p('START_ALLOW_CASE_RANGE')
         category_test(
@@ -436,7 +436,7 @@ def gen_ucd() -> None:
         p('combining_type mark_for_codepoint(char_type c) {')
         rmap = codepoint_to_mark_map(p, mark_map)
         p('}\n')
-        with open('kitty/unicode-data.h', 'r+') as f:
+        with open('alatty/unicode-data.h', 'r+') as f:
             raw = f.read()
             f.seek(0)
             raw, num = re.subn(
@@ -502,7 +502,7 @@ def gen_wcwidth() -> None:
         else:
             p('\treturn 1;\n}')
 
-    with create_header('kitty/wcwidth-std.h') as p, open('tools/wcswidth/std.go', 'w') as gof:
+    with create_header('alatty/wcwidth-std.h') as p, open('tools/wcswidth/std.go', 'w') as gof:
         gop = partial(print, file=gof)
         gop('package wcswidth\n\n')
         gop('func Runewidth(code rune) int {')
@@ -547,7 +547,7 @@ def gen_rowcolumn_diacritics() -> None:
             codes.append(code)
 
     go_file = 'tools/utils/images/rowcolumn_diacritics.go'
-    with create_header('kitty/rowcolumn-diacritics.c') as p, create_header(go_file, include_data_types=False) as g:
+    with create_header('alatty/rowcolumn-diacritics.c') as p, create_header(go_file, include_data_types=False) as g:
         p('int diacritic_to_num(char_type code) {')
         p('\tswitch (code) {')
         g('package images')

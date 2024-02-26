@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
 )
 
 type mark_set = *utils.Set[uint16]

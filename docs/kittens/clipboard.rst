@@ -22,7 +22,7 @@ To get text from the clipboard::
 
     kitten clipboard --get-clipboard
 
-The text will be written to :file:`STDOUT`. Note that by default kitty asks for
+The text will be written to :file:`STDOUT`. Note that by default alatty asks for
 permission when a program attempts to read the clipboard. This can be
 controlled via :opt:`clipboard_control`.
 
@@ -52,12 +52,12 @@ data types. Best illustrated with some examples::
     kitten clipboard -g -m . /dev/stdout
 
 Normally, the kitten guesses MIME types based on the file names. To control the
-MIME types precisely, use the :option:`--mime <kitty +kitten clipboard --mime>` option.
+MIME types precisely, use the :option:`--mime <alatty +kitten clipboard --mime>` option.
 
-This kitten uses a new protocol developed by kitty to function, for details,
+This kitten uses a new protocol developed by alatty to function, for details,
 see :doc:`/clipboard`.
 
-.. program:: kitty +kitten clipboard
+.. program:: alatty +kitten clipboard
 
 
 .. include:: /generated/cli-kitten-clipboard.rst

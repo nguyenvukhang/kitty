@@ -12,15 +12,15 @@ import (
 	"strings"
 	"unicode"
 
-	"kitty/tools/cli"
-	"kitty/tools/tty"
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/readline"
-	"kitty/tools/unicode_names"
-	"kitty/tools/utils"
-	"kitty/tools/utils/style"
-	"kitty/tools/wcswidth"
+	"alatty/tools/cli"
+	"alatty/tools/tty"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/readline"
+	"alatty/tools/unicode_names"
+	"alatty/tools/utils"
+	"alatty/tools/utils/style"
+	"alatty/tools/wcswidth"
 
 	"golang.org/x/exp/slices"
 )
@@ -451,7 +451,7 @@ func (self *handler) handle_favorites_key_event(event *loop.KeyEvent) {
 			}
 		}
 		err = self.lp.SuspendAndRun(func() error {
-			cmd := exec.Command(exe, "edit-in-kitty", "--type=overlay", fp)
+			cmd := exec.Command(exe, "edit-in-alatty", "--type=overlay", fp)
 			cmd.Stdin = os.Stdin
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
@@ -460,7 +460,7 @@ func (self *handler) handle_favorites_key_event(event *loop.KeyEvent) {
 				load_favorites(true)
 			} else {
 				fmt.Fprintln(os.Stderr, err)
-				fmt.Fprintln(os.Stderr, "Failed to run edit-in-kitty, favorites have not been changed. Press Enter to continue.")
+				fmt.Fprintln(os.Stderr, "Failed to run edit-in-alatty, favorites have not been changed. Press Enter to continue.")
 				var ln string
 				fmt.Scanln(&ln)
 			}

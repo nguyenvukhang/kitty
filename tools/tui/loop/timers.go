@@ -8,8 +8,8 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"kitty/tools/tty"
-	"kitty/tools/utils"
+	"alatty/tools/tty"
+	"alatty/tools/utils"
 )
 
 var debugprintln = tty.DebugPrintln

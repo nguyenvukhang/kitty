@@ -11,8 +11,8 @@ import sys
 import tarfile
 from urllib.request import urlopen
 
-BUNDLE_URL = 'https://download.calibre-ebook.com/ci/kitty/{}-64.tar.xz'
-is_bundle = os.environ.get('KITTY_BUNDLE') == '1'
+BUNDLE_URL = 'https://download.calibre-ebook.com/ci/alatty/{}-64.tar.xz'
+is_bundle = os.environ.get('ALATTY_BUNDLE') == '1'
 is_macos = 'darwin' in sys.platform.lower()
 SW = None
 
@@ -28,7 +28,7 @@ def run(*a):
 
 
 def install_deps():
-    print('Installing kitty dependencies...')
+    print('Installing alatty dependencies...')
     sys.stdout.flush()
     if is_macos:
         items = [x.split()[1].strip('"') for x in open('Brewfile').readlines() if x.strip().startswith('brew ')]
@@ -56,24 +56,24 @@ def install_deps():
         run(cmd)
 
 
-def build_kitty():
+def build_alatty():
     python = shutil.which('python3') if is_bundle else sys.executable
     cmd = f'{python} setup.py build --verbose'
-    if os.environ.get('KITTY_SANITIZE') == '1':
+    if os.environ.get('ALATTY_SANITIZE') == '1':
         cmd += ' --debug --sanitize'
     run(cmd)
 
 
-def test_kitty():
+def test_alatty():
     run('./test.py')
 
 
-def package_kitty():
+def package_alatty():
     python = 'python3' if is_macos else 'python'
     run(f'{python} setup.py linux-package --update-check-interval=0 --verbose')
     if is_macos:
-        run('python3 setup.py kitty.app --update-check-interval=0 --verbose')
-        run('kitty.app/Contents/MacOS/kitty +runpy "from kitty.constants import *; print(kitty_exe())"')
+        run('python3 setup.py alatty.app --update-check-interval=0 --verbose')
+        run('alatty.app/Contents/MacOS/alatty +runpy "from alatty.constants import *; print(alatty_exe())"')
 
 
 def replace_in_file(path, src, dest):
@@ -85,7 +85,7 @@ def replace_in_file(path, src, dest):
 
 def setup_bundle_env():
     global SW
-    os.environ['SW'] = SW = '/Users/Shared/kitty-build/sw/sw' if is_macos else os.path.join(os.environ['GITHUB_WORKSPACE'], 'sw')
+    os.environ['SW'] = SW = '/Users/Shared/alatty-build/sw/sw' if is_macos else os.path.join(os.environ['GITHUB_WORKSPACE'], 'sw')
     os.environ['PKG_CONFIG_PATH'] = os.path.join(SW, 'lib', 'pkgconfig')
     if is_macos:
         os.environ['PATH'] = '{}:{}'.format('/usr/local/opt/sphinx-doc/bin', os.environ['PATH'])
@@ -125,11 +125,11 @@ def main():
     if action in ('build', 'package'):
         install_deps()
     if action == 'build':
-        build_kitty()
+        build_alatty()
     elif action == 'package':
-        package_kitty()
+        package_alatty()
     elif action == 'test':
-        test_kitty()
+        test_alatty()
     elif action == 'gofmt':
         q = subprocess.check_output('gofmt -s -l tools'.split())
         if q.strip():

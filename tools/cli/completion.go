@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

@@ -11,10 +11,10 @@ from enum import IntEnum
 from itertools import count
 from typing import Any, Callable, ClassVar, DefaultDict, Deque, Dict, Generic, Iterator, List, Optional, Sequence, Tuple, Type, TypeVar, Union, cast
 
-from kitty.conf.utils import positive_float, positive_int
-from kitty.fast_data_types import create_canvas
-from kitty.typing import GRT_C, CompletedProcess, GRT_a, GRT_d, GRT_f, GRT_m, GRT_o, GRT_t, HandlerType
-from kitty.utils import ScreenSize, fit_image, which
+from alatty.conf.utils import positive_float, positive_int
+from alatty.fast_data_types import create_canvas
+from alatty.typing import GRT_C, CompletedProcess, GRT_a, GRT_d, GRT_f, GRT_m, GRT_o, GRT_t, HandlerType
+from alatty.utils import ScreenSize, fit_image, which
 
 from .operations import cursor
 
@@ -234,7 +234,7 @@ def render_image(
 
     def check_resize(frame: Frame) -> None:
         # ImageMagick sometimes generates RGBA images smaller than the specified
-        # size. See https://github.com/kovidgoyal/kitty/issues/276 for examples
+        # size. See https://github.com/kovidgoyal/alatty/issues/276 for examples
         sz = os.path.getsize(frame.path)
         expected_size = bytes_per_pixel * frame.width * frame.height
         if sz < expected_size:

@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"kitty/tools/config"
-	"kitty/tools/themes"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/readline"
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty/tools/config"
+	"alatty/tools/themes"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/readline"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -162,7 +162,7 @@ func (self *handler) set_current_category(category string) {
 	self.cached_data.Category = category
 }
 
-func ReadKittyColorSettings() map[string]string {
+func ReadAlattyColorSettings() map[string]string {
 	settings := make(map[string]string, 512)
 	handle_line := func(key, val string) error {
 		if themes.AllColorSettingNames[key] {
@@ -171,7 +171,7 @@ func ReadKittyColorSettings() map[string]string {
 		return nil
 	}
 	cp := config.ConfigParser{LineHandler: handle_line}
-	cp.ParseFiles(filepath.Join(utils.ConfigDir(), "kitty.conf"))
+	cp.ParseFiles(filepath.Join(utils.ConfigDir(), "alatty.conf"))
 	return settings
 }
 
@@ -190,7 +190,7 @@ func (self *handler) set_colors_to_current_theme() bool {
 			}
 		}
 	}
-	self.lp.QueueWriteString(themes.ColorSettingsAsEscapeCodes(ReadKittyColorSettings()))
+	self.lp.QueueWriteString(themes.ColorSettingsAsEscapeCodes(ReadAlattyColorSettings()))
 	return true
 }
 

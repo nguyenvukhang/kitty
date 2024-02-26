@@ -10,12 +10,12 @@ import (
 	"strconv"
 	"strings"
 
-	"kitty/tools/tui/graphics"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/sgr"
-	"kitty/tools/utils"
-	"kitty/tools/utils/style"
-	"kitty/tools/wcswidth"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/sgr"
+	"alatty/tools/utils"
+	"alatty/tools/utils/style"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

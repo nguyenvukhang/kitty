@@ -8,7 +8,7 @@
 
 #include "data-types.h"
 #include "binary.h"
-#include "kitty-uthash.h"
+#include "alatty-uthash.h"
 #include <math.h>
 #include <xxhash.h>
 

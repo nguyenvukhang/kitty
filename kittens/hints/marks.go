@@ -20,10 +20,10 @@ import (
 	"github.com/seancfoley/ipaddress-go/ipaddr"
 	"golang.org/x/exp/slices"
 
-	"kitty"
-	"kitty/tools/config"
-	"kitty/tools/tty"
-	"kitty/tools/utils"
+	"alatty"
+	"alatty/tools/config"
+	"alatty/tools/tty"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print
@@ -205,16 +205,16 @@ var PostProcessorMap = sync.OnceValue(func() map[string]PostProcessorFunc {
 	}
 })
 
-type KittyOpts struct {
+type AlattyOpts struct {
 	Url_prefixes              *utils.Set[string]
 	Url_excluded_characters   string
 	Select_by_word_characters string
 }
 
-func read_relevant_kitty_opts(path string) KittyOpts {
-	ans := KittyOpts{
-		Select_by_word_characters: kitty.KittyConfigDefaults.Select_by_word_characters,
-		Url_excluded_characters:   kitty.KittyConfigDefaults.Url_excluded_characters}
+func read_relevant_alatty_opts(path string) AlattyOpts {
+	ans := AlattyOpts{
+		Select_by_word_characters: alatty.AlattyConfigDefaults.Select_by_word_characters,
+		Url_excluded_characters:   alatty.AlattyConfigDefaults.Url_excluded_characters}
 	handle_line := func(key, val string) error {
 		switch key {
 		case "url_prefixes":
@@ -231,13 +231,13 @@ func read_relevant_kitty_opts(path string) KittyOpts {
 	cp := config.ConfigParser{LineHandler: handle_line}
 	_ = cp.ParseFiles(path) // ignore errors and use defaults
 	if ans.Url_prefixes == nil {
-		ans.Url_prefixes = utils.NewSetWithItems(kitty.KittyConfigDefaults.Url_prefixes...)
+		ans.Url_prefixes = utils.NewSetWithItems(alatty.AlattyConfigDefaults.Url_prefixes...)
 	}
 	return ans
 }
 
-var RelevantKittyOpts = sync.OnceValue(func() KittyOpts {
-	return read_relevant_kitty_opts(filepath.Join(utils.ConfigDir(), "kitty.conf"))
+var RelevantAlattyOpts = sync.OnceValue(func() AlattyOpts {
+	return read_relevant_alatty_opts(filepath.Join(utils.ConfigDir(), "alatty.conf"))
 })
 
 var debugprintln = tty.DebugPrintln
@@ -352,11 +352,11 @@ func functions_for(opts *Options) (pattern string, post_processors []PostProcess
 	case "url":
 		var url_prefixes *utils.Set[string]
 		if opts.UrlPrefixes == "default" {
-			url_prefixes = RelevantKittyOpts().Url_prefixes
+			url_prefixes = RelevantAlattyOpts().Url_prefixes
 		} else {
 			url_prefixes = utils.NewSetWithItems(strings.Split(opts.UrlPrefixes, ",")...)
 		}
-		url_excluded_characters := RelevantKittyOpts().Url_excluded_characters
+		url_excluded_characters := RelevantAlattyOpts().Url_excluded_characters
 		if opts.UrlExcludedCharacters != "default" {
 			if url_excluded_characters, err = config.StringLiteral(opts.UrlExcludedCharacters); err != nil {
 				err = fmt.Errorf("Failed to parse --url-excluded-characters value: %#v with error: %w", opts.UrlExcludedCharacters, err)
@@ -382,7 +382,7 @@ func functions_for(opts *Options) (pattern string, post_processors []PostProcess
 	default:
 		pattern = opts.Regex
 		if opts.Type == "linenum" {
-			if pattern == kitty.HintsDefaultRegex {
+			if pattern == alatty.HintsDefaultRegex {
 				pattern = default_linenum_regex()
 			}
 			post_processors = append(post_processors, PostProcessorMap()["brackets"], PostProcessorMap()["quotes"])
@@ -563,7 +563,7 @@ func mark_words(text string, opts *Options) (ans []Mark) {
 	}
 	chars := opts.WordCharacters
 	if chars == "" {
-		chars = RelevantKittyOpts().Select_by_word_characters
+		chars = RelevantAlattyOpts().Select_by_word_characters
 	}
 	allowed_chars := make(map[rune]bool, len(chars))
 	for _, ch := range chars {
@@ -661,7 +661,7 @@ func find_marks(text string, opts *Options, cli_args ...string) (sanitized_text 
 	}
 
 	if opts.CustomizeProcessing != "" {
-		cmd := exec.Command(utils.KittyExe(), append([]string{"+runpy", "from kittens.hints.main import custom_marking; custom_marking()"}, cli_args...)...)
+		cmd := exec.Command(utils.AlattyExe(), append([]string{"+runpy", "from kittens.hints.main import custom_marking; custom_marking()"}, cli_args...)...)
 		cmd.Stdin = strings.NewReader(sanitized_text)
 		stdout, stderr := bytes.Buffer{}, bytes.Buffer{}
 		cmd.Stdout, cmd.Stderr = &stdout, &stderr

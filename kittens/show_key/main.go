@@ -5,14 +5,14 @@ package show_key
 import (
 	"fmt"
 
-	"kitty/tools/cli"
+	"alatty/tools/cli"
 )
 
 var _ = fmt.Print
 
 func main(cmd *cli.Command, opts *Options, args []string) (rc int, err error) {
-	if opts.KeyMode == "kitty" {
-		err = run_kitty_loop(opts)
+	if opts.KeyMode == "alatty" {
+		err = run_alatty_loop(opts)
 	} else {
 		err = run_legacy_loop(opts)
 	}

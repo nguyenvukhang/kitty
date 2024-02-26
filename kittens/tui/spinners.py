@@ -4,7 +4,7 @@
 from time import monotonic
 from typing import Dict, Sequence
 
-from kitty.typing import TypedDict
+from alatty.typing import TypedDict
 
 
 class SpinnerDef(TypedDict):

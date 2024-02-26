@@ -27,7 +27,7 @@
 //========================================================================
 
 #include "internal.h"
-#include "../kitty/monotonic.h"
+#include "../alatty/monotonic.h"
 #include <sys/param.h> // For MAXPATHLEN
 #include <pthread.h>
 

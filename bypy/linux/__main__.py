@@ -23,7 +23,7 @@ else:
 self_dir = os.path.dirname(os.path.abspath(__file__))
 py_ver = '.'.join(map(str, python_major_minor_version()))
 iv = globals()['init_env']
-kitty_constants = iv['kitty_constants']
+alatty_constants = iv['alatty_constants']
 
 
 def binary_includes():
@@ -99,7 +99,7 @@ def copy_libs(env):
 def add_ca_certs(env):
     print('Downloading CA certs...')
     from urllib.request import urlopen
-    cdata = urlopen(kitty_constants['cacerts_url']).read()
+    cdata = urlopen(alatty_constants['cacerts_url']).read()
     dest = os.path.join(env.lib_dir, 'cacert.pem')
     with open(dest, 'wb') as f:
         f.write(cdata)
@@ -121,24 +121,24 @@ def copy_python(env):
     srcdir = j(srcdir, 'site-packages')
     import_site_packages(srcdir, env.py_dir)
 
-    pdir = os.path.join(env.lib_dir, 'kitty-extensions')
+    pdir = os.path.join(env.lib_dir, 'alatty-extensions')
     os.makedirs(pdir, exist_ok=True)
-    kitty_dir = os.path.join(env.lib_dir, 'kitty')
-    bases = ('kitty', 'kittens', 'kitty_tests')
+    alatty_dir = os.path.join(env.lib_dir, 'alatty')
+    bases = ('alatty', 'kittens', 'alatty_tests')
     for x in bases:
         dest = os.path.join(env.py_dir, x)
-        os.rename(os.path.join(kitty_dir, x), dest)
-        if x == 'kitty':
+        os.rename(os.path.join(alatty_dir, x), dest)
+        if x == 'alatty':
             shutil.rmtree(os.path.join(dest, 'launcher'))
-    os.rename(os.path.join(kitty_dir, '__main__.py'), os.path.join(env.py_dir, 'kitty_main.py'))
-    shutil.rmtree(os.path.join(kitty_dir, '__pycache__'))
+    os.rename(os.path.join(alatty_dir, '__main__.py'), os.path.join(env.py_dir, 'alatty_main.py'))
+    shutil.rmtree(os.path.join(alatty_dir, '__pycache__'))
     print('Extracting extension modules from', env.py_dir, 'to', pdir)
     ext_map = extract_extension_modules(env.py_dir, pdir)
     shutil.copy(os.path.join(os.path.dirname(self_dir), 'site.py'), os.path.join(env.py_dir, 'site.py'))
     for x in bases:
         iv['sanitize_source_folder'](os.path.join(env.py_dir, x))
     py_compile(env.py_dir)
-    freeze_python(env.py_dir, pdir, env.obj_dir, ext_map, develop_mode_env_var='KITTY_DEVELOP_FROM', remove_pyc_files=True)
+    freeze_python(env.py_dir, pdir, env.obj_dir, ext_map, develop_mode_env_var='ALATTY_DEVELOP_FROM', remove_pyc_files=True)
     shutil.rmtree(env.py_dir)
 
 
@@ -204,7 +204,7 @@ def create_tarfile(env, compression_level='9'):
         if err.errno != errno.ENOENT:
             raise
     os.mkdir(base)
-    dist = os.path.join(base, f'{kitty_constants["appname"]}-{kitty_constants["version"]}-{arch}.tar')
+    dist = os.path.join(base, f'{alatty_constants["appname"]}-{alatty_constants["version"]}-{arch}.tar')
     with tarfile.open(dist, mode='w', format=tarfile.PAX_FORMAT) as tf:
         cwd = os.getcwd()
         os.chdir(env.base)
@@ -227,19 +227,19 @@ def create_tarfile(env, compression_level='9'):
 def main():
     args = globals()['args']
     ext_dir = globals()['ext_dir']
-    env = Env(os.path.join(ext_dir, kitty_constants['appname']))
+    env = Env(os.path.join(ext_dir, alatty_constants['appname']))
     copy_libs(env)
     copy_python(env)
     build_launcher(env)
     files = find_binaries(env)
     fix_permissions(files)
     add_ca_certs(env)
-    kitty_exe = os.path.join(env.base, 'bin', 'kitty')
-    iv['build_frozen_tools'](kitty_exe)
+    alatty_exe = os.path.join(env.base, 'bin', 'alatty')
+    iv['build_frozen_tools'](alatty_exe)
     if not args.dont_strip:
         strip_binaries(files)
     if not args.skip_tests:
-        iv['run_tests'](kitty_exe)
+        iv['run_tests'](alatty_exe)
     create_tarfile(env, args.compression_level)
 
 

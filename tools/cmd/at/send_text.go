@@ -6,10 +6,10 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-	"kitty/tools/tty"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/shlex"
+	"alatty/tools/tty"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/shlex"
 	"os"
 	"strings"
 )
@@ -68,7 +68,7 @@ func parse_send_text(io_data *rc_io_data, args []string) error {
 				if ke.MatchesPressOrRepeat("ctrl+d") {
 					return end_reading_from_stdin
 				}
-				bs := "kitty-key:" + base64.StdEncoding.EncodeToString([]byte(ke.AsCSI()))
+				bs := "alatty-key:" + base64.StdEncoding.EncodeToString([]byte(ke.AsCSI()))
 				pending_key_events = append(pending_key_events, bs)
 				if ke.Text != "" {
 					lp.QueueWriteString(ke.Text)

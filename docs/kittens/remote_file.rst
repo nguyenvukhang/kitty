@@ -7,7 +7,7 @@ Remote files
     --------------
 
 
-|kitty| has the ability to easily *Edit*, *Open* or *Download* files from a
+|alatty| has the ability to easily *Edit*, *Open* or *Download* files from a
 computer into which you are SSHed. In your SSH session run::
 
     ls --hyperlink=auto
@@ -21,14 +21,14 @@ Then hold down :kbd:`Ctrl+Shift` and click the name of the file.
 
     Remote file actions
 
-|kitty| will ask you what you want to do with the remote file. You can choose
-to *Edit* it in which case kitty will download it and open it locally in your
+|alatty| will ask you what you want to do with the remote file. You can choose
+to *Edit* it in which case alatty will download it and open it locally in your
 :envvar:`EDITOR`. As you make changes to the file, they are automatically
 transferred to the remote computer. Note that this happens without needing
 to install *any* special software on the server, beyond :program:`ls` that
 supports hyperlinks.
 
-.. seealso:: See the :ref:`edit-in-kitty <edit_file>` command
+.. seealso:: See the :ref:`edit-in-alatty <edit_file>` command
 
 .. seealso:: See the :doc:`transfer` kitten
 
@@ -39,7 +39,7 @@ supports hyperlinks.
    Otherwise, nested SSH sessions are not supported. The kitten will always try to copy
    remote files from the first SSH host. This is because, without the ssh
    kitten, there is no way for
-   |kitty| to detect and follow a nested SSH session robustly. Use the
+   |alatty| to detect and follow a nested SSH session robustly. Use the
    :doc:`transfer` kitten for such situations.
 
 .. note::

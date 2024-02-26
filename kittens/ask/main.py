@@ -7,7 +7,7 @@ from typing import (
     Optional,
 )
 
-from kitty.typing import BossType, TypedDict
+from alatty.typing import BossType, TypedDict
 
 from ..tui.handler import result_handler
 

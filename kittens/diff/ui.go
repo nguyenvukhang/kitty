@@ -8,13 +8,13 @@ import (
 	"strconv"
 	"strings"
 
-	"kitty/tools/config"
-	"kitty/tools/tui"
-	"kitty/tools/tui/graphics"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/readline"
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty/tools/config"
+	"alatty/tools/tui"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/readline"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

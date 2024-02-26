@@ -4,7 +4,7 @@ package tui
 
 import (
 	"fmt"
-	"kitty"
+	"alatty"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,22 +15,22 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 	"golang.org/x/sys/unix"
 
-	"kitty/tools/config"
-	"kitty/tools/tty"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/shell_integration"
-	"kitty/tools/utils"
-	"kitty/tools/utils/shlex"
+	"alatty/tools/config"
+	"alatty/tools/tty"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/shell_integration"
+	"alatty/tools/utils"
+	"alatty/tools/utils/shlex"
 )
 
 var _ = fmt.Print
 
-type KittyOpts struct {
+type AlattyOpts struct {
 	Shell, Shell_integration string
 }
 
-func read_relevant_kitty_opts(path string) KittyOpts {
-	ans := KittyOpts{Shell: kitty.KittyConfigDefaults.Shell, Shell_integration: kitty.KittyConfigDefaults.Shell_integration}
+func read_relevant_alatty_opts(path string) AlattyOpts {
+	ans := AlattyOpts{Shell: alatty.AlattyConfigDefaults.Shell, Shell_integration: alatty.AlattyConfigDefaults.Shell_integration}
 	handle_line := func(key, val string) error {
 		switch key {
 		case "shell":
@@ -43,7 +43,7 @@ func read_relevant_kitty_opts(path string) KittyOpts {
 	cp := config.ConfigParser{LineHandler: handle_line}
 	_ = cp.ParseFiles(path)
 	if ans.Shell == "" {
-		ans.Shell = kitty.KittyConfigDefaults.Shell
+		ans.Shell = alatty.AlattyConfigDefaults.Shell
 	}
 	return ans
 }
@@ -54,19 +54,19 @@ func get_effective_ksi_env_var(x string) string {
 	if current.Has("disabled") {
 		return ""
 	}
-	allowed := utils.NewSetWithItems(kitty.AllowedShellIntegrationValues...)
+	allowed := utils.NewSetWithItems(alatty.AllowedShellIntegrationValues...)
 	if !current.IsSubsetOf(allowed) {
-		return relevant_kitty_opts().Shell_integration
+		return relevant_alatty_opts().Shell_integration
 	}
 	return x
 }
 
-var relevant_kitty_opts = sync.OnceValue(func() KittyOpts {
-	return read_relevant_kitty_opts(filepath.Join(utils.ConfigDir(), "kitty.conf"))
+var relevant_alatty_opts = sync.OnceValue(func() AlattyOpts {
+	return read_relevant_alatty_opts(filepath.Join(utils.ConfigDir(), "alatty.conf"))
 })
 
-func get_shell_from_kitty_conf() (shell string) {
-	shell = relevant_kitty_opts().Shell
+func get_shell_from_alatty_conf() (shell string) {
+	shell = relevant_alatty_opts().Shell
 	if shell == "." {
 		s, e := utils.LoginShellForCurrentUser()
 		if e != nil {
@@ -102,10 +102,10 @@ func find_shell_parent_process() string {
 func ResolveShell(shell string) []string {
 	switch shell {
 	case "":
-		shell = get_shell_from_kitty_conf()
+		shell = get_shell_from_alatty_conf()
 	case ".":
 		if shell = find_shell_parent_process(); shell == "" {
-			shell = get_shell_from_kitty_conf()
+			shell = get_shell_from_alatty_conf()
 		}
 	}
 	shell_cmd, err := shlex.Split(shell)
@@ -121,7 +121,7 @@ func ResolveShell(shell string) []string {
 
 func ResolveShellIntegration(shell_integration string) string {
 	if shell_integration == "" {
-		shell_integration = relevant_kitty_opts().Shell_integration
+		shell_integration = relevant_alatty_opts().Shell_integration
 	}
 	return get_effective_ksi_env_var(shell_integration)
 }
@@ -201,7 +201,7 @@ func RunCommandRestoringTerminalToSaneStateAfter(cmd []string) {
 			defer func() {
 				_, _ = term.WriteString(strings.Join([]string{
 					loop.RESTORE_PRIVATE_MODE_VALUES,
-					"\x1b[=u",                      // reset kitty keyboard protocol to legacy
+					"\x1b[=u",                      // reset alatty keyboard protocol to legacy
 					"\x1b[1 q",                     // blinking block cursor
 					loop.DECTCEM.EscapeCodeToSet(), // cursor visible
 					"\x1b]112\a",                   // reset cursor color

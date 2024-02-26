@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

@@ -11,8 +11,8 @@ Hyperlinked grep
 
    As of ripgrep versions newer that 13.0 it supports hyperlinks
    natively so you can just add the following alias in your shell rc file:
-   ``alias rg="rg --hyperlink-format=kitty"`` no need to use this kitten.
-   But, see below for instructions on how to customize kitty to have it open
+   ``alias rg="rg --hyperlink-format=alatty"`` no need to use this kitten.
+   But, see below for instructions on how to customize alatty to have it open
    the hyperlinks from ripgrep in your favorite editor.
 
 This kitten allows you to search your files using `ripgrep
@@ -22,7 +22,7 @@ simply by clicking on the result you want.
 
 .. versionadded:: 0.19.0
 
-To set it up, first create :file:`~/.config/kitty/open-actions.conf` with the
+To set it up, first create :file:`~/.config/alatty/open-actions.conf` with the
 following contents:
 
 .. code:: conf
@@ -58,7 +58,7 @@ You can now run searches with::
 
     hg some-search-term
 
-To learn more about kitty's powerful framework for customizing URL click
+To learn more about alatty's powerful framework for customizing URL click
 actions, see :doc:`here </open_actions>`.
 
 By default, this kitten adds hyperlinks for several parts of ripgrep output:

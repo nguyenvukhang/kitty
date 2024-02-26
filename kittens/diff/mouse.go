@@ -9,24 +9,24 @@ import (
 	"strings"
 	"sync"
 
-	"kitty"
-	"kitty/tools/config"
-	"kitty/tools/tty"
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty"
+	"alatty/tools/config"
+	"alatty/tools/tty"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print
 
-type KittyOpts struct {
+type AlattyOpts struct {
 	Wheel_scroll_multiplier int
 	Copy_on_select          bool
 }
 
-func read_relevant_kitty_opts(path string) KittyOpts {
-	ans := KittyOpts{Wheel_scroll_multiplier: kitty.KittyConfigDefaults.Wheel_scroll_multiplier}
+func read_relevant_alatty_opts(path string) AlattyOpts {
+	ans := AlattyOpts{Wheel_scroll_multiplier: alatty.AlattyConfigDefaults.Wheel_scroll_multiplier}
 	handle_line := func(key, val string) error {
 		switch key {
 		case "wheel_scroll_multiplier":
@@ -44,12 +44,12 @@ func read_relevant_kitty_opts(path string) KittyOpts {
 	return ans
 }
 
-var RelevantKittyOpts = sync.OnceValue(func() KittyOpts {
-	return read_relevant_kitty_opts(filepath.Join(utils.ConfigDir(), "kitty.conf"))
+var RelevantAlattyOpts = sync.OnceValue(func() AlattyOpts {
+	return read_relevant_alatty_opts(filepath.Join(utils.ConfigDir(), "alatty.conf"))
 })
 
 func (self *Handler) handle_wheel_event(up bool) {
-	amt := RelevantKittyOpts().Wheel_scroll_multiplier
+	amt := RelevantAlattyOpts().Wheel_scroll_multiplier
 	if up {
 		amt *= -1
 	}
@@ -200,7 +200,7 @@ func (self *Handler) finish_mouse_selection(ev *loop.MouseEvent) {
 	self.mouse_selection.Finish()
 	text := self.text_for_current_mouse_selection()
 	if text != "" {
-		if RelevantKittyOpts().Copy_on_select {
+		if RelevantAlattyOpts().Copy_on_select {
 			self.lp.CopyTextToClipboard(text)
 		} else {
 			self.lp.CopyTextToPrimarySelection(text)

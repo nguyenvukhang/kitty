@@ -1,7 +1,7 @@
 Arrange windows
 -------------------
 
-kitty has the ability to define its own windows that can be tiled next to each
+alatty has the ability to define its own windows that can be tiled next to each
 other in arbitrary arrangements, based on *Layouts*, see below for examples:
 
 
@@ -11,7 +11,7 @@ other in arbitrary arrangements, based on *Layouts*, see below for examples:
     :width: 100%
 
     Screenshot, showing :program:`vim`, :program:`tig` and :program:`git`
-    running in |kitty| with the *Tall* layout
+    running in |alatty| with the *Tall* layout
 
 
 .. figure:: screenshots/splits.png
@@ -142,7 +142,7 @@ The Splits Layout
 
 This is the most flexible layout. You can create any arrangement of windows
 by splitting exiting windows repeatedly. To best use this layout you should
-define a few extra key bindings in :file:`kitty.conf`::
+define a few extra key bindings in :file:`alatty.conf`::
 
     # Create a new window splitting the space used by the existing one so that
     # the two windows are placed one above the other
@@ -265,7 +265,7 @@ window wider/narrower, but not taller/shorter. Note that what you are resizing
 is actually not a window, but a row/column in the layout, all windows in that
 row/column will be resized.
 
-You can also define shortcuts in :file:`kitty.conf` to make the active window
+You can also define shortcuts in :file:`alatty.conf` to make the active window
 wider, narrower, taller, or shorter by mapping to the :ac:`resize_window`
 action, for example::
 
@@ -281,7 +281,7 @@ the resizing increment (a positive integer that defaults to 1).
 
 Some layouts take options to control their behavior. For example, the *Fat*
 and *Tall* layouts accept the ``bias`` and ``full_size`` options to control
-how the available space is split up. To specify the option, in :opt:`kitty.conf
+how the available space is split up. To specify the option, in :opt:`alatty.conf
 <enabled_layouts>` use::
 
     enabled_layouts tall:bias=70;full_size=2
@@ -292,5 +292,5 @@ and ``90``.
 
 Writing a new layout only requires about two hundred lines of code, so if there
 is some layout you want, take a look at one of the existing layouts in the
-`layout <https://github.com/kovidgoyal/kitty/tree/master/kitty/layout>`__
+`layout <https://github.com/kovidgoyal/alatty/tree/master/alatty/layout>`__
 package and submit a pull request!

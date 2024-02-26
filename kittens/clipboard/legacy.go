@@ -11,9 +11,9 @@ import (
 	"os"
 	"strings"
 
-	"kitty/tools/tty"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
+	"alatty/tools/tty"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

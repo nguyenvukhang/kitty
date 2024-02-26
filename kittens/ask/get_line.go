@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/readline"
-	"kitty/tools/utils"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/readline"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

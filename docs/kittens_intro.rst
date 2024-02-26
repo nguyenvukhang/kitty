@@ -19,9 +19,9 @@ Extend with kittens
    kittens/custom
    kittens/*
 
-|kitty| has a framework for easily creating terminal programs that make use of
+|alatty| has a framework for easily creating terminal programs that make use of
 its advanced features. These programs are called kittens. They are used both to
-add features to |kitty| itself and to create useful standalone programs.
+add features to |alatty| itself and to create useful standalone programs.
 Some prominent kittens:
 
 :doc:`icat <kittens/icat>`
@@ -34,7 +34,7 @@ Some prominent kittens:
 
 
 :doc:`Unicode input <kittens/unicode_input>`
-    Easily input arbitrary Unicode characters in |kitty| by name or hex code.
+    Easily input arbitrary Unicode characters in |alatty| by name or hex code.
 
 
 :doc:`Themes <kittens/themes>`
@@ -64,8 +64,8 @@ Some prominent kittens:
 
 
 :doc:`Broadcast <kittens/broadcast>`
-    Type in one :term:`kitty window <window>` and have it broadcast to all (or a
-    subset) of other :term:`kitty windows <window>`.
+    Type in one :term:`alatty window <window>` and have it broadcast to all (or a
+    subset) of other :term:`alatty windows <window>`.
 
 
 :doc:`SSH <kittens/ssh>`

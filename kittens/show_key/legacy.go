@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"kitty/tools/cli/markup"
-	"kitty/tools/tty"
+	"alatty/tools/cli/markup"
+	"alatty/tools/tty"
 	"os"
 
 	"golang.org/x/sys/unix"

@@ -9,8 +9,8 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 )
 
 type sgr_color struct {

@@ -1,5 +1,5 @@
 " Scan the following dirs recursively for tags
-let g:project_tags_dirs = ['kitty', 'kittens', 'tools']
+let g:project_tags_dirs = ['alatty', 'kittens', 'tools']
 if exists('g:ale_linters')
     let g:ale_linters['python'] = ['mypy', 'ruff']
 else
@@ -20,5 +20,5 @@ set smarttab
 python3 <<endpython
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-import kitty
+import alatty
 endpython

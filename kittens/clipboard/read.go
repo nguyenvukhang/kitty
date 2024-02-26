@@ -13,10 +13,10 @@ import (
 	"strings"
 	"sync"
 
-	"kitty/tools/tty"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
+	"alatty/tools/tty"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
 
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"

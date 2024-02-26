@@ -6,8 +6,8 @@ import (
 	"archive/tar"
 	"bytes"
 	"fmt"
-	"kitty"
-	"kitty/tools/utils"
+	"alatty"
+	"alatty/tools/utils"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -57,8 +57,8 @@ func extract_shell_integration_for(shell_name string, dest_dir string) (err erro
 
 func extract_terminfo(dest_dir string) (err error) {
 	var s os.FileInfo
-	if s, err = os.Stat(filepath.Join(dest_dir, "terminfo", "x", kitty.DefaultTermName)); err == nil && s.Mode().IsRegular() {
-		if s, err = os.Stat(filepath.Join(dest_dir, "terminfo", "78", kitty.DefaultTermName)); err == nil && s.Mode().IsRegular() {
+	if s, err = os.Stat(filepath.Join(dest_dir, "terminfo", "x", alatty.DefaultTermName)); err == nil && s.Mode().IsRegular() {
+		if s, err = os.Stat(filepath.Join(dest_dir, "terminfo", "78", alatty.DefaultTermName)); err == nil && s.Mode().IsRegular() {
 			return
 		}
 	}
@@ -121,7 +121,7 @@ func PathToTerminfoDb(term string) (ans string) {
 }
 
 func EnsureTerminfoFiles() (terminfo_dir string, err error) {
-	if kid := os.Getenv("KITTY_INSTALLATION_DIR"); kid != "" {
+	if kid := os.Getenv("ALATTY_INSTALLATION_DIR"); kid != "" {
 		if s, e := os.Stat(kid); e == nil && s.IsDir() {
 			q := filepath.Join(kid, "terminfo")
 			if s, e := os.Stat(q); e == nil && s.IsDir() {
@@ -140,7 +140,7 @@ func EnsureTerminfoFiles() (terminfo_dir string, err error) {
 }
 
 func EnsureShellIntegrationFilesFor(shell_name string) (shell_integration_dir_for_shell string, err error) {
-	if kid := os.Getenv("KITTY_INSTALLATION_DIR"); kid != "" {
+	if kid := os.Getenv("ALATTY_INSTALLATION_DIR"); kid != "" {
 		if s, e := os.Stat(kid); e == nil && s.IsDir() {
 			q := filepath.Join(kid, "shell-integration", shell_name)
 			if s, e := os.Stat(q); e == nil && s.IsDir() {
@@ -207,11 +207,11 @@ func zsh_setup_func(shell_integration_dir string, argv []string, env map[string]
 		}
 	}
 	if zdotdir != "" {
-		env[`KITTY_ORIG_ZDOTDIR`] = zdotdir
+		env[`ALATTY_ORIG_ZDOTDIR`] = zdotdir
 	} else {
-		// KITTY_ORIG_ZDOTDIR can be set at this point if, for example, the global
+		// ALATTY_ORIG_ZDOTDIR can be set at this point if, for example, the global
 		// zshenv overrides ZDOTDIR; we try to limit the damage in this case
-		delete(final_env, `KITTY_ORIG_ZDOTDIR`)
+		delete(final_env, `ALATTY_ORIG_ZDOTDIR`)
 	}
 	final_env[`ZDOTDIR`] = shell_integration_dir
 	return
@@ -220,7 +220,7 @@ func zsh_setup_func(shell_integration_dir string, argv []string, env map[string]
 func fish_setup_func(shell_integration_dir string, argv []string, env map[string]string) (final_argv []string, final_env map[string]string, err error) {
 	shell_integration_dir = filepath.Dir(shell_integration_dir)
 	val := env[`XDG_DATA_DIRS`]
-	env[`KITTY_FISH_XDG_DATA_DIR`] = shell_integration_dir
+	env[`ALATTY_FISH_XDG_DATA_DIR`] = shell_integration_dir
 	if val == "" {
 		env[`XDG_DATA_DIRS`] = shell_integration_dir
 	} else {
@@ -302,13 +302,13 @@ func bash_setup_func(shell_integration_dir string, argv []string, env map[string
 		// non-interactive shell
 		return argv, env, nil
 	}
-	env[`ENV`] = filepath.Join(shell_integration_dir, `kitty.bash`)
-	env[`KITTY_BASH_INJECT`] = strings.Join(inject.AsSlice(), " ")
+	env[`ENV`] = filepath.Join(shell_integration_dir, `alatty.bash`)
+	env[`ALATTY_BASH_INJECT`] = strings.Join(inject.AsSlice(), " ")
 	if posix_env != "" {
-		env[`KITTY_BASH_POSIX_ENV`] = posix_env
+		env[`ALATTY_BASH_POSIX_ENV`] = posix_env
 	}
 	if rcfile != "" {
-		env[`KITTY_BASH_RCFILE`] = rcfile
+		env[`ALATTY_BASH_RCFILE`] = rcfile
 	}
 	sorted := remove_args.AsSlice()
 	slices.Sort(sorted)
@@ -318,15 +318,15 @@ func bash_setup_func(shell_integration_dir string, argv []string, env map[string
 	if env[`HISTFILE`] == "" && !inject.Has(`posix`) {
 		// In POSIX mode the default history file is ~/.sh_history instead of ~/.bash_history
 		env[`HISTFILE`] = utils.Expanduser(`~/.bash_history`)
-		env[`KITTY_BASH_UNEXPORT_HISTFILE`] = `1`
+		env[`ALATTY_BASH_UNEXPORT_HISTFILE`] = `1`
 	}
 	argv = slices.Insert(argv, 1, `--posix`)
 
-	if bashrc := os.Getenv(`KITTY_RUNNING_BASH_INTEGRATION_TEST`); bashrc != `` {
+	if bashrc := os.Getenv(`ALATTY_RUNNING_BASH_INTEGRATION_TEST`); bashrc != `` {
 		// prevent bash from source /etc/profile which is not under our control
-		os.Unsetenv(`KITTY_RUNNING_BASH_INTEGRATION_TEST`)
-		env[`KITTY_BASH_INJECT`] += ` posix`
-		env[`KITTY_BASH_POSIX_ENV`] = bashrc
+		os.Unsetenv(`ALATTY_RUNNING_BASH_INTEGRATION_TEST`)
+		env[`ALATTY_BASH_INJECT`] += ` posix`
+		env[`ALATTY_BASH_POSIX_ENV`] = bashrc
 	}
 
 	return argv, env, nil
@@ -353,7 +353,7 @@ func Setup(shell_name string, ksi_var string, argv []string, env map[string]stri
 	}
 	argv, env, err = setup_func_for_shell(shell_name)(ksi_dir, slices.Clone(argv), maps.Clone(env))
 	if err == nil {
-		env[`KITTY_SHELL_INTEGRATION`] = ksi_var
+		env[`ALATTY_SHELL_INTEGRATION`] = ksi_var
 	}
 	return argv, env, err
 }

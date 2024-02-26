@@ -10,11 +10,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/utils/shm"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/utils/shm"
 
 	"golang.org/x/exp/maps"
 )

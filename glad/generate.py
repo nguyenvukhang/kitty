@@ -37,7 +37,7 @@ def export():
         data = source.read()
         data = strip_trailing_whitespace(data)
 
-        with open('../kitty/gl-wrapper.h', 'w', encoding='utf-8') as dest:
+        with open('../alatty/gl-wrapper.h', 'w', encoding='utf-8') as dest:
             dest.write(data)
 
 

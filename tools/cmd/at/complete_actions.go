@@ -6,16 +6,16 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty"
-	"kitty/tools/cli"
-	"kitty/tools/utils"
+	"alatty"
+	"alatty/tools/cli"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print
 
 func complete_actions(completions *cli.Completions, word string, arg_num int) {
 	if arg_num < 2 {
-		scanner := utils.NewLineScanner(KittyActionNames)
+		scanner := utils.NewLineScanner(AlattyActionNames)
 		mg := completions.AddMatchGroup("Actions")
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
@@ -26,10 +26,10 @@ func complete_actions(completions *cli.Completions, word string, arg_num int) {
 	}
 }
 
-func complete_kitty_override(completions *cli.Completions, word string, arg_num int) {
+func complete_alatty_override(completions *cli.Completions, word string, arg_num int) {
 	mg := completions.AddMatchGroup("Config directives")
 	mg.NoTrailingSpace = true
-	scanner := utils.NewLineScanner(kitty.OptionNames)
+	scanner := utils.NewLineScanner(alatty.OptionNames)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, word) {

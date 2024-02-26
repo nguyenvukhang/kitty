@@ -4,10 +4,10 @@
 import sys
 from typing import List
 
-from kitty.cli import CompletionSpec
+from alatty.cli import CompletionSpec
 
 help_text = (
-    'Change the kitty theme. If no theme name is supplied, run interactively, otherwise'
+    'Change the alatty theme. If no theme name is supplied, run interactively, otherwise'
     ' change the current theme to the specified theme name.'
 )
 usage = '[theme name to switch to]'
@@ -24,26 +24,26 @@ is not available.
 --reload-in
 default=parent
 choices=none,parent,all
-By default, this kitten will signal only the parent kitty instance it is
+By default, this kitten will signal only the parent alatty instance it is
 running in to reload its config, after making changes. Use this option
 to instead either not reload the config at all or in all running
-kitty instances.
+alatty instances.
 
 
 --dump-theme
 type=bool-set
 default=false
 When running non-interactively, dump the specified theme to STDOUT
-instead of changing kitty.conf.
+instead of changing alatty.conf.
 
 
 --config-file-name
-default=kitty.conf
+default=alatty.conf
 The name or path to the config file to edit. Relative paths are interpreted
-with respect to the kitty config directory. By default the kitty config file,
-kitty.conf is edited. This is most useful if you add :code:`include themes.conf`
-to your kitty.conf and then have the kitten operate only on :file:`themes.conf`,
-allowing :code:`kitty.conf` to remain unchanged.
+with respect to the alatty config directory. By default the alatty config file,
+alatty.conf is edited. This is most useful if you add :code:`include themes.conf`
+to your alatty.conf and then have the kitten operate only on :file:`themes.conf`,
+allowing :code:`alatty.conf` to remain unchanged.
 '''.format
 
 def main(args: List[str]) -> None:
@@ -56,5 +56,5 @@ elif __name__ == '__doc__':
     cd['usage'] = usage
     cd['options'] = OPTIONS
     cd['help_text'] = help_text
-    cd['short_desc'] = 'Manage kitty color schemes easily'
+    cd['short_desc'] = 'Manage alatty color schemes easily'
     cd['args_completion'] = CompletionSpec.from_string('type:special group:complete_themes')

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"sync"
 
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
 
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"

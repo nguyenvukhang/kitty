@@ -3,7 +3,7 @@
 
 from typing import List, Optional
 
-from kitty.typing import BossType
+from alatty.typing import BossType
 
 from ..tui.handler import result_handler
 

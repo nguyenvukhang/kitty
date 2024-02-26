@@ -7,8 +7,8 @@ import shutil
 import subprocess
 
 base = os.path.dirname(os.path.abspath(__file__))
-unframed_src = os.path.join(base, 'kitty.svg')
-framed_src = os.path.join(base, 'kitty-framed.svg')
+unframed_src = os.path.join(base, 'alatty.svg')
+framed_src = os.path.join(base, 'alatty-framed.svg')
 
 
 def abspath(x):
@@ -19,7 +19,7 @@ def run(*args):
     try:
         subprocess.check_call(args)
     except OSError:
-        raise SystemExit(f'You are missing the {args[0]} program needed to generate the kitty logo')
+        raise SystemExit(f'You are missing the {args[0]} program needed to generate the alatty logo')
 
 
 def render(output, sz=256, src=unframed_src):
@@ -29,9 +29,9 @@ def render(output, sz=256, src=unframed_src):
 
 
 def main():
-    render(abspath('kitty.png'))
-    render(abspath('kitty-128.png'), sz=128)
-    iconset = abspath('kitty.iconset')
+    render(abspath('alatty.png'))
+    render(abspath('alatty-128.png'), sz=128)
+    iconset = abspath('alatty.iconset')
     if os.path.exists(iconset):
         shutil.rmtree(iconset)
     os.mkdir(iconset)

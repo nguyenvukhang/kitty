@@ -1,8 +1,8 @@
 Performance
 ===================
 
-The main goals for |kitty| performance are user perceived latency while typing
-and "smoothness" while scrolling as well as CPU usage. |kitty| tries hard to
+The main goals for |alatty| performance are user perceived latency while typing
+and "smoothness" while scrolling as well as CPU usage. |alatty| tries hard to
 find an optimum balance for these. To that end it keeps a cache of each rendered
 glyph in video RAM so that font rendering is not a bottleneck. Interaction with
 child programs takes place in a separate thread from rendering, to improve
@@ -11,13 +11,13 @@ smoothness.
 There are two config options you can tune to adjust the performance,
 :opt:`repaint_delay` and :opt:`input_delay`. These control the artificial delays
 introduced into the render loop to reduce CPU usage. See
-:ref:`conf-kitty-performance` for details. See also the :opt:`sync_to_monitor`
+:ref:`conf-alatty-performance` for details. See also the :opt:`sync_to_monitor`
 option to further decrease latency at the cost of some `screen tearing
 <https://en.wikipedia.org/wiki/Screen_tearing>`__ while scrolling.
 
 You can generate detailed per-function performance data using
-`gperftools <https://github.com/gperftools/gperftools>`__. Build |kitty| with
-``make profile``. Run kitty and perform the task you want to analyse, for
+`gperftools <https://github.com/gperftools/gperftools>`__. Build |alatty| with
+``make profile``. Run alatty and perform the task you want to analyse, for
 example, scrolling a large file with :program:`less`. After you quit, function
 call statistics will be printed to STDOUT and you can use tools like
 *KCachegrind* for more detailed analysis.
@@ -32,7 +32,7 @@ CPU with a ``Advanced Micro Devices, Inc. [AMD/ATI] Cape Verde XT [Radeon HD
 ==============   =========================
 Terminal         CPU usage (X + terminal)
 ==============   =========================
-|kitty|          6 - 8%
+|alatty|          6 - 8%
 xterm            5 - 7% (but scrolling was extremely janky)
 termite          10 - 13%
 urxvt            12 - 14%
@@ -41,7 +41,7 @@ konsole          29 - 31%
 ==============   =========================
 
 
-As you can see, |kitty| uses much less CPU than all terminals, except xterm, but
+As you can see, |alatty| uses much less CPU than all terminals, except xterm, but
 its scrolling "smoothness" is much better than that of xterm (at least to my,
 admittedly biased, eyes).
 
@@ -50,9 +50,9 @@ admittedly biased, eyes).
 
 .. note::
 
-    Some people have asked why kitty does not perform better than terminal XXX
+    Some people have asked why alatty does not perform better than terminal XXX
     in the test of sinking large amounts of data, such as catting a large text
-    file. The answer is because this is not a goal for kitty. kitty deliberately
+    file. The answer is because this is not a goal for alatty. alatty deliberately
     throttles input parsing and output rendering to minimize resource usage
     while still being able to sink output faster than any real world program can
     produce it. Reducing CPU usage, and hence battery drain while achieving

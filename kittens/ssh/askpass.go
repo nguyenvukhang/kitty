@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"kitty/tools/cli"
-	"kitty/tools/tty"
-	"kitty/tools/utils/shm"
+	"alatty/tools/cli"
+	"alatty/tools/tty"
+	"alatty/tools/utils/shm"
 )
 
 var _ = fmt.Print

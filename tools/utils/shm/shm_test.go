@@ -17,7 +17,7 @@ var _ = fmt.Print
 func TestSHM(t *testing.T) {
 	data := make([]byte, 13347)
 	_, _ = rand.Read(data)
-	mm, err := CreateTemp("test-kitty-shm-", uint64(len(data)))
+	mm, err := CreateTemp("test-alatty-shm-", uint64(len(data)))
 	if err != nil {
 		t.Fatal(err)
 	}

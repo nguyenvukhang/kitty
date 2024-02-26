@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"kitty"
-	"kitty/tools/cli"
-	"kitty/tools/tty"
-	"kitty/tools/tui"
-	"kitty/tools/utils"
+	"alatty"
+	"alatty/tools/cli"
+	"alatty/tools/tty"
+	"alatty/tools/tui"
+	"alatty/tools/utils"
 
 	"golang.org/x/sys/unix"
 )
@@ -33,16 +33,16 @@ func update_self(version string) (err error) {
 	if err != nil {
 		return err
 	}
-	if kitty.IsStandaloneBuild == "" {
-		return fmt.Errorf("This is not a standalone kitten executable. You must update all of kitty instead.")
+	if alatty.IsStandaloneBuild == "" {
+		return fmt.Errorf("This is not a standalone kitten executable. You must update all of alatty instead.")
 	}
 	rv := "v" + version
 	if version == "nightly" {
 		rv = version
 	}
-	url_base := fmt.Sprintf("https://github.com/kovidgoyal/kitty/releases/download/%s", rv)
+	url_base := fmt.Sprintf("https://github.com/kovidgoyal/alatty/releases/download/%s", rv)
 	if version == "latest" {
-		url_base = "https://github.com/kovidgoyal/kitty/releases/latest/download"
+		url_base = "https://github.com/kovidgoyal/alatty/releases/latest/download"
 	}
 	url := fmt.Sprintf("%s/kitten-%s-%s", url_base, runtime.GOOS, runtime.GOARCH)
 	dest, err := os.CreateTemp(filepath.Dir(exe), "kitten.")
@@ -89,7 +89,7 @@ func EntryPoint(root *cli.Command) *cli.Command {
 	sc.Add(cli.OptionSpec{
 		Name:    "--fetch-version",
 		Default: "latest",
-		Help:    fmt.Sprintf("The version to fetch. The special words :code:`latest` and :code:`nightly` fetch the latest stable and nightly release respectively. Other values can be, for example: :code:`%s`.", kitty.VersionString),
+		Help:    fmt.Sprintf("The version to fetch. The special words :code:`latest` and :code:`nightly` fetch the latest stable and nightly release respectively. Other values can be, for example: :code:`%s`.", alatty.VersionString),
 	})
 	return sc
 }

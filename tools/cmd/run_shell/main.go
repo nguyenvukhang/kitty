@@ -4,13 +4,13 @@ package run_shell
 
 import (
 	"fmt"
-	"kitty"
+	"alatty"
 	"os"
 	"strings"
 
-	"kitty/tools/cli"
-	"kitty/tools/tui"
-	"kitty/tools/tui/shell_integration"
+	"alatty/tools/cli"
+	"alatty/tools/tui"
+	"alatty/tools/tui/shell_integration"
 )
 
 var _ = fmt.Print
@@ -42,9 +42,9 @@ func main(args []string, opts *Options) (rc int, err error) {
 		changed = true
 	}
 	if os.Getenv("TERM") == "" {
-		os.Setenv("TERM", kitty.DefaultTermName)
+		os.Setenv("TERM", alatty.DefaultTermName)
 	}
-	if term := os.Getenv("TERM"); term == kitty.DefaultTermName && shell_integration.PathToTerminfoDb(term) == "" {
+	if term := os.Getenv("TERM"); term == alatty.DefaultTermName && shell_integration.PathToTerminfoDb(term) == "" {
 		if terminfo_dir, err := shell_integration.EnsureTerminfoFiles(); err == nil {
 			os.Unsetenv("TERMINFO")
 			existing := os.Getenv("TERMINFO_DIRS")
@@ -85,12 +85,12 @@ func EntryPoint(root *cli.Command) *cli.Command {
 	})
 	sc.Add(cli.OptionSpec{
 		Name: "--shell-integration",
-		Help: "Specify a value for the :opt:`shell_integration` option, overriding the one from :file:`kitty.conf`.",
+		Help: "Specify a value for the :opt:`shell_integration` option, overriding the one from :file:`alatty.conf`.",
 	})
 	sc.Add(cli.OptionSpec{
 		Name:    "--shell",
 		Default: ".",
-		Help:    "Specify the shell command to run. The default value of :code:`.` will use the parent shell if recognized, falling back to the value of the :opt:`shell` option from :file:`kitty.conf`.",
+		Help:    "Specify the shell command to run. The default value of :code:`.` will use the parent shell if recognized, falling back to the value of the :opt:`shell` option from :file:`alatty.conf`.",
 	})
 	sc.Add(cli.OptionSpec{
 		Name: "--env",

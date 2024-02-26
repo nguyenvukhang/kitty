@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print
@@ -23,9 +23,9 @@ func bash_completion_script(commands []string) (string, error) {
     fi
 }
 
-builtin complete -F _ksi_completions kitty
-builtin complete -F _ksi_completions edit-in-kitty
-builtin complete -F _ksi_completions clone-in-kitty
+builtin complete -F _ksi_completions alatty
+builtin complete -F _ksi_completions edit-in-alatty
+builtin complete -F _ksi_completions clone-in-alatty
 builtin complete -F _ksi_completions kitten
 `, nil
 }

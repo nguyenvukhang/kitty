@@ -4,7 +4,7 @@ package ssh
 
 import (
 	"fmt"
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -106,7 +106,7 @@ func TestSSHConfigParsing(t *testing.T) {
 	rt(`export ["a"]`)
 	conf = "env a"
 	rt(`unset ["a"]`)
-	conf = "env LOCAL_ENV=_kitty_copy_env_var_"
+	conf = "env LOCAL_ENV=_alatty_copy_env_var_"
 	rt(`export ["LOCAL_ENV","LOCAL_VAL",false]`)
 	conf = "env a=b\nhostname 2\ncolor_scheme xyz"
 	hostname = "2"

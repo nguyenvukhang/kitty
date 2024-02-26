@@ -8,11 +8,11 @@ import (
 	"os"
 	"time"
 
-	"kitty/tools/tui/graphics"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/utils/shm"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/utils/shm"
 )
 
 var _ = fmt.Print

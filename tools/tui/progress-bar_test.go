@@ -4,7 +4,7 @@ package tui
 
 import (
 	"fmt"
-	"kitty/tools/wcswidth"
+	"alatty/tools/wcswidth"
 	"testing"
 )
 

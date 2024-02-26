@@ -5,13 +5,13 @@
 import sys
 from typing import Any, Dict, List, Optional
 
-from kitty.cli import parse_args
-from kitty.cli_stub import RCOptions, ResizeCLIOptions
-from kitty.constants import version
-from kitty.key_encoding import CTRL, EventType, KeyEvent
-from kitty.rc.base import command_for_name, parse_subcommand_cli
-from kitty.remote_control import encode_send, parse_rc_args
-from kitty.utils import ScreenSize
+from alatty.cli import parse_args
+from alatty.cli_stub import RCOptions, ResizeCLIOptions
+from alatty.constants import version
+from alatty.key_encoding import CTRL, EventType, KeyEvent
+from alatty.rc.base import command_for_name, parse_subcommand_cli
+from alatty.remote_control import encode_send, parse_rc_args
+from alatty.utils import ScreenSize
 
 from ..tui.handler import Handler
 from ..tui.loop import Loop
@@ -29,7 +29,7 @@ class Resize(Handler):
 
     def initialize(self) -> None:
         global global_opts
-        global_opts = parse_rc_args(['kitty', '@resize-window'])[0]
+        global_opts = parse_rc_args(['alatty', '@resize-window'])[0]
         self.original_size = self.screen_size
         self.cmd.set_cursor_visible(False)
         self.cmd.set_line_wrapping(False)
@@ -44,11 +44,11 @@ class Resize(Handler):
         axis = 'reset' if reset else ('horizontal' if is_horizontal else 'vertical')
         cmdline = [resize_window.name, '--self', f'--increment={increment}', '--axis=' + axis]
         opts, items = parse_subcommand_cli(resize_window, cmdline)
-        payload = resize_window.message_to_kitty(global_opts, opts, items)
+        payload = resize_window.message_to_alatty(global_opts, opts, items)
         send = {'cmd': resize_window.name, 'version': version, 'payload': payload, 'no_response': False}
         self.write(encode_send(send))
 
-    def on_kitty_cmd_response(self, response: Dict[str, Any]) -> None:
+    def on_alatty_cmd_response(self, response: Dict[str, Any]) -> None:
         if not response.get('ok'):
             err = response['error']
             if response.get('tb'):

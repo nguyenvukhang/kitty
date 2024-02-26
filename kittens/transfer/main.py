@@ -96,9 +96,9 @@ is turned off as it just wastes CPU cycles.
 
 
 --permissions-bypass -p
-The password to use to skip the transfer confirmation popup in kitty. Must match
+The password to use to skip the transfer confirmation popup in alatty. Must match
 the password set for the :opt:`file_transfer_confirmation_bypass` option in
-:file:`kitty.conf`. Note that leading and trailing whitespace is removed from
+:file:`alatty.conf`. Note that leading and trailing whitespace is removed from
 the password. A password starting with :code:`.`, :code:`/` or :code:`~`
 characters is assumed to be a file name to read the password from. A value of
 :code:`-` means read the password from STDIN. A password that is purely a number
@@ -128,7 +128,7 @@ def main(args: List[str]) -> None:
 if __name__ == '__main__':
     main(sys.argv)
 elif __name__ == '__doc__':
-    from kitty.cli import CompletionSpec
+    from alatty.cli import CompletionSpec
     cd = sys.cli_docs  # type: ignore
     cd['usage'] = usage
     cd['options'] = option_text

@@ -1,26 +1,26 @@
 Custom kittens
 =================
 
-You can easily create your own kittens to extend kitty. They are just terminal
-programs written in Python. When launching a kitten, kitty will open an overlay
+You can easily create your own kittens to extend alatty. They are just terminal
+programs written in Python. When launching a kitten, alatty will open an overlay
 window over the current window and optionally pass the contents of the current
 window/scrollback to the kitten over its :file:`STDIN`. The kitten can then
 perform whatever actions it likes, just as a normal terminal program. After
-execution of the kitten is complete, it has access to the running kitty instance
+execution of the kitten is complete, it has access to the running alatty instance
 so it can perform arbitrary actions such as closing windows, pasting text, etc.
 
 Let's see a simple example of creating a kitten. It will ask the user for some
 input and paste it into the terminal window.
 
-Create a file in the kitty config directory, :file:`~/.config/kitty/mykitten.py`
-(you might need to adjust the path to wherever the :ref:`kitty config directory
+Create a file in the alatty config directory, :file:`~/.config/alatty/mykitten.py`
+(you might need to adjust the path to wherever the :ref:`alatty config directory
 <confloc>` is on your machine).
 
 
 .. code-block:: python
 
     from typing import List
-    from kitty.boss import Boss
+    from alatty.boss import Boss
 
     def main(args: List[str]) -> str:
         # this is the main entry point of the kitten, it will be executed in
@@ -31,29 +31,29 @@ Create a file in the kitty config directory, :file:`~/.config/kitty/mykitten.py`
         return answer
 
     def handle_result(args: List[str], answer: str, target_window_id: int, boss: Boss) -> None:
-        # get the kitty window into which to paste answer
+        # get the alatty window into which to paste answer
         w = boss.window_id_map.get(target_window_id)
         if w is not None:
             w.paste_text(answer)
 
 
-Now in :file:`kitty.conf` add the lines::
+Now in :file:`alatty.conf` add the lines::
 
     map ctrl+k kitten mykitten.py
 
 
-Start kitty and press :kbd:`Ctrl+K` and you should see the kitten running.
+Start alatty and press :kbd:`Ctrl+K` and you should see the kitten running.
 The best way to develop your own kittens is to modify one of the built-in
 kittens. Look in the `kittens sub-directory
-<https://github.com/kovidgoyal/kitty/tree/master/kittens>`__ of the kitty source
+<https://github.com/kovidgoyal/alatty/tree/master/kittens>`__ of the alatty source
 code for those. Or see below for a list of :ref:`third-party kittens
-<external_kittens>`, that other kitty users have created.
+<external_kittens>`, that other alatty users have created.
 
-kitty API to use with kittens
+alatty API to use with kittens
 -------------------------------
 
-Kittens have full access to internal kitty APIs. However these are neither
-entirely stable nor documented. You can instead use the kitty
+Kittens have full access to internal alatty APIs. However these are neither
+entirely stable nor documented. You can instead use the alatty
 :doc:`Remote control API </remote-control>`. Simply call
 :code:`boss.call_remote_control()`, with the same arguments you
 would pass to ``kitten @``. For example:
@@ -61,7 +61,7 @@ would pass to ``kitten @``. For example:
 .. code-block:: python
 
     def handle_result(args: List[str], answer: str, target_window_id: int, boss: Boss) -> None:
-        # get the kitty window to which to send text
+        # get the alatty window to which to send text
         w = boss.window_id_map.get(target_window_id)
         if w is not None:
             boss.call_remote_control(w, ('send-text', f'--match=id:{w.id}', 'hello world'))
@@ -77,15 +77,15 @@ Passing arguments to kittens
 ------------------------------
 
 You can pass arguments to kittens by defining them in the map directive in
-:file:`kitty.conf`. For example::
+:file:`alatty.conf`. For example::
 
     map ctrl+k kitten mykitten.py arg1 arg2
 
 These will be available as the ``args`` parameter in the ``main()`` and
 ``handle_result()`` functions. Note also that the current working directory
 of the kitten is set to the working directory of whatever program is running in
-the active kitty window. The special argument ``@selection`` is replaced by the
-currently selected text in the active kitty window.
+the active alatty window. The special argument ``@selection`` is replaced by the
+currently selected text in the active alatty window.
 
 
 Passing the contents of the screen to the kitten
@@ -93,20 +93,20 @@ Passing the contents of the screen to the kitten
 
 If you would like your kitten to have access to the contents of the screen
 and/or the scrollback buffer, you just need to add an annotation to the
-``handle_result()`` function, telling kitty what kind of input your kitten would
+``handle_result()`` function, telling alatty what kind of input your kitten would
 like. For example:
 
 .. code-block:: py
 
     from typing import List
-    from kitty.boss import Boss
+    from alatty.boss import Boss
 
     # in main, STDIN is for the kitten process and will contain
     # the contents of the screen
     def main(args: List[str]) -> str:
         return sys.stdin.read()
 
-    # in handle_result, STDIN is for the kitty process itself, rather
+    # in handle_result, STDIN is for the alatty process itself, rather
     # than the kitten process and should not be read from.
     from kittens.tui.handler import result_handler
     @result_handler(type_of_input='text')
@@ -152,10 +152,10 @@ These can also be combined with ``screen`` and ``ansi`` for formatting.
    required.
 
 
-Using kittens to script kitty, without any terminal UI
+Using kittens to script alatty, without any terminal UI
 -----------------------------------------------------------
 
-If you would like your kitten to script kitty, without bothering to write a
+If you would like your kitten to script alatty, without bothering to write a
 terminal program, you can tell the kittens system to run the ``handle_result()``
 function without first running the ``main()`` function.
 
@@ -163,13 +163,13 @@ For example, here is a kitten that "zooms in/zooms out" the current terminal
 window by switching to the stack layout or back to the previous layout. This is
 equivalent to the builtin :ac:`toggle_layout` action.
 
-Create a Python file in the :ref:`kitty config directory <confloc>`,
-:file:`~/.config/kitty/zoom_toggle.py`
+Create a Python file in the :ref:`alatty config directory <confloc>`,
+:file:`~/.config/alatty/zoom_toggle.py`
 
 .. code-block:: py
 
     from typing import List
-    from kitty.boss import Boss
+    from alatty.boss import Boss
 
     def main(args: List[str]) -> str:
         pass
@@ -185,12 +185,12 @@ Create a Python file in the :ref:`kitty config directory <confloc>`,
                 tab.goto_layout('stack')
 
 
-Now in :file:`kitty.conf` add::
+Now in :file:`alatty.conf` add::
 
     map f11 kitten zoom_toggle.py
 
 Pressing :kbd:`F11` will now act as a zoom toggle function. You can get even
-more fancy, switching the kitty OS window to fullscreen as well as changing the
+more fancy, switching the alatty OS window to fullscreen as well as changing the
 layout, by simply adding the line::
 
     boss.toggle_fullscreen()
@@ -207,7 +207,7 @@ Sending mouse events
 If the program running in a window is receiving mouse events, you can simulate
 those using::
 
-    from kitty.fast_data_types import send_mouse_event
+    from alatty.fast_data_types import send_mouse_event
     send_mouse_event(screen, x, y, button, action, mods)
 
 ``screen`` is the ``screen`` attribute of the window you want to send the event
@@ -217,11 +217,11 @@ the same numbering as X11 (left: ``1``, middle: ``2``, right: ``3``, scroll up:
 ``8``, forward: ``9``). ``action`` is one of ``PRESS``, ``RELEASE``, ``DRAG``
 or ``MOVE``. ``mods`` is a bitmask of ``GLFW_MOD_{mod}`` where ``{mod}`` is one
 of ``SHIFT``, ``CONTROL`` or ``ALT``. All the mentioned constants are imported
-from ``kitty.fast_data_types``.
+from ``alatty.fast_data_types``.
 
 For example, to send a left click at position x: 2, y: 3 to the active window::
 
-    from kitty.fast_data_types import send_mouse_event, PRESS
+    from alatty.fast_data_types import send_mouse_event, PRESS
     send_mouse_event(boss.active_window.screen, 2, 3, 1, PRESS, 0)
 
 The function will only send the event if the program is receiving events of
@@ -239,19 +239,19 @@ you can use::
     debug('whatever')
 
 The ``debug()`` function is just like ``print()`` except that the output will
-appear in the ``STDOUT`` of the kitty process inside which the kitten is
+appear in the ``STDOUT`` of the alatty process inside which the kitten is
 running.
 
-The ``handle_result()`` part of the kitten runs inside the kitty process.
-The output of print statements will go to the ``STDOUT`` of the kitty process.
-So if you run kitty from another kitty instance, the output will be visible
-in the first kitty instance.
+The ``handle_result()`` part of the kitten runs inside the alatty process.
+The output of print statements will go to the ``STDOUT`` of the alatty process.
+So if you run alatty from another alatty instance, the output will be visible
+in the first alatty instance.
 
 
 Adding options to kittens
 ----------------------------
 
-If you would like to use kitty's config framework to make your kittens
+If you would like to use alatty's config framework to make your kittens
 configurable, you will need some boilerplate. Put the following files in the
 directory of your kitten.
 
@@ -259,14 +259,14 @@ directory of your kitten.
 
 .. code-block:: python
 
-    from kitty.conf.types import Action, Definition
+    from alatty.conf.types import Action, Definition
 
     definition = Definition(
         '!kitten_options_utils',
         Action(
             'map', 'parse_map',
-            {'key_definitions': 'kitty.conf.utils.KittensKeyMap'},
-            ['kitty.types.ParsedShortcut', 'kitty.conf.utils.KeyAction']
+            {'key_definitions': 'alatty.conf.utils.KittensKeyMap'},
+            ['alatty.types.ParsedShortcut', 'alatty.conf.utils.KeyAction']
         ),
     )
 
@@ -297,7 +297,7 @@ directory of your kitten.
 
 .. code-block:: python
 
-    from kitty.conf.utils import KittensKeyDefinition, key_func, parse_kittens_key
+    from alatty.conf.utils import KittensKeyDefinition, key_func, parse_kittens_key
 
     func_with_args, args_funcs = key_func()
     FuncArgsType = Tuple[str, Sequence[Any]]
@@ -312,14 +312,14 @@ directory of your kitten.
 
 Then run::
 
-    kitty +runpy 'from kitty.conf.generate import main; main()' /path/to/kitten_options_definition.py
+    alatty +runpy 'from alatty.conf.generate import main; main()' /path/to/kitten_options_definition.py
 
 You can parse and read the options in your kitten using the following code:
 
 .. code-block:: python
 
     from .kitten_options_types import Options, defaults
-    from kitty.conf.utils import load_config as _load_config, parse_config_base
+    from alatty.conf.utils import load_config as _load_config, parse_config_base
     from typing import Optional, Iterable, Dict, Any
 
     def load_config(*paths: str, overrides: Optional[Iterable[str]] = None) -> Options:
@@ -344,26 +344,26 @@ You can parse and read the options in your kitten using the following code:
         opts.config_overrides = overrides
         return opts
 
-See `the code <https://github.com/kovidgoyal/kitty/tree/master/kittens/diff>`__
+See `the code <https://github.com/kovidgoyal/alatty/tree/master/kittens/diff>`__
 for the builtin :doc:`diff kitten </kittens/diff>` for examples of creating more
 options and keyboard shortcuts.
 
 .. _external_kittens:
 
-Kittens created by kitty users
+Kittens created by alatty users
 ---------------------------------------------
 
-`vim-kitty-navigator <https://github.com/knubie/vim-kitty-navigator>`_
-    Allows you to navigate seamlessly between vim and kitty splits using a
+`vim-alatty-navigator <https://github.com/knubie/vim-alatty-navigator>`_
+    Allows you to navigate seamlessly between vim and alatty splits using a
     consistent set of hotkeys.
 
-`smart-scroll <https://github.com/yurikhan/kitty-smart-scroll>`_
-    Makes the kitty scroll bindings work in full screen applications
+`smart-scroll <https://github.com/yurikhan/alatty-smart-scroll>`_
+    Makes the alatty scroll bindings work in full screen applications
 
 :iss:`insert password <1222>`
     Insert a password from a CLI password manager, taking care to only do it at
     a password prompt.
 
-`weechat-hints <https://github.com/GermainZ/kitty-weechat-hints>`_
+`weechat-hints <https://github.com/GermainZ/alatty-weechat-hints>`_
     URL hints kitten for WeeChat that works without having to use WeeChat's
     raw-mode.

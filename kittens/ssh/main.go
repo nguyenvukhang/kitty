@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"kitty"
+	"alatty"
 	"net/url"
 	"os"
 	"os/exec"
@@ -25,16 +25,16 @@ import (
 	"strings"
 	"time"
 
-	"kitty/tools/cli"
-	"kitty/tools/themes"
-	"kitty/tools/tty"
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/shell_integration"
-	"kitty/tools/utils"
-	"kitty/tools/utils/secrets"
-	"kitty/tools/utils/shlex"
-	"kitty/tools/utils/shm"
+	"alatty/tools/cli"
+	"alatty/tools/themes"
+	"alatty/tools/tty"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/shell_integration"
+	"alatty/tools/utils"
+	"alatty/tools/utils/secrets"
+	"alatty/tools/utils/shlex"
+	"alatty/tools/utils/shm"
 
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -118,7 +118,7 @@ func parse_kitten_args(found_extra_args []string, username, hostname_for_match s
 	return
 }
 
-func connection_sharing_args(kitty_pid int) ([]string, error) {
+func connection_sharing_args(alatty_pid int) ([]string, error) {
 	rd := utils.RuntimeDir()
 	// Bloody OpenSSH generates a 40 char hash and in creating the socket
 	// appends a 27 char temp suffix to it. Socket max path length is approx
@@ -132,7 +132,7 @@ func connection_sharing_args(kitty_pid int) ([]string, error) {
 		}
 		rd = idiotic_design
 	}
-	cp := strings.Replace(kitty.SSHControlMasterTemplate, "{kitty_pid}", strconv.Itoa(kitty_pid), 1)
+	cp := strings.Replace(alatty.SSHControlMasterTemplate, "{alatty_pid}", strconv.Itoa(alatty_pid), 1)
 	cp = strings.Replace(cp, "{ssh_placeholder}", "%C", 1)
 	return []string{
 		"-o", "ControlMaster=auto",
@@ -158,7 +158,7 @@ func set_askpass() (need_to_request_data bool) {
 	exe, err := os.Executable()
 	if err == nil {
 		os.Setenv("SSH_ASKPASS", exe)
-		os.Setenv("KITTY_KITTEN_RUN_MODULE", "ssh_askpass")
+		os.Setenv("ALATTY_KITTEN_RUN_MODULE", "ssh_askpass")
 		if !need_to_request_data {
 			os.Setenv("SSH_ASKPASS_REQUIRE", "force")
 		}
@@ -194,9 +194,9 @@ func get_effective_ksi_env_var(x string) string {
 	if current.Has("disabled") {
 		return ""
 	}
-	allowed := utils.NewSetWithItems(kitty.AllowedShellIntegrationValues...)
+	allowed := utils.NewSetWithItems(alatty.AllowedShellIntegrationValues...)
 	if !current.IsSubsetOf(allowed) {
-		return RelevantKittyOpts().Shell_integration
+		return RelevantAlattyOpts().Shell_integration
 	}
 	return x
 }
@@ -204,7 +204,7 @@ func get_effective_ksi_env_var(x string) string {
 func serialize_env(cd *connection_data, get_local_env func(string) (string, bool)) (string, string) {
 	ksi := ""
 	if cd.host_opts.Shell_integration == "inherited" {
-		ksi = get_effective_ksi_env_var(RelevantKittyOpts().Shell_integration)
+		ksi = get_effective_ksi_env_var(RelevantAlattyOpts().Shell_integration)
 	} else {
 		ksi = get_effective_ksi_env_var(cd.host_opts.Shell_integration)
 	}
@@ -229,25 +229,25 @@ func serialize_env(cd *connection_data, get_local_env func(string) (string, bool
 	for k, v := range cd.literal_env {
 		add_env(k, v)
 	}
-	add_env("TERM", os.Getenv("TERM"), RelevantKittyOpts().Term)
+	add_env("TERM", os.Getenv("TERM"), RelevantAlattyOpts().Term)
 	add_env("COLORTERM", "truecolor")
 	env = append(env, cd.host_opts.Env...)
-	add_env("KITTY_WINDOW_ID", os.Getenv("KITTY_WINDOW_ID"))
+	add_env("ALATTY_WINDOW_ID", os.Getenv("ALATTY_WINDOW_ID"))
 	add_env("WINDOWID", os.Getenv("WINDOWID"))
 	if ksi != "" {
-		add_env("KITTY_SHELL_INTEGRATION", ksi)
+		add_env("ALATTY_SHELL_INTEGRATION", ksi)
 	} else {
-		env = append(env, &EnvInstruction{key: "KITTY_SHELL_INTEGRATION", delete_on_remote: true})
+		env = append(env, &EnvInstruction{key: "ALATTY_SHELL_INTEGRATION", delete_on_remote: true})
 	}
-	add_non_literal_env("KITTY_SSH_KITTEN_DATA_DIR", cd.host_opts.Remote_dir)
-	add_non_literal_env("KITTY_LOGIN_SHELL", cd.host_opts.Login_shell)
-	add_non_literal_env("KITTY_LOGIN_CWD", cd.host_opts.Cwd)
-	if cd.host_opts.Remote_kitty != Remote_kitty_no {
-		add_env("KITTY_REMOTE", cd.host_opts.Remote_kitty.String())
+	add_non_literal_env("ALATTY_SSH_KITTEN_DATA_DIR", cd.host_opts.Remote_dir)
+	add_non_literal_env("ALATTY_LOGIN_SHELL", cd.host_opts.Login_shell)
+	add_non_literal_env("ALATTY_LOGIN_CWD", cd.host_opts.Cwd)
+	if cd.host_opts.Remote_alatty != Remote_alatty_no {
+		add_env("ALATTY_REMOTE", cd.host_opts.Remote_alatty.String())
 	}
-	add_env("KITTY_PUBLIC_KEY", os.Getenv("KITTY_PUBLIC_KEY"))
+	add_env("ALATTY_PUBLIC_KEY", os.Getenv("ALATTY_PUBLIC_KEY"))
 	if cd.listen_on != "" {
-		add_env("KITTY_LISTEN_ON", cd.listen_on)
+		add_env("ALATTY_LISTEN_ON", cd.listen_on)
 	}
 	return final_env_instructions(cd.script_type == "py", get_local_env, env...), ksi
 }
@@ -330,7 +330,7 @@ func make_tarfile(cd *connection_data, get_local_env func(string) (string, bool)
 		for _, fname := range shell_integration.Data().FilesMatching(
 			"shell-integration/",
 			"shell-integration/ssh/.+",        // bootstrap files are sent as command line args
-			"shell-integration/zsh/kitty.zsh", // backward compat file not needed by ssh kitten
+			"shell-integration/zsh/alatty.zsh", // backward compat file not needed by ssh kitten
 		) {
 			arcname := path.Join("home/", rd, "/", path.Dir(fname))
 			err = add_entries(arcname, shell_integration.Data()[fname])
@@ -339,22 +339,22 @@ func make_tarfile(cd *connection_data, get_local_env func(string) (string, bool)
 			}
 		}
 	}
-	if cd.host_opts.Remote_kitty != Remote_kitty_no {
-		arcname := path.Join("home/", rd, "/kitty")
-		err = add_data(fe{arcname + "/version", utils.UnsafeStringToBytes(kitty.VersionString)})
+	if cd.host_opts.Remote_alatty != Remote_alatty_no {
+		arcname := path.Join("home/", rd, "/alatty")
+		err = add_data(fe{arcname + "/version", utils.UnsafeStringToBytes(alatty.VersionString)})
 		if err != nil {
 			return nil, err
 		}
-		for _, x := range []string{"kitty", "kitten"} {
+		for _, x := range []string{"alatty", "kitten"} {
 			err = add_entries(path.Join(arcname, "bin"), shell_integration.Data()[path.Join("shell-integration", "ssh", x)])
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
-	err = add_entries(path.Join("home", ".terminfo"), shell_integration.Data()["terminfo/kitty.terminfo"])
+	err = add_entries(path.Join("home", ".terminfo"), shell_integration.Data()["terminfo/alatty.terminfo"])
 	if err == nil {
-		err = add_entries(path.Join("home", ".terminfo", "x"), shell_integration.Data()["terminfo/x/"+kitty.DefaultTermName])
+		err = add_entries(path.Join("home", ".terminfo", "x"), shell_integration.Data()["terminfo/x/"+alatty.DefaultTermName])
 	}
 	if err == nil {
 		err = tw.Close()
@@ -399,7 +399,7 @@ func prepare_exec_cmd(cd *connection_data) string {
 	for i, arg := range cd.remote_args {
 		args[i] = strings.ReplaceAll(arg, "'", "'\"'\"'")
 	}
-	return "unset KITTY_SHELL_INTEGRATION; exec \"$login_shell\" -c '" + strings.Join(args, " ") + "'"
+	return "unset ALATTY_SHELL_INTEGRATION; exec \"$login_shell\" -c '" + strings.Join(args, " ") + "'"
 }
 
 var data_shm shm.MMap
@@ -421,7 +421,7 @@ func prepare_script(script string, replacements map[string]string) string {
 
 func bootstrap_script(cd *connection_data) (err error) {
 	if cd.request_id == "" {
-		cd.request_id = os.Getenv("KITTY_PID") + "-" + os.Getenv("KITTY_WINDOW_ID")
+		cd.request_id = os.Getenv("ALATTY_PID") + "-" + os.Getenv("ALATTY_WINDOW_ID")
 	}
 	export_home_cmd := prepare_home_command(cd)
 	exec_cmd := ""
@@ -536,7 +536,7 @@ func drain_potential_tty_garbage(term *tty.Term) {
 	if err != nil {
 		return
 	}
-	dcs, err := tui.DCSToKitty("echo", canary)
+	dcs, err := tui.DCSToAlatty("echo", canary)
 	q := utils.UnsafeStringToBytes(canary)
 	if err != nil {
 		return
@@ -596,7 +596,7 @@ func change_colors(color_scheme string) (ans string, err error) {
 
 func run_ssh(ssh_args, server_args, found_extra_args []string) (rc int, err error) {
 	go shell_integration.Data()
-	go RelevantKittyOpts()
+	go RelevantAlattyOpts()
 	defer func() {
 		if data_shm != nil {
 			data_shm.Close()
@@ -635,9 +635,9 @@ func run_ssh(ssh_args, server_args, found_extra_args []string) (rc int, err erro
 	master_is_alive, master_checked := false, false
 	var control_master_args []string
 	if host_opts.Share_connections {
-		kpid, err := strconv.Atoi(os.Getenv("KITTY_PID"))
+		kpid, err := strconv.Atoi(os.Getenv("ALATTY_PID"))
 		if err != nil {
-			return 1, fmt.Errorf("Invalid KITTY_PID env var not an integer: %#v", os.Getenv("KITTY_PID"))
+			return 1, fmt.Errorf("Invalid ALATTY_PID env var not an integer: %#v", os.Getenv("ALATTY_PID"))
 		}
 		control_master_args, err = connection_sharing_args(kpid)
 		if err != nil {
@@ -645,9 +645,9 @@ func run_ssh(ssh_args, server_args, found_extra_args []string) (rc int, err erro
 		}
 		cmd = slices.Insert(cmd, insertion_point, control_master_args...)
 	}
-	use_kitty_askpass := host_opts.Askpass == Askpass_native || (host_opts.Askpass == Askpass_unless_set && os.Getenv("SSH_ASKPASS") == "")
+	use_alatty_askpass := host_opts.Askpass == Askpass_native || (host_opts.Askpass == Askpass_unless_set && os.Getenv("SSH_ASKPASS") == "")
 	need_to_request_data := true
-	if use_kitty_askpass {
+	if use_alatty_askpass {
 		need_to_request_data = set_askpass()
 	}
 	master_is_functional := func() bool {
@@ -678,7 +678,7 @@ func run_ssh(ssh_args, server_args, found_extra_args []string) (rc int, err erro
 		master_is_alive = false
 		return err
 	}
-	if host_opts.Forward_remote_control && os.Getenv("KITTY_LISTEN_ON") != "" {
+	if host_opts.Forward_remote_control && os.Getenv("ALATTY_LISTEN_ON") != "" {
 		if !host_opts.Share_connections {
 			return 1, fmt.Errorf("Cannot use forward_remote_control=yes without share_connections=yes as it relies on SSH Controlmasters")
 		}
@@ -690,12 +690,12 @@ func run_ssh(ssh_args, server_args, found_extra_args []string) (rc int, err erro
 				return 1, fmt.Errorf("SSH ControlMaster not functional after being started explicitly")
 			}
 		}
-		protocol, listen_on, found := strings.Cut(os.Getenv("KITTY_LISTEN_ON"), ":")
+		protocol, listen_on, found := strings.Cut(os.Getenv("ALATTY_LISTEN_ON"), ":")
 		if !found {
-			return 1, fmt.Errorf("Invalid KITTY_LISTEN_ON: %#v", os.Getenv("KITTY_LISTEN_ON"))
+			return 1, fmt.Errorf("Invalid ALATTY_LISTEN_ON: %#v", os.Getenv("ALATTY_LISTEN_ON"))
 		}
 		if protocol == "unix" && strings.HasPrefix(listen_on, "@") {
-			return 1, fmt.Errorf("Cannot forward kitty remote control socket when an abstract UNIX socket (%s) is used, due to limitations in OpenSSH. Use either a path based one or a TCP socket", listen_on)
+			return 1, fmt.Errorf("Cannot forward alatty remote control socket when an abstract UNIX socket (%s) is used, due to limitations in OpenSSH. Use either a path based one or a TCP socket", listen_on)
 		}
 		cmcmd := slices.Clone(cmd[:insertion_point])
 		cmcmd = append(cmcmd, control_master_args...)
@@ -763,7 +763,7 @@ func run_ssh(ssh_args, server_args, found_extra_args []string) (rc int, err erro
 		err := term.ApplyOperations(tty.TCSANOW, tty.SetNoEcho)
 		if err == nil {
 			var dcs string
-			dcs, err = tui.DCSToKitty("ssh", rq)
+			dcs, err = tui.DCSToAlatty("ssh", rq)
 			if err == nil {
 				err = term.WriteAllString(dcs)
 			}
@@ -822,8 +822,8 @@ func main(cmd *cli.Command, o *Options, args []string) (rc int, err error) {
 	if passthrough {
 		return 1, unix.Exec(SSHExe(), utils.Concat([]string{"ssh"}, ssh_args, server_args), os.Environ())
 	}
-	if os.Getenv("KITTY_WINDOW_ID") == "" || os.Getenv("KITTY_PID") == "" {
-		return 1, fmt.Errorf("The SSH kitten is meant to run inside a kitty window")
+	if os.Getenv("ALATTY_WINDOW_ID") == "" || os.Getenv("ALATTY_PID") == "" {
+		return 1, fmt.Errorf("The SSH kitten is meant to run inside a alatty window")
 	}
 	if !tty.IsTerminal(os.Stdin.Fd()) {
 		return 1, fmt.Errorf("The SSH kitten is meant for interactive use only, STDIN must be a terminal")
@@ -838,7 +838,7 @@ func EntryPoint(parent *cli.Command) {
 func specialize_command(ssh *cli.Command) {
 	ssh.Usage = "arguments for the ssh command"
 	ssh.ShortDescription = "Truly convenient SSH"
-	ssh.HelpText = "The ssh kitten is a thin wrapper around the ssh command. It automatically enables shell integration on the remote host, re-uses existing connections to reduce latency, makes the kitty terminfo database available, etc. It's invocation is identical to the ssh command. For details on its usage, see :doc:`/kittens/ssh`."
+	ssh.HelpText = "The ssh kitten is a thin wrapper around the ssh command. It automatically enables shell integration on the remote host, re-uses existing connections to reduce latency, makes the alatty terminfo database available, etc. It's invocation is identical to the ssh command. For details on its usage, see :doc:`/kittens/ssh`."
 	ssh.IgnoreAllArgs = true
 	ssh.OnlyArgsAllowed = true
 	ssh.ArgCompleter = cli.CompletionForWrapper("ssh")

@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"kitty/tools/crypto"
-	"kitty/tools/utils"
-	"kitty/tools/utils/humanize"
+	"alatty/tools/crypto"
+	"alatty/tools/utils"
+	"alatty/tools/utils/humanize"
 )
 
 var _ = fmt.Print
@@ -36,7 +36,7 @@ func home_path() string {
 
 func encode_bypass(request_id string, bypass string) (string, error) {
 	q := request_id + ";" + bypass
-	if pkey_encoded := os.Getenv("KITTY_PUBLIC_KEY"); pkey_encoded != "" {
+	if pkey_encoded := os.Getenv("ALATTY_PUBLIC_KEY"); pkey_encoded != "" {
 		encryption_protocol, pubkey, err := crypto.DecodePublicKey(pkey_encoded)
 		if err != nil {
 			return "", err
@@ -45,9 +45,9 @@ func encode_bypass(request_id string, bypass string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return fmt.Sprintf("kitty-1:%s", utils.UnsafeBytesToString(encrypted)), nil
+		return fmt.Sprintf("alatty-1:%s", utils.UnsafeBytesToString(encrypted)), nil
 	}
-	return "", fmt.Errorf("KITTY_PUBLIC_KEY env var not set, cannot transmit password securely")
+	return "", fmt.Errorf("ALATTY_PUBLIC_KEY env var not set, cannot transmit password securely")
 }
 
 func abspath(path string, use_home ...bool) string {

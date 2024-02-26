@@ -3,7 +3,7 @@ Frequently Asked Questions
 
 .. highlight:: sh
 
-Some special symbols are rendered small/truncated in kitty?
+Some special symbols are rendered small/truncated in alatty?
 -----------------------------------------------------------
 
 The number of cells a Unicode character takes up are controlled by the Unicode
@@ -18,9 +18,9 @@ Some programs, like Powerline, vim with fancy gutter symbols/status-bar, etc.
 use Unicode characters from the private use area to represent symbols. Often
 these symbols are wide and should be rendered in two cells. However, since
 private use area symbols all have their width set to one in the Unicode
-standard, |kitty| renders them either smaller or truncated. The exception is if
+standard, |alatty| renders them either smaller or truncated. The exception is if
 these characters are followed by a space or en-space (U+2002) in which case
-kitty makes use of the extra cell to render them in two cells. This behavior
+alatty makes use of the extra cell to render them in two cells. This behavior
 can be turned off for specific symbols using :opt:`narrow_symbols`.
 
 
@@ -36,7 +36,7 @@ bracketed paste.
 
 Thankfully, probably as a consequence of this lack of detection, vim allows users to
 configure these low level details. So, to make vim work well with any modern
-terminal, including kitty, add the following to your :file:`~/.vimrc`.
+terminal, including alatty, add the following to your :file:`~/.vimrc`.
 
 .. code-block:: vim
 
@@ -85,7 +85,7 @@ terminal, including kitty, add the following to your :file:`~/.vimrc`.
     " vim hardcodes background color erase even if the terminfo file does
     " not contain bce. This causes incorrect background rendering when
     " using a color theme with a background color in terminals such as
-    " kitty that do not support background color erase.
+    " alatty that do not support background color erase.
     let &t_ut=''
 
 These settings must be placed **before** setting the ``colorscheme``. It is
@@ -95,9 +95,9 @@ after these settings.
 I get errors about the terminal being unknown or opening the terminal failing or functional keys like arrow keys don't work?
 -------------------------------------------------------------------------------------------------------------------------------
 
-These issues all have the same root cause: the kitty terminfo files not being
+These issues all have the same root cause: the alatty terminfo files not being
 available. The most common way this happens is SSHing into a computer that does
-not have the kitty terminfo files. The simplest fix for that is running::
+not have the alatty terminfo files. The simplest fix for that is running::
 
     kitten ssh myserver
 
@@ -111,18 +111,18 @@ to avoid having to type it each time::
     alias s="kitten ssh"
 
 If this does not work, see :ref:`manual_terminfo_copy` for alternative ways to
-get the kitty terminfo files onto a remote computer.
+get the alatty terminfo files onto a remote computer.
 
 The next most common reason for this is if you are running commands as root
 using :program:`sudo` or :program:`su`. These programs often filter the
-:envvar:`TERMINFO` environment variable which is what points to the kitty
+:envvar:`TERMINFO` environment variable which is what points to the alatty
 terminfo files.
 
-First, make sure the :envvar:`TERM` is set to ``xterm-kitty`` in the sudo
+First, make sure the :envvar:`TERM` is set to ``xterm-alatty`` in the sudo
 environment. By default, it should be automatically copied over.
 
 If you are using a well maintained Linux distribution, it will have a
-``kitty-terminfo`` package that you can simply install to make the kitty
+``alatty-terminfo`` package that you can simply install to make the alatty
 terminfo files available system-wide. Then the problem will no longer occur.
 
 Alternately, you can configure :program:`sudo` to preserve :envvar:`TERMINFO`
@@ -151,15 +151,15 @@ I cannot use the key combination X in program Y?
 
 First, run::
 
-    kitten show_key -m kitty
+    kitten show_key -m alatty
 
 Press the key combination X. If the kitten reports the key press
-that means kitty is correctly sending the key press to terminal programs.
+that means alatty is correctly sending the key press to terminal programs.
 You need to report the issue to the developer of the terminal program. Most
 likely they have not added support for :doc:`/keyboard-protocol`.
 
 If the kitten does not report it, it means that the key is bound to some action
-in kitty. You can unbind it in :file:`kitty.conf` with:
+in alatty. You can unbind it in :file:`alatty.conf` with:
 
 .. code-block:: conf
 
@@ -169,7 +169,7 @@ Here X is the keys you press on the keyboard. So for example
 :kbd:`ctrl+shift+1`.
 
 
-How do I change the colors in a running kitty instance?
+How do I change the colors in a running alatty instance?
 ------------------------------------------------------------
 
 The easiest way to do it is to use the :doc:`themes kitten </kittens/themes>`,
@@ -183,7 +183,7 @@ You can also define keyboard shortcuts to set colors, for example::
 
     map f1 set_colors --configured /path/to/some/config/file/colors.conf
 
-Or you can enable :doc:`remote control <remote-control>` for |kitty| and use
+Or you can enable :doc:`remote control <remote-control>` for |alatty| and use
 :ref:`at-set-colors`. The shortcut mapping technique has the same syntax as the
 remote control command, for details, see :ref:`at-set-colors`.
 
@@ -211,27 +211,27 @@ You can use various syntaxes/names for color specifications in the above
 examples. See `XParseColor <https://linux.die.net/man/3/xparsecolor>`__
 for full details.
 
-If a ``?`` is given rather than a color specification, kitty will respond
+If a ``?`` is given rather than a color specification, alatty will respond
 with the current value for the specified color.
 
 
-How do I specify command line options for kitty on macOS?
+How do I specify command line options for alatty on macOS?
 ---------------------------------------------------------------
 
 Apple does not want you to use command line options with GUI applications. To
-workaround that limitation, |kitty| will read command line options from the file
-:file:`<kitty config dir>/macos-launch-services-cmdline` when it is launched
-from the GUI, i.e. by clicking the |kitty| application icon or using
-``open -a kitty``. Note that this file is *only read* when running via the GUI.
+workaround that limitation, |alatty| will read command line options from the file
+:file:`<alatty config dir>/macos-launch-services-cmdline` when it is launched
+from the GUI, i.e. by clicking the |alatty| application icon or using
+``open -a alatty``. Note that this file is *only read* when running via the GUI.
 
-You can, of course, also run |kitty| from a terminal with command line options,
-using: :file:`/Applications/kitty.app/Contents/MacOS/kitty`.
+You can, of course, also run |alatty| from a terminal with command line options,
+using: :file:`/Applications/alatty.app/Contents/MacOS/alatty`.
 
-And within |kitty| itself, you can always run |kitty| using just ``kitty`` as it
+And within |alatty| itself, you can always run |alatty| using just ``alatty`` as it
 cleverly adds itself to the :envvar:`PATH`.
 
 
-I catted a binary file and now kitty is hung?
+I catted a binary file and now alatty is hung?
 -----------------------------------------------
 
 **Never** output unknown binary data directly into a terminal.
@@ -245,10 +245,10 @@ closing sequence. Press :sc:`reset_terminal` to reset the terminal.
 If you do want to cat unknown data, use ``cat -v``.
 
 
-kitty is not able to use my favorite font?
+alatty is not able to use my favorite font?
 ---------------------------------------------
 
-|kitty| achieves its stellar performance by caching alpha masks of each rendered
+|alatty| achieves its stellar performance by caching alpha masks of each rendered
 character on the GPU, and rendering them all in parallel. This means it is a
 strictly character cell based display. As such it can use only monospace fonts,
 since every cell in the grid has to be the same size. Furthermore, it needs
@@ -259,7 +259,7 @@ fonts to be freely resizable, so it does not support bitmapped fonts.
    <https://nerdfonts.com/>`__ symbols, don't do that as patching destroys
    fonts. There is no need, simply install the standalone ``Symbols Nerd Font Mono``
    (the file :file:`NerdFontsSymbolsOnly.zip` from the `Nerd Fonts releases page
-   <https://github.com/ryanoasis/nerd-fonts/releases>`__). kitty should pick up
+   <https://github.com/ryanoasis/nerd-fonts/releases>`__). alatty should pick up
    symbols from it automatically, and you can tell it to do so explicitly in
    case it doesn't with the :opt:`symbol_map` directive::
 
@@ -270,7 +270,7 @@ fonts to be freely resizable, so it does not support bitmapped fonts.
    Those Unicode symbols beyond the ``E000-F8FF`` Unicode private use area are
    not included.
 
-If your font is not listed in ``kitty +list-fonts`` it means that it is not
+If your font is not listed in ``alatty +list-fonts`` it means that it is not
 monospace or is a bitmapped font. On Linux you can list all monospace fonts
 with::
 
@@ -299,38 +299,38 @@ command to rebuild your fontconfig cache::
 
     fc-cache -r
 
-Then, the font will be available in ``kitty +list-fonts``.
+Then, the font will be available in ``alatty +list-fonts``.
 
 
-How can I assign a single global shortcut to bring up the kitty terminal?
+How can I assign a single global shortcut to bring up the alatty terminal?
 -----------------------------------------------------------------------------
 
 Bringing up applications on a single key press is the job of the window
-manager/desktop environment. For ways to do it with kitty (or indeed any
+manager/desktop environment. For ways to do it with alatty (or indeed any
 terminal) in different environments,
 see :iss:`here <45>`.
 
 
-I do not like the kitty icon!
+I do not like the alatty icon!
 -------------------------------
 
 There are many alternate icons available, click on an icon to visit its
 homepage:
 
-.. image:: https://github.com/k0nserv/kitty-icon/raw/main/kitty.iconset/icon_256x256.png
-   :target: https://github.com/k0nserv/kitty-icon
+.. image:: https://github.com/k0nserv/alatty-icon/raw/main/alatty.iconset/icon_256x256.png
+   :target: https://github.com/k0nserv/alatty-icon
    :width: 256
 
-.. image:: https://github.com/DinkDonk/kitty-icon/raw/main/kitty-dark.png
-   :target: https://github.com/DinkDonk/kitty-icon
+.. image:: https://github.com/DinkDonk/alatty-icon/raw/main/alatty-dark.png
+   :target: https://github.com/DinkDonk/alatty-icon
    :width: 256
 
-.. image:: https://github.com/DinkDonk/kitty-icon/raw/main/kitty-light.png
-   :target: https://github.com/DinkDonk/kitty-icon
+.. image:: https://github.com/DinkDonk/alatty-icon/raw/main/alatty-light.png
+   :target: https://github.com/DinkDonk/alatty-icon
    :width: 256
 
-.. image:: https://github.com/hristost/kitty-alternative-icon/raw/main/kitty_icon.png
-   :target: https://github.com/hristost/kitty-alternative-icon
+.. image:: https://github.com/hristost/alatty-alternative-icon/raw/main/alatty_icon.png
+   :target: https://github.com/hristost/alatty-alternative-icon
    :width: 256
 
 .. image:: https://github.com/igrmk/whiskers/raw/main/whiskers.svg
@@ -341,41 +341,41 @@ homepage:
    :target: https://github.com/samholmes/whiskers
    :width: 256
 
-.. image:: https://github.com/eccentric-j/eccentric-icons/raw/main/icons/kitty-terminal/2d/kitty-preview.png
+.. image:: https://github.com/eccentric-j/eccentric-icons/raw/main/icons/alatty-terminal/2d/alatty-preview.png
    :target: https://github.com/eccentric-j/eccentric-icons
    :width: 256
 
-.. image:: https://github.com/eccentric-j/eccentric-icons/raw/main/icons/kitty-terminal/3d/kitty-preview.png
+.. image:: https://github.com/eccentric-j/eccentric-icons/raw/main/icons/alatty-terminal/3d/alatty-preview.png
    :target: https://github.com/eccentric-j/eccentric-icons
    :width: 256
 
-On macOS and X11 you can put :file:`kitty.app.icns` (macOS only) or :file:`kitty.app.png` in the
-:ref:`kitty configuration directory <confloc>`, and this icon will be applied
-automatically at startup. On X11, this will set the icon for kitty windows.
+On macOS and X11 you can put :file:`alatty.app.icns` (macOS only) or :file:`alatty.app.png` in the
+:ref:`alatty configuration directory <confloc>`, and this icon will be applied
+automatically at startup. On X11, this will set the icon for alatty windows.
 
 Unfortunately, on macOS, Apple's Dock does not change its cached icon so the
-custom icon will revert when kitty is quit. Run the following to force the Dock
+custom icon will revert when alatty is quit. Run the following to force the Dock
 to update its cached icons:
 
 .. code-block:: sh
 
     rm /var/folders/*/*/*/com.apple.dock.iconcache; killall Dock
 
-If you prefer not to keep a custom icon in the kitty config folder, on macOS, you can
+If you prefer not to keep a custom icon in the alatty config folder, on macOS, you can
 also set it with the following command:
 
 .. code-block:: sh
 
-    # Set kitty.icns as the icon for currently running kitty
-    kitty +runpy 'from kitty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' kitty.icns
+    # Set alatty.icns as the icon for currently running alatty
+    alatty +runpy 'from alatty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' alatty.icns
 
     # Set the icon for app bundle specified by the path
-    kitty +runpy 'from kitty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' /path/to/icon.png /Applications/kitty.app
+    alatty +runpy 'from alatty.fast_data_types import cocoa_set_app_icon; import sys; cocoa_set_app_icon(*sys.argv[1:]); print("OK")' /path/to/icon.png /Applications/alatty.app
 
 You can also change the icon manually by following the steps:
 
-#. Find :file:`kitty.app` in the Applications folder, select it and press :kbd:`⌘+I`
-#. Drag :file:`kitty.icns` onto the application icon in the kitty info pane
+#. Find :file:`alatty.app` in the Applications folder, select it and press :kbd:`⌘+I`
+#. Drag :file:`alatty.icns` onto the application icon in the alatty info pane
 #. Delete the icon cache and restart Dock:
 
 .. code-block:: sh
@@ -383,18 +383,18 @@ You can also change the icon manually by following the steps:
     rm /var/folders/*/*/*/com.apple.dock.iconcache; killall Dock
 
 
-How do I map key presses in kitty to different keys in the terminal program?
+How do I map key presses in alatty to different keys in the terminal program?
 --------------------------------------------------------------------------------------
 
-This is accomplished by using ``map`` with :ac:`send_key` in :file:`kitty.conf`.
+This is accomplished by using ``map`` with :ac:`send_key` in :file:`alatty.conf`.
 For example::
 
     map alt+s send_key ctrl+s
 
-This causes the program running in kitty to receive the :kbd:`ctrl+s` key when
+This causes the program running in alatty to receive the :kbd:`ctrl+s` key when
 you press the :kbd:`alt+s` key. To see this in action, run::
 
-    kitten show-key -m kitty
+    kitten show-key -m alatty
 
 Which will print out what key events it receives. To send arbitrary text rather
 than a key press, see :sc:`send_text <send_text>` instead.
@@ -403,37 +403,37 @@ than a key press, see :sc:`send_text <send_text>` instead.
 How do I open a new window or tab with the same working directory as the current window?
 --------------------------------------------------------------------------------------------
 
-In :file:`kitty.conf` add the following::
+In :file:`alatty.conf` add the following::
 
     map f1 launch --cwd=current
     map f2 launch --cwd=current --type=tab
 
-Pressing :kbd:`F1` will open a new kitty window with the same working directory
+Pressing :kbd:`F1` will open a new alatty window with the same working directory
 as the current window. The :doc:`launch command <launch>` is very powerful,
 explore :doc:`its documentation <launch>`.
 
 
-Things behave differently when running kitty from system launcher vs. from another terminal?
+Things behave differently when running alatty from system launcher vs. from another terminal?
 -----------------------------------------------------------------------------------------------
 
-This will be because of environment variables. When you run kitty from the
+This will be because of environment variables. When you run alatty from the
 system launcher, it gets a default set of system environment variables. When
-you run kitty from another terminal, you are actually running it from a shell,
+you run alatty from another terminal, you are actually running it from a shell,
 and the shell's rc files will have setup a whole different set of environment
-variables which kitty will now inherit.
+variables which alatty will now inherit.
 
 You need to make sure that the environment variables you define in your shell's
 rc files are either also defined system wide or via the :opt:`env` directive in
-:file:`kitty.conf`. Common environment variables that cause issues are those
+:file:`alatty.conf`. Common environment variables that cause issues are those
 related to localization, such as :envvar:`LANG`, ``LC_*`` and loading of
-configuration files such as ``XDG_*``, :envvar:`KITTY_CONFIG_DIRECTORY`.
+configuration files such as ``XDG_*``, :envvar:`ALATTY_CONFIG_DIRECTORY`.
 
-To see the environment variables that kitty sees, you can add the following
-mapping to :file:`kitty.conf`::
+To see the environment variables that alatty sees, you can add the following
+mapping to :file:`alatty.conf`::
 
-    map f1 show_kitty_env_vars
+    map f1 show_alatty_env_vars
 
-then pressing :kbd:`F1` will show you the environment variables kitty sees.
+then pressing :kbd:`F1` will show you the environment variables alatty sees.
 
 This problem is most common on macOS, as Apple makes it exceedingly difficult to
 setup environment variables system-wide, so people end up putting them in all
@@ -444,7 +444,7 @@ I am using tmux and have a problem
 --------------------------------------
 
 First, terminal multiplexers are :iss:`a bad idea <391#issuecomment-638320745>`,
-do not use them, if at all possible. kitty contains features that do all of what
+do not use them, if at all possible. alatty contains features that do all of what
 tmux does, but better, with the exception of remote persistence (:iss:`391`).
 If you still want to use tmux, read on.
 
@@ -459,14 +459,14 @@ and then switch to another and these terminals have different :envvar:`TERM`
 variables, tmux will break. You will need to restart it as tmux does not support
 multiple terminfo definitions.
 
-If you use any of the advanced features that kitty has innovated, such as
+If you use any of the advanced features that alatty has innovated, such as
 :doc:`styled underlines </underlines>`, :doc:`desktop notifications
 </desktop-notifications>`, :doc:`extended keyboard support
 </keyboard-protocol>`, etc. they may or may not work, depending on the whims of
 tmux's maintainer, your version of tmux, etc.
 
 
-I opened and closed a lot of windows/tabs and top shows kitty's memory usage is very high?
+I opened and closed a lot of windows/tabs and top shows alatty's memory usage is very high?
 -------------------------------------------------------------------------------------------
 
 :program:`top` is not a good way to measure process memory usage. That is
@@ -480,11 +480,11 @@ is using it.
 To check for memory leaks, instead use a tool like `Valgrind
 <https://valgrind.org/>`__. Run::
 
-    PYTHONMALLOC=malloc valgrind --tool=massif kitty
+    PYTHONMALLOC=malloc valgrind --tool=massif alatty
 
 Now open lots of tabs/windows, generate lots of output using tools like find/yes
 etc. Then close all but one window. Do some random work for a few seconds in
-that window, maybe run yes or find again. Then quit kitty and run::
+that window, maybe run yes or find again. Then quit alatty and run::
 
     massif-visualizer massif.out.*
 
@@ -504,11 +504,11 @@ maintains. These too allocate memory in large blocks and don't release it back
 to the OS immediately.
 
 
-Why does kitty sometimes start slowly on my Linux system?
+Why does alatty sometimes start slowly on my Linux system?
 -------------------------------------------------------------------------------------------
 
-|kitty| takes no longer (within 100ms) to start than other similar GPU terminal
-emulators, (and may be faster than some). If |kitty| occasionally takes a long
+|alatty| takes no longer (within 100ms) to start than other similar GPU terminal
+emulators, (and may be faster than some). If |alatty| occasionally takes a long
 time to start, it could be a power management issue with the graphics card. On
 a multi-GPU system (which many modern laptops are, having a power efficient GPU
 that's built into the processor and a power hungry dedicated one that's usually
@@ -516,11 +516,11 @@ off), even if the answer of the GPU will only be "don't use me".
 
 For example, if you have a system with an AMD CPU and an NVIDIA GPU, and you
 know that you want to use the lower powered card to save battery life and
-because kitty does not require a powerful GPU to function, you can choose not
+because alatty does not require a powerful GPU to function, you can choose not
 to wake up the dedicated card, which has been reported on at least one system
-(:iss:`4292`) to take ≈2 seconds, by running |kitty| as::
+(:iss:`4292`) to take ≈2 seconds, by running |alatty| as::
 
-    MESA_LOADER_DRIVER_OVERRIDE=radeonsi __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json kitty
+    MESA_LOADER_DRIVER_OVERRIDE=radeonsi __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json alatty
 
 The correct command will depend on your situation and hardware.
 ``__EGL_VENDOR_LIBRARY_FILENAMES`` instructs the GL dispatch library to use

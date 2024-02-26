@@ -32,7 +32,7 @@
 #include "backend_utils.h"
 #include "linux_notify.h"
 #include "wl_client_side_decorations.h"
-#include "../kitty/monotonic.h"
+#include "../alatty/monotonic.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -473,7 +473,7 @@ static bool createSurface(_GLFWwindow* window,
     // If we already have been notified of the primary monitor scale, assume
     // the window will be created on it and so avoid a rescale roundtrip in the common
     // case of the window being shown on the primary monitor or all monitors having the same scale.
-    // If you change this also change get_window_content_scale() in the kitty code.
+    // If you change this also change get_window_content_scale() in the alatty code.
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     float xscale = 1.0, yscale = 1.0;
     int scale = 1;
@@ -2086,7 +2086,7 @@ _glfwPlatformSetClipboard(GLFWClipboardType t) {
         //
         // However in wl-roots based compositors, using the serial from the keyboard enter event doesn't work. No clue what
         // the correct serial to use here is. Given this Wayland there probably isn't one. What a joke.
-        // Bug report: https://github.com/kovidgoyal/kitty/issues/6890
+        // Bug report: https://github.com/kovidgoyal/alatty/issues/6890
         // Ironically one of the contributors to wl_roots claims the keyboard enter serial is the correct one to use:
         // https://emersion.fr/blog/2020/wayland-clipboard-drag-and-drop/
         // The Wayland spec itself says "serial number of the event that triggered this request"

@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

@@ -5,9 +5,9 @@ import sys
 from functools import partial
 from typing import List
 
-from kitty.cli import CONFIG_HELP, CompletionSpec
-from kitty.conf.types import Definition
-from kitty.constants import appname
+from alatty.cli import CONFIG_HELP, CompletionSpec
+from alatty.conf.types import Definition
+from alatty.constants import appname
 
 
 def main(args: List[str]) -> None:

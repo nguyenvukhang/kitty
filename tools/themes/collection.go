@@ -20,12 +20,12 @@ import (
 	"sync"
 	"time"
 
-	"kitty/tools/cli"
-	"kitty/tools/config"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/subseq"
-	"kitty/tools/utils"
-	"kitty/tools/utils/style"
+	"alatty/tools/cli"
+	"alatty/tools/config"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/subseq"
+	"alatty/tools/utils"
+	"alatty/tools/utils/style"
 
 	"github.com/shirou/gopsutil/v3/process"
 	"golang.org/x/exp/maps"
@@ -454,7 +454,7 @@ func fetch_cached(name, url, cache_path string, max_cache_age time.Duration) (st
 }
 
 func FetchCached(max_cache_age time.Duration) (string, error) {
-	return fetch_cached("kitty-themes", "https://codeload.github.com/kovidgoyal/kitty-themes/zip/master", utils.CacheDir(), max_cache_age)
+	return fetch_cached("alatty-themes", "https://codeload.github.com/kovidgoyal/alatty-themes/zip/master", utils.CacheDir(), max_cache_age)
 }
 
 type ThemeMetadata struct {
@@ -470,7 +470,7 @@ type ThemeMetadata struct {
 
 func ParseThemeMetadata(path string) (*ThemeMetadata, map[string]string, error) {
 	var in_metadata, in_blurb, finished_metadata bool
-	ans := ThemeMetadata{Is_dark: true} // the default background in kitty is dark
+	ans := ThemeMetadata{Is_dark: true} // the default background in alatty is dark
 	settings := map[string]string{}
 
 	read_is_dark := func(key, val string) (err error) {
@@ -581,8 +581,8 @@ func (self *Theme) Code() (string, error) {
 }
 
 func patch_conf(text, theme_name string) string {
-	addition := fmt.Sprintf("# BEGIN_KITTY_THEME\n# %s\ninclude current-theme.conf\n# END_KITTY_THEME", theme_name)
-	pat := utils.MustCompile(`(?ms)^# BEGIN_KITTY_THEME.+?# END_KITTY_THEME`)
+	addition := fmt.Sprintf("# BEGIN_ALATTY_THEME\n# %s\ninclude current-theme.conf\n# END_ALATTY_THEME", theme_name)
+	pat := utils.MustCompile(`(?ms)^# BEGIN_ALATTY_THEME.+?# END_ALATTY_THEME`)
 	replaced := false
 	ntext := pat.ReplaceAllStringFunc(text, func(string) string {
 		replaced = true
@@ -597,11 +597,11 @@ func patch_conf(text, theme_name string) string {
 	pat = utils.MustCompile(fmt.Sprintf(`(?m)^\s*(%s)\b`, strings.Join(maps.Keys(AllColorSettingNames), "|")))
 	return pat.ReplaceAllString(ntext, `# $1`)
 }
-func is_kitty_gui_cmdline(cmd ...string) bool {
+func is_alatty_gui_cmdline(cmd ...string) bool {
 	if len(cmd) == 0 {
 		return false
 	}
-	if filepath.Base(cmd[0]) != "kitty" {
+	if filepath.Base(cmd[0]) != "alatty" {
 		return false
 	}
 	if len(cmd) == 1 {
@@ -630,9 +630,9 @@ const (
 func reload_config(reload_in ReloadDestination) bool {
 	switch reload_in {
 	case RELOAD_IN_PARENT:
-		if pid, err := strconv.Atoi(os.Getenv("KITTY_PID")); err == nil {
+		if pid, err := strconv.Atoi(os.Getenv("ALATTY_PID")); err == nil {
 			if p, err := process.NewProcess(int32(pid)); err == nil {
-				if c, err := p.CmdlineSlice(); err == nil && is_kitty_gui_cmdline(c...) {
+				if c, err := p.CmdlineSlice(); err == nil && is_alatty_gui_cmdline(c...) {
 					return p.SendSignal(unix.SIGUSR1) == nil
 				}
 			}
@@ -640,7 +640,7 @@ func reload_config(reload_in ReloadDestination) bool {
 	case RELOAD_IN_ALL:
 		if all, err := process.Processes(); err == nil {
 			for _, p := range all {
-				if c, err := p.CmdlineSlice(); err == nil && is_kitty_gui_cmdline(c...) {
+				if c, err := p.CmdlineSlice(); err == nil && is_alatty_gui_cmdline(c...) {
 					_ = p.SendSignal(unix.SIGUSR1)
 				}
 			}
@@ -849,7 +849,7 @@ func (self *Themes) add_from_dir(dirpath string) error {
 		if !e.IsDir() && strings.HasSuffix(e.Name(), ".conf") {
 			path := filepath.Join(dirpath, e.Name())
 			// ignore files if they are the STDOUT of the current processes
-			// allows using kitten theme --dump-theme name > ~/.config/kitty/themes/name.conf
+			// allows using kitten theme --dump-theme name > ~/.config/alatty/themes/name.conf
 			if utils.Samefile(path, os.Stdout) {
 				continue
 			}

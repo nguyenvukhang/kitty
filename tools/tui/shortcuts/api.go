@@ -4,7 +4,7 @@ package shortcuts
 
 import (
 	"fmt"
-	"kitty/tools/tui/loop"
+	"alatty/tools/tui/loop"
 	"strings"
 )
 

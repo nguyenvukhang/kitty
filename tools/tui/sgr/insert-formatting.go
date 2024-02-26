@@ -8,9 +8,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"kitty/tools/utils"
-	"kitty/tools/utils/style"
-	"kitty/tools/wcswidth"
+	"alatty/tools/utils"
+	"alatty/tools/utils/style"
+	"alatty/tools/wcswidth"
 
 	"golang.org/x/exp/slices"
 )

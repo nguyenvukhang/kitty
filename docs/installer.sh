@@ -34,7 +34,7 @@ detect_network_tool() {
             command wget --quiet -O- "$1"
         }
     else
-        die "Neither curl nor wget available, cannot download kitty"
+        die "Neither curl nor wget available, cannot download alatty"
     fi
 }
 
@@ -54,7 +54,7 @@ detect_os() {
                 *) die "Unknown CPU architecture $(command uname -m)";;
             esac
             ;;
-        *) die "kitty binaries are not available for $(command uname)"
+        *) die "alatty binaries are not available for $(command uname)"
     esac
 }
 
@@ -81,12 +81,12 @@ parse_args() {
     done
     dest=$(expand_tilde "${dest}")
     [ "$launch" != "y" -a "$launch" != "n" ] && die "Unrecognized command line option: launch=$launch"
-    dest="$dest/kitty.app"
+    dest="$dest/alatty.app"
 }
 
 
 get_file_url() {
-    url="https://github.com/kovidgoyal/kitty/releases/download/$1/kitty-$2"
+    url="https://github.com/kovidgoyal/alatty/releases/download/$1/alatty-$2"
     if [ "$OS" = "macos" ]; then
         url="$url.dmg"
     else
@@ -95,8 +95,8 @@ get_file_url() {
 }
 
 get_release_url() {
-    release_version=$(fetch_quiet "https://sw.kovidgoyal.net/kitty/current-version.txt")
-    [ $? -ne 0 -o -z "$release_version" ] && die "Could not get kitty latest release version"
+    release_version=$(fetch_quiet "https://sw.kovidgoyal.net/alatty/current-version.txt")
+    [ $? -ne 0 -o -z "$release_version" ] && die "Could not get alatty latest release version"
     get_file_url "v$release_version" "$release_version"
 }
 
@@ -115,13 +115,13 @@ get_download_url() {
 }
 
 download_installer() {
-    tdir=$(command mktemp -d "/tmp/kitty-install-XXXXXXXXXXXX")
+    tdir=$(command mktemp -d "/tmp/alatty-install-XXXXXXXXXXXX")
     [ "$installer_is_file" != "y" ] && {
         printf '%s\n\n' "Downloading from: $url"
         if [ "$OS" = "macos" ]; then
-            installer="$tdir/kitty.dmg"
+            installer="$tdir/alatty.dmg"
         else
-            installer="$tdir/kitty.txz"
+            installer="$tdir/alatty.txz"
         fi
         fetch "$url" > "$installer" || die "Failed to download: $url"
         installer_is_file="y"
@@ -130,31 +130,31 @@ download_installer() {
 
 linux_install() {
     command mkdir "$tdir/mp"
-    command tar -C "$tdir/mp" "-xJof" "$installer" || die "Failed to extract kitty tarball"
+    command tar -C "$tdir/mp" "-xJof" "$installer" || die "Failed to extract alatty tarball"
     printf "%s\n" "Installing to $dest"
     command rm -rf "$dest" || die "Failed to delete $dest"
-    command mv "$tdir/mp" "$dest" || die "Failed to move kitty.app to $dest"
+    command mv "$tdir/mp" "$dest" || die "Failed to move alatty.app to $dest"
 }
 
 macos_install() {
     command mkdir "$tdir/mp"
-    command hdiutil attach "$installer" "-mountpoint" "$tdir/mp" || die "Failed to mount kitty.dmg"
+    command hdiutil attach "$installer" "-mountpoint" "$tdir/mp" || die "Failed to mount alatty.dmg"
     printf "%s\n" "Installing to $dest"
     command rm -rf "$dest"
     command mkdir -p "$dest" || die "Failed to create the directory: $dest"
-    command ditto -v "$tdir/mp/kitty.app" "$dest"
+    command ditto -v "$tdir/mp/alatty.app" "$dest"
     rc="$?"
     command hdiutil detach "$tdir/mp"
-    [ "$rc" != "0" ] && die "Failed to copy kitty.app from mounted dmg"
+    [ "$rc" != "0" ] && die "Failed to copy alatty.app from mounted dmg"
 }
 
-exec_kitty() {
+exec_alatty() {
     if [ "$OS" = "macos" ]; then
         exec "open" "$dest"
     else
-        exec "$dest/bin/kitty" "--detach"
+        exec "$dest/bin/alatty" "--detach"
     fi
-    die "Failed to launch kitty"
+    die "Failed to launch alatty"
 }
 
 main() {
@@ -169,7 +169,7 @@ main() {
         linux_install
     fi
     cleanup
-    [ "$launch" = "y" ] && exec_kitty
+    [ "$launch" = "y" ] && exec_alatty
     exit 0
 }
 

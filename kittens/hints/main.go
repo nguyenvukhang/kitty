@@ -10,13 +10,13 @@ import (
 	"strings"
 	"unicode"
 
-	"kitty/tools/cli"
-	"kitty/tools/tty"
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/style"
-	"kitty/tools/wcswidth"
+	"alatty/tools/cli"
+	"alatty/tools/tty"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/style"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

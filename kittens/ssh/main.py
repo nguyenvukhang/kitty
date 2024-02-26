@@ -4,8 +4,8 @@
 import sys
 from typing import List, Optional
 
-from kitty.conf.types import Definition
-from kitty.types import run_once
+from alatty.conf.types import Definition
+from alatty.types import run_once
 
 copy_message = '''\
 Copy files and directories from local to remote hosts. The specified files are
@@ -90,7 +90,7 @@ shell or a :program:`python` executable. If the default :program:`sh` is not
 available or broken, using an alternate interpreter can be useful.
 ''')
 
-opt('remote_dir', '.local/share/kitty-ssh-kitten', long_text='''
+opt('remote_dir', '.local/share/alatty-ssh-kitten', long_text='''
 The location on the remote host where the files needed for this kitten are
 installed. Relative paths are resolved with respect to :code:`$HOME`.
 ''')
@@ -122,7 +122,7 @@ agr('shell', 'Login shell environment')  # {{{
 opt('shell_integration', 'inherited', long_text='''
 Control the shell integration on the remote host. See :ref:`shell_integration`
 for details on how this setting works. The special value :code:`inherited` means
-use the setting from :file:`kitty.conf`. This setting is useful for overriding
+use the setting from :file:`alatty.conf`. This setting is useful for overriding
 integration on a per-host basis.
 ''')
 
@@ -135,7 +135,7 @@ opt('+env', '', add_to_default=False, ctype='EnvInstruction', long_text='''
 Specify the environment variables to be set on the remote host. Using the
 name with an equal sign (e.g. :code:`env VAR=`) will set it to the empty string.
 Specifying only the name (e.g. :code:`env VAR`) will remove the variable from
-the remote shell environment. The special value :code:`_kitty_copy_env_var_`
+the remote shell environment. The special value :code:`_alatty_copy_env_var_`
 will cause the value of the variable to be copied from the local environment.
 The definitions are processed alphabetically. Note that environment variables
 are expanded recursively, for example::
@@ -155,18 +155,18 @@ usually means the HOME directory is used.
 opt('color_scheme', '', long_text='''
 Specify a color scheme to use when connecting to the remote host. If this option
 ends with :code:`.conf`, it is assumed to be the name of a config file to load
-from the kitty config directory, otherwise it is assumed to be the name of a
+from the alatty config directory, otherwise it is assumed to be the name of a
 color theme to load via the :doc:`themes kitten </kittens/themes>`. Note that
 only colors applying to the text/background are changed, other config settings
 in the .conf files/themes are ignored.
 ''')
 
-opt('remote_kitty', 'if-needed', choices=('if-needed', 'no', 'yes'), long_text='''
+opt('remote_alatty', 'if-needed', choices=('if-needed', 'no', 'yes'), long_text='''
 Make :program:`kitten` available on the remote host. Useful to run kittens such
 as the :doc:`icat kitten </kittens/icat>` to display images or the
 :doc:`transfer file kitten </kittens/transfer>` to transfer files. Only works if
 the remote host has an architecture for which :link:`pre-compiled kitten binaries
-<https://github.com/kovidgoyal/kitty/releases>` are available. Note that kitten
+<https://github.com/kovidgoyal/alatty/releases>` are available. Note that kitten
 is not actually copied to the remote host, instead a small bootstrap script is
 copied which will download and run kitten when kitten is first executed on the
 remote host. A value of :code:`if-needed` means kitten is installed only if not
@@ -181,22 +181,22 @@ egr()  # }}}
 agr('ssh', 'SSH configuration')  # {{{
 
 opt('share_connections', 'yes', option_type='to_bool', long_text='''
-Within a single kitty instance, all connections to a particular server can be
+Within a single alatty instance, all connections to a particular server can be
 shared. This reduces startup latency for subsequent connections and means that
 you have to enter the password only once. Under the hood, it uses SSH
-ControlMasters and these are automatically cleaned up by kitty when it quits.
+ControlMasters and these are automatically cleaned up by alatty when it quits.
 You can map a shortcut to :ac:`close_shared_ssh_connections` to disconnect all
 active shared connections.
 ''')
 
 opt('askpass', 'unless-set', choices=('unless-set', 'ssh', 'native'), long_text='''
 Control the program SSH uses to ask for passwords or confirmation of host keys
-etc. The default is to use kitty's native :program:`askpass`, unless the
+etc. The default is to use alatty's native :program:`askpass`, unless the
 :envvar:`SSH_ASKPASS` environment variable is set. Set this option to
 :code:`ssh` to not interfere with the normal ssh askpass mechanism at all, which
 typically means that ssh will prompt at the terminal. Set it to :code:`native`
-to always use kitty's native, built-in askpass implementation. Note that not
-using the kitty askpass implementation means that SSH might need to use the
+to always use alatty's native, built-in askpass implementation. Note that not
+using the alatty askpass implementation means that SSH might need to use the
 terminal before the connection is established, so the kitten cannot use the
 terminal to send data without an extra roundtrip, adding to initial connection
 latency.
@@ -210,11 +210,11 @@ of supporting the ssh kitten.
 ''')
 
 opt('forward_remote_control', 'no', option_type='to_bool', long_text='''
-Forward the kitty remote control socket to the remote host. This allows using the kitty
+Forward the alatty remote control socket to the remote host. This allows using the alatty
 remote control facilities from the remote host. WARNING: This allows any software
 on the remote host full access to the local computer, so only do it for trusted remote hosts.
-Note that this does not work with abstract UNIX sockets such as :file:`@mykitty` because of SSH limitations.
-This option uses SSH socket forwarding to forward the socket pointed to by the :envvar:`KITTY_LISTEN_ON`
+Note that this does not work with abstract UNIX sockets such as :file:`@myalatty` because of SSH limitations.
+This option uses SSH socket forwarding to forward the socket pointed to by the :envvar:`ALATTY_LISTEN_ON`
 environment variable.
 ''')
 

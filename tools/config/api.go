@@ -15,7 +15,7 @@ import (
 	"strings"
 	"sync"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print
@@ -218,7 +218,7 @@ func (self *ConfigParser) ParseFiles(paths ...string) error {
 }
 
 func (self *ConfigParser) LoadConfig(name string, paths []string, overrides []string) (err error) {
-	const SYSTEM_CONF = "/etc/xdg/kitty"
+	const SYSTEM_CONF = "/etc/xdg/alatty"
 	system_conf := filepath.Join(SYSTEM_CONF, name)
 	add_if_exists := func(q string) {
 		err = self.ParseFiles(q)

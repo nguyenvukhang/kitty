@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"kitty"
-	"kitty/tools/utils"
+	"alatty"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print
@@ -165,7 +165,7 @@ func (self FileTransmissionCommand) Serialize(prefix_with_osc_code ...bool) stri
 	v := reflect.ValueOf(self)
 	found := false
 	if len(prefix_with_osc_code) > 0 && prefix_with_osc_code[0] {
-		ans.WriteString(strconv.Itoa(kitty.FileTransferCode))
+		ans.WriteString(strconv.Itoa(alatty.FileTransferCode))
 		found = true
 	}
 	for name, field := range ftc_field_map() {

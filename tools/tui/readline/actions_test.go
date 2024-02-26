@@ -5,9 +5,9 @@ package readline
 import (
 	"container/list"
 	"fmt"
-	"kitty/tools/cli"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils/shlex"
+	"alatty/tools/cli"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils/shlex"
 	"strconv"
 	"strings"
 	"testing"

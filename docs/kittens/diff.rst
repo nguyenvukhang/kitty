@@ -1,4 +1,4 @@
-kitty-diff
+alatty-diff
 ================================================================================
 
 *A fast side-by-side diff tool with syntax highlighting and images*
@@ -10,7 +10,7 @@ Major Features
 
 .. container:: major-features
 
-    * Displays diffs side-by-side in the kitty terminal
+    * Displays diffs side-by-side in the alatty terminal
 
     * Does syntax highlighting of the displayed diffs, asynchronously, for
       maximum speed
@@ -31,13 +31,13 @@ Major Features
 Installation
 ---------------
 
-Simply :ref:`install kitty <quickstart>`.
+Simply :ref:`install alatty <quickstart>`.
 
 
 Usage
 --------
 
-In the kitty terminal, run::
+In the alatty terminal, run::
 
     kitten diff file1 file2
 
@@ -97,34 +97,34 @@ Add the following to :file:`~/.gitconfig`:
 .. code-block:: ini
 
     [diff]
-        tool = kitty
-        guitool = kitty.gui
+        tool = alatty
+        guitool = alatty.gui
     [difftool]
         prompt = false
         trustExitCode = true
-    [difftool "kitty"]
+    [difftool "alatty"]
         cmd = kitten diff $LOCAL $REMOTE
-    [difftool "kitty.gui"]
+    [difftool "alatty.gui"]
         cmd = kitten diff $LOCAL $REMOTE
 
-Now to use kitty-diff to view git diffs, you can simply do::
+Now to use alatty-diff to view git diffs, you can simply do::
 
     git difftool --no-symlinks --dir-diff
 
 Once again, creating an alias for this command is useful.
 
 
-Why does this work only in kitty?
+Why does this work only in alatty?
 ----------------------------------------
 
-The diff kitten makes use of various features that are :doc:`kitty only
-</protocol-extensions>`, such as the :doc:`kitty graphics protocol
+The diff kitten makes use of various features that are :doc:`alatty only
+</protocol-extensions>`, such as the :doc:`alatty graphics protocol
 </graphics-protocol>`, the :doc:`extended keyboard protocol
 </keyboard-protocol>`, etc. It also leverages terminal program infrastructure
-I created for all of kitty's other kittens to reduce the amount of code needed
+I created for all of alatty's other kittens to reduce the amount of code needed
 (the entire implementation is under 3000 lines of code).
 
-And fundamentally, it's kitty only because I wrote it for myself, and I am
+And fundamentally, it's alatty only because I wrote it for myself, and I am
 highly unlikely to use any other terminals :)
 
 
@@ -133,7 +133,7 @@ Configuration
 
 You can configure the colors used, keyboard shortcuts, the diff implementation,
 the default lines of context, etc. by creating a :file:`diff.conf` file in your
-:ref:`kitty config folder <confloc>`. See below for the supported configuration
+:ref:`alatty config folder <confloc>`. See below for the supported configuration
 directives.
 
 

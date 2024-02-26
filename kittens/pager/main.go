@@ -16,8 +16,8 @@ import (
 	"fmt"
 	"os"
 
-	"kitty/tools/cli"
-	"kitty/tools/tty"
+	"alatty/tools/cli"
+	"alatty/tools/tty"
 )
 
 var _ = fmt.Print

@@ -11,7 +11,7 @@ import (
 	"os"
 	"strings"
 
-	"kitty/tools/cli"
+	"alatty/tools/cli"
 
 	"golang.org/x/sys/unix"
 )

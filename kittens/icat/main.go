@@ -11,13 +11,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	"kitty/tools/cli"
-	"kitty/tools/tty"
-	"kitty/tools/tui"
-	"kitty/tools/tui/graphics"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/utils/style"
+	"alatty/tools/cli"
+	"alatty/tools/tty"
+	"alatty/tools/tui"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/utils/style"
 
 	"golang.org/x/sys/unix"
 )
@@ -171,7 +171,7 @@ func main(cmd *cli.Command, o *Options, args []string) (rc int, err error) {
 		}
 	}
 	if screen_size.Xpixel == 0 || screen_size.Ypixel == 0 {
-		return 1, fmt.Errorf("Terminal does not support reporting screen sizes in pixels, use a terminal such as kitty, WezTerm, Konsole, etc. that does.")
+		return 1, fmt.Errorf("Terminal does not support reporting screen sizes in pixels, use a terminal such as alatty, WezTerm, Konsole, etc. that does.")
 	}
 
 	items, err := process_dirs(args...)
@@ -213,7 +213,7 @@ func main(cmd *cli.Command, o *Options, args []string) (rc int, err error) {
 		}
 		if !direct {
 			keep_going.Store(false)
-			return 1, fmt.Errorf("This terminal does not support the graphics protocol use a terminal such as kitty, WezTerm or Konsole that does. If you are running inside a terminal multiplexer such as tmux or screen that might be interfering as well.")
+			return 1, fmt.Errorf("This terminal does not support the graphics protocol use a terminal such as alatty, WezTerm or Konsole that does. If you are running inside a terminal multiplexer such as tmux or screen that might be interfering as well.")
 		}
 		if memory {
 			transfer_by_memory = supported

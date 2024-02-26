@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty/tools/cli"
-	"kitty/tools/utils"
-	"kitty/tools/wcswidth"
+	"alatty/tools/cli"
+	"alatty/tools/utils"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

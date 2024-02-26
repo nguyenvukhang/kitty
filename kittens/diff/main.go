@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"kitty/kittens/ssh"
-	"kitty/tools/cli"
-	"kitty/tools/config"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
+	"alatty/kittens/ssh"
+	"alatty/tools/cli"
+	"alatty/tools/config"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

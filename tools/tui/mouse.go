@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"kitty/tools/tui/loop"
+	"alatty/tools/tui/loop"
 )
 
 var _ = fmt.Print

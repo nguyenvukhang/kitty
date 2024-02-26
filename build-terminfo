@@ -12,20 +12,20 @@ import tempfile
 
 def compile_terminfo(base):
     with tempfile.TemporaryDirectory() as tdir:
-        proc = subprocess.run(['tic', '-x', f'-o{tdir}', 'terminfo/kitty.terminfo'], capture_output=True)
+        proc = subprocess.run(['tic', '-x', f'-o{tdir}', 'terminfo/alatty.terminfo'], capture_output=True)
         if proc.returncode != 0:
             sys.stderr.buffer.write(proc.stderr)
             raise SystemExit(proc.returncode)
-        tfiles = glob.glob(os.path.join(tdir, '*', 'xterm-kitty'))
+        tfiles = glob.glob(os.path.join(tdir, '*', 'xterm-alatty'))
         if not tfiles:
-            raise SystemExit('tic failed to output the compiled kitty terminfo file')
+            raise SystemExit('tic failed to output the compiled alatty terminfo file')
 
         tfile = tfiles[0]
-        directory, xterm_kitty = os.path.split(tfile)
+        directory, xterm_alatty = os.path.split(tfile)
         _, directory = os.path.split(directory)
         odir = os.path.join(base, directory)
         os.makedirs(odir, exist_ok=True)
-        ofile = os.path.join(odir, xterm_kitty)
+        ofile = os.path.join(odir, xterm_alatty)
         shutil.move(tfile, ofile)
 
 
@@ -34,16 +34,16 @@ def generate_terminfo():
     os.chdir(base)
     sys.path.insert(0, base)
 
-    from kitty.terminfo import generate_terminfo
+    from alatty.terminfo import generate_terminfo
 
-    with open('terminfo/kitty.terminfo', 'w') as f:
+    with open('terminfo/alatty.terminfo', 'w') as f:
         f.write(generate_terminfo())
-    proc = subprocess.run(['tic', '-CrT0', 'terminfo/kitty.terminfo'], capture_output=True)
+    proc = subprocess.run(['tic', '-CrT0', 'terminfo/alatty.terminfo'], capture_output=True)
     if proc.returncode != 0:
         sys.stderr.buffer.write(proc.stderr)
         raise SystemExit(proc.returncode)
     tcap = proc.stdout.decode('utf-8').splitlines()[-1]
-    with open('terminfo/kitty.termcap', 'w') as f:
+    with open('terminfo/alatty.termcap', 'w') as f:
         f.write(tcap)
 
     compile_terminfo(os.path.join(base, 'terminfo'))

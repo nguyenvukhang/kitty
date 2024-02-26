@@ -319,7 +319,7 @@ glfw_xkb_update_x11_keyboard_id(_GLFWXKBData *xkb) {
 
 static void
 glfw_xkb_update_masks(_GLFWXKBData *xkb) {
-    // See https://github.com/kovidgoyal/kitty/pull/3430 for discussion
+    // See https://github.com/kovidgoyal/alatty/pull/3430 for discussion
     bool succeeded = false;
     unsigned used_bits = 0; /* To avoid using the same bit twice */
     XkbDescPtr xkb_ptr = XkbGetMap( _glfw.x11.display, XkbVirtualModsMask | XkbVirtualModMapMask, XkbUseCoreKbd );
@@ -522,9 +522,9 @@ static int local_modifier_mapping(_GLFWXKBData *xkb) {
 static void
 glfw_xkb_update_masks(_GLFWXKBData *xkb) {
     // Should find better solution under Wayland
-    // See https://github.com/kovidgoyal/kitty/pull/3943 for discussion
+    // See https://github.com/kovidgoyal/alatty/pull/3943 for discussion
 
-    if ( getenv( "KITTY_WAYLAND_DETECT_MODIFIERS" ) == NULL || !local_modifier_mapping( xkb ) ) {
+    if ( getenv( "ALATTY_WAYLAND_DETECT_MODIFIERS" ) == NULL || !local_modifier_mapping( xkb ) ) {
 #define S( a ) xkb->a##Idx = XKB_MOD_INVALID; xkb->a##Mask = 0
         S(hyper); S(meta);
 #undef S
@@ -703,7 +703,7 @@ glfw_xkb_update_modifiers(_GLFWXKBData *xkb, xkb_mod_mask_t depressed, xkb_mod_m
     xkb->states.modifiers = 0;
     xkb_state_update_mask(xkb->states.state, depressed, latched, locked, base_group, latched_group, locked_group);
     // We have to update the groups in clean_state, as they change for
-    // different keyboard layouts, see https://github.com/kovidgoyal/kitty/issues/488
+    // different keyboard layouts, see https://github.com/kovidgoyal/alatty/issues/488
     xkb_state_update_mask(xkb->states.clean_state, 0, 0, 0, base_group, latched_group, locked_group);
     update_modifiers(xkb);
 }
@@ -899,7 +899,7 @@ glfw_xkb_handle_key_event(_GLFWwindow *window, _GLFWXKBData *xkb, xkb_keycode_t 
             // Only use the clean_sym if no mods other than the mods we report
             // are active (for example if ISO_Shift_Level_* mods are active
             // they are not reported by GLFW so the key should be the shifted
-            // key). See https://github.com/kovidgoyal/kitty/issues/171#issuecomment-377557053
+            // key). See https://github.com/kovidgoyal/alatty/issues/171#issuecomment-377557053
             xkb_mod_mask_t consumed_unknown_mods = xkb_state_key_get_consumed_mods(sg->state, code_for_sym) & sg->activeUnknownModifiers;
             if (sg->activeUnknownModifiers) debug("%s", format_xkb_mods(xkb, "active_unknown_mods", sg->activeUnknownModifiers));
             if (consumed_unknown_mods) { debug("%s", format_xkb_mods(xkb, "consumed_unknown_mods", consumed_unknown_mods)); }

@@ -1,4 +1,4 @@
-module kitty
+module alatty
 
 go 1.21
 

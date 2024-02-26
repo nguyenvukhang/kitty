@@ -5,4 +5,4 @@ Attribution
 - Author: Václav Vančura
 - Source: https://www.figma.com/community/file/857303226040719059
 - License: https://creativecommons.org/licenses/by/4.0/
-- Modification: Replaced the template logo with kitty's
+- Modification: Replaced the template logo with alatty's

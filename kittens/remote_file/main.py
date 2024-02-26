@@ -12,11 +12,11 @@ import tempfile
 import time
 from typing import Any, List, Optional
 
-from kitty.cli import parse_args
-from kitty.cli_stub import RemoteFileCLIOptions
-from kitty.constants import cache_dir
-from kitty.typing import BossType
-from kitty.utils import SSHConnectionData, command_for_open, get_editor, open_cmd
+from alatty.cli import parse_args
+from alatty.cli_stub import RemoteFileCLIOptions
+from alatty.constants import cache_dir
+from alatty.typing import BossType
+from alatty.utils import SSHConnectionData, command_for_open, get_editor, open_cmd
 
 from ..tui.handler import result_handler
 from ..tui.operations import faint, raw_mode, reset_terminal, styled
@@ -111,7 +111,7 @@ class ControlMaster:
         self.tdir = ''
         self.last_error_log = ''
         self.cmd_prefix = cmd = [
-            conn_data.binary, '-o', f'ControlPath=~/.ssh/kitty-rf-{os.getpid()}-%C',
+            conn_data.binary, '-o', f'ControlPath=~/.ssh/alatty-rf-{os.getpid()}-%C',
             '-o', 'TCPKeepAlive=yes', '-o', 'ControlPersist=yes'
         ]
         self.is_ssh_kitten = conn_data.binary is is_ssh_kitten_sentinel
@@ -176,9 +176,9 @@ class ControlMaster:
                 print(reset_terminal(), end='')
                 print(f'The remote hostname {styled(q, fg="green")} does not match the')
                 print(f'hostname in the hyperlink {styled(self.cli_opts.hostname or "", fg="red")}')
-                print('This indicates that kitty has not connected to the correct remote machine.')
+                print('This indicates that alatty has not connected to the correct remote machine.')
                 print('This can happen, for example, when using nested SSH sessions.')
-                print(f'The hostname kitty used to connect was: {styled(self.conn_data.hostname, fg="yellow")}', end='')
+                print(f'The hostname alatty used to connect was: {styled(self.conn_data.hostname, fg="yellow")}', end='')
                 if self.conn_data.port is not None:
                     print(f' with port: {self.conn_data.port}')
                 print()
@@ -229,9 +229,9 @@ Result = Optional[str]
 
 
 def main(args: List[str]) -> Result:
-    msg = 'Ask the user what to do with the remote file. For internal use by kitty, do not run it directly.'
+    msg = 'Ask the user what to do with the remote file. For internal use by alatty, do not run it directly.'
     try:
-        cli_opts, items = parse_args(args[1:], option_text, '', msg, 'kitty +kitten remote_file', result_class=RemoteFileCLIOptions)
+        cli_opts, items = parse_args(args[1:], option_text, '', msg, 'alatty +kitten remote_file', result_class=RemoteFileCLIOptions)
     except SystemExit as e:
         if e.code != 0:
             print(e.args[0])
@@ -357,7 +357,7 @@ def handle_action(action: str, cli_opts: RemoteFileCLIOptions) -> Result:
 @result_handler()
 def handle_result(args: List[str], data: Result, target_window_id: int, boss: BossType) -> None:
     if data:
-        from kitty.fast_data_types import get_options
+        from alatty.fast_data_types import get_options
         cmd = command_for_open(get_options().open_url_with)
         open_cmd(cmd, data)
 

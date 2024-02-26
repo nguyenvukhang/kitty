@@ -15,7 +15,7 @@ jobs:
         runs-on: ubuntu-latest
         env:
             CC: ${{ matrix.cc }}
-            KITTY_SANITIZE: ${{ matrix.sanitize }}
+            ALATTY_SANITIZE: ${{ matrix.sanitize }}
 
         strategy:
             matrix:
@@ -59,10 +59,10 @@ jobs:
             with:
               go-version-file: go.mod
 
-          - name: Build kitty
+          - name: Build alatty
             run: python .github/workflows/ci.py build
 
-          - name: Test kitty
+          - name: Test alatty
             run: python .github/workflows/ci.py test
 
     linux-package:
@@ -77,7 +77,7 @@ jobs:
               fetch-depth: 0  # needed for :commit: docs role
 
           - name: Test for trailing whitespace
-            run: if grep -Inr '\s$' kitty kitty_tests kittens docs *.py *.asciidoc *.rst *.go .gitattributes .gitignore; then echo Trailing whitespace found, aborting.; exit 1; fi
+            run: if grep -Inr '\s$' alatty alatty_tests kittens docs *.py *.asciidoc *.rst *.go .gitattributes .gitignore; then echo Trailing whitespace found, aborting.; exit 1; fi
 
           - name: Set up Python
             uses: actions/setup-python@v4
@@ -109,10 +109,10 @@ jobs:
           - name: Run gofmt
             run: go version && python .github/workflows/ci.py gofmt
 
-          - name: Build kitty package
+          - name: Build alatty package
             run: python .github/workflows/ci.py package
 
-          - name: Build kitty
+          - name: Build alatty
             run: python setup.py build --debug
 
           - name: Run mypy
@@ -137,7 +137,7 @@ jobs:
             matrix:
                 os: [ubuntu-latest, macos-latest]
         env:
-            KITTY_BUNDLE: 1
+            ALATTY_BUNDLE: 1
         steps:
           - name: Checkout source code
             uses: actions/checkout@v3
@@ -149,10 +149,10 @@ jobs:
             with:
               go-version-file: go.mod
 
-          - name: Build kitty
+          - name: Build alatty
             run: which python3 && python3 .github/workflows/ci.py build
 
-          - name: Test kitty
+          - name: Test alatty
             run: python3 .github/workflows/ci.py test
 
     brew:
@@ -174,10 +174,10 @@ jobs:
             with:
               go-version-file: go.mod
 
-          - name: Build kitty
+          - name: Build alatty
             run: python3 .github/workflows/ci.py build
 
-          - name: Test kitty
+          - name: Test alatty
             run: python3 .github/workflows/ci.py test
 
           - name: Install deps for docs
@@ -186,5 +186,5 @@ jobs:
           - name: Builds docs
             run: make FAIL_WARN=1 docs
 
-          - name: Build kitty package
+          - name: Build alatty package
             run: python3 .github/workflows/ci.py package

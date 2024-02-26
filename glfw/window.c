@@ -29,7 +29,7 @@
 //========================================================================
 
 #include "internal.h"
-#include "../kitty/monotonic.h"
+#include "../alatty/monotonic.h"
 
 #include <assert.h>
 #include <string.h>

@@ -4,8 +4,8 @@ package config
 
 import (
 	"fmt"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
 	"regexp"
 	"strconv"
 	"strings"

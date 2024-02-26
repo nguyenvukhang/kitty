@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"kitty/tools/tui/loop"
+	"alatty/tools/tui/loop"
 )
 
 var _ = fmt.Print
@@ -129,7 +129,7 @@ func Run(args []string) (rc int, err error) {
 	}
 
 	lp.OnInitialize = func() (string, error) {
-		lp.SetWindowTitle("kitty mouse features demo")
+		lp.SetWindowTitle("alatty mouse features demo")
 		lp.SetCursorVisible(false)
 		draw_screen()
 		return "", nil

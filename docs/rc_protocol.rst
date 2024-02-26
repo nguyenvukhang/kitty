@@ -1,8 +1,8 @@
-The kitty remote control protocol
+The alatty remote control protocol
 ==================================
 
-The kitty remote control protocol is a simple protocol that involves sending
-data to kitty in the form of JSON. Any individual command of kitty has the
+The alatty remote control protocol is a simple protocol that involves sending
+data to alatty in the form of JSON. Any individual command of alatty has the
 form::
 
     <ESC>P@kitty-cmd<JSON object><ESC>\
@@ -13,18 +13,18 @@ Where ``<ESC>`` is the byte ``0x1b``. The JSON object has the form:
 
     {
         "cmd": "command name",
-        "version": "<kitty version>",
+        "version": "<alatty version>",
         "no_response": "<Optional Boolean>",
-        "kitty_window_id": "<Optional value of the KITTY_WINDOW_ID env var>",
+        "alatty_window_id": "<Optional value of the ALATTY_WINDOW_ID env var>",
         "payload": "<Optional JSON object>"
     }
 
 The ``version`` above is an array of the form :code:`[0, 14, 2]`. If you are
-developing a standalone client, use the kitty version that you are developing
-against. Using a version greater than the version of the kitty instance you are
+developing a standalone client, use the alatty version that you are developing
+against. Using a version greater than the version of the alatty instance you are
 talking to, will cause a failure.
 
-Set ``no_response`` to ``true`` if you don't want a response from kitty.
+Set ``no_response`` to ``true`` if you don't want a response from alatty.
 
 The optional payload is a JSON object that is specific to the actual command
 being sent. The fields in the object for every command are documented below.
@@ -32,9 +32,9 @@ being sent. The fields in the object for every command are documented below.
 As a quick example showing how easy to use this protocol is, we will implement
 the ``@ ls`` command from the shell using only shell tools.
 
-First, run kitty as::
+First, run alatty as::
 
-    kitty -o allow_remote_control=socket-only --listen-on unix:/tmp/test
+    alatty -o allow_remote_control=socket-only --listen-on unix:/tmp/test
 
 Now, in a different terminal, you can get the pretty printed ``@ ls`` output
 with the following command line::
@@ -42,8 +42,8 @@ with the following command line::
     echo -en '\eP@kitty-cmd{"cmd":"ls","version":[0,14,2]}\e\\' | socat - unix:/tmp/test | awk '{ print substr($0, 13, length($0) - 14) }' | jq -c '.data | fromjson' | jq .
 
 There is also the statically compiled stand-alone executable ``kitten``
-that can be used for this, available from the `kitty releases
-<https://github.com/kovidgoyal/kitty/releases>`__ page::
+that can be used for this, available from the `alatty releases
+<https://github.com/kovidgoyal/alatty/releases>`__ page::
 
     kitten @ --help
 
@@ -56,9 +56,9 @@ Encrypted communication
 
 When using the :opt:`remote_control_password` option communication to the
 terminal is encrypted to keep the password secure. A public key is used from
-the :envvar:`KITTY_PUBLIC_KEY` environment variable. Currently, only one
+the :envvar:`ALATTY_PUBLIC_KEY` environment variable. Currently, only one
 encryption protocol is supported. The protocol number is present in
-:envvar:`KITTY_PUBLIC_KEY` as ``1``. The key data in this environment variable
+:envvar:`ALATTY_PUBLIC_KEY` as ``1``. The key data in this environment variable
 is :rfc:`Base-85 <1924>` encoded.  The algorithm used is `Elliptic Curve Diffie
 Helman <https://en.wikipedia.org/wiki/Elliptic-curve_Diffie–Hellman>`__ with
 the `X25519 curve <https://en.wikipedia.org/wiki/Curve25519>`__. A time based
@@ -76,7 +76,7 @@ is created and transmitted that contains the fields:
 .. code-block:: json
 
     {
-        "version": "<kitty version>",
+        "version": "<alatty version>",
         "iv": "base85 encoded IV",
         "tag": "base85 encoded AEAD tag",
         "pubkey": "base85 encoded ECDH public key of sender",

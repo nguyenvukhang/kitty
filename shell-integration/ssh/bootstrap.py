@@ -70,7 +70,7 @@ def write_all(fd, data):
         data = data[n:]
 
 
-def dcs_to_kitty(payload, type='ssh'):
+def dcs_to_alatty(payload, type='ssh'):
     if isinstance(payload, str):
         payload = payload.encode('utf-8')
     payload = base64.standard_b64encode(payload)
@@ -78,11 +78,11 @@ def dcs_to_kitty(payload, type='ssh'):
 
 
 def send_data_request():
-    write_all(tty_file_obj.fileno(), dcs_to_kitty('id=REQUEST_ID:pwfile=PASSWORD_FILENAME:pw=DATA_PASSWORD'))
+    write_all(tty_file_obj.fileno(), dcs_to_alatty('id=REQUEST_ID:pwfile=PASSWORD_FILENAME:pw=DATA_PASSWORD'))
 
 
 def debug(msg):
-    data = dcs_to_kitty('debug: {}'.format(msg), 'print')
+    data = dcs_to_alatty('debug: {}'.format(msg), 'print')
     if tty_file_obj is None:
         with open(os.ctermid(), 'wb') as fl:
             write_all(fl.fileno(), data)
@@ -109,7 +109,7 @@ def apply_env_vars(raw):
             process_defn(val)
         elif line.startswith('unset '):
             os.environ.pop(json.loads(val)[0], None)
-    login_shell = os.environ.pop('KITTY_LOGIN_SHELL', login_shell)
+    login_shell = os.environ.pop('ALATTY_LOGIN_SHELL', login_shell)
 
 
 def move(src, base_dest):
@@ -145,21 +145,21 @@ def compile_terminfo(base):
     if not tic:
         return
     tname = '.terminfo'
-    q = os.path.join(base, tname, '78', 'xterm-kitty')
+    q = os.path.join(base, tname, '78', 'xterm-alatty')
     if not os.path.exists(q):
         try:
             os.makedirs(os.path.dirname(q))
         except EnvironmentError as e:
             if e.errno != errno.EEXIST:
                 raise
-        os.symlink('../x/xterm-kitty', q)
+        os.symlink('../x/xterm-alatty', q)
     if os.path.exists('/usr/share/misc/terminfo.cdb'):
         # NetBSD requires this
-        os.symlink('../../.terminfo.cdb', os.path.join(base, tname, 'x', 'xterm-kitty'))
+        os.symlink('../../.terminfo.cdb', os.path.join(base, tname, 'x', 'xterm-alatty'))
         tname += '.cdb'
     os.environ['TERMINFO'] = os.path.join(HOME, tname)
     p = subprocess.Popen(
-        [tic, '-x', '-o', os.path.join(base, tname), os.path.join(base, '.terminfo', 'kitty.terminfo')],
+        [tic, '-x', '-o', os.path.join(base, tname), os.path.join(base, '.terminfo', 'alatty.terminfo')],
         stdout=subprocess.PIPE, stderr=subprocess.STDOUT
     )
     output = p.stdout.read()
@@ -175,7 +175,7 @@ def iter_base64_data(f):
     while True:
         line = f.readline().rstrip()
         if started == 0:
-            if line == b'KITTY_DATA_START':
+            if line == b'ALATTY_DATA_START':
                 started = 1
             else:
                 leading_data += line
@@ -185,7 +185,7 @@ def iter_base64_data(f):
             else:
                 raise SystemExit(line.decode('utf-8', 'replace').rstrip())
         else:
-            if line == b'KITTY_DATA_END':
+            if line == b'ALATTY_DATA_END':
                 break
             yield line
 
@@ -210,12 +210,12 @@ def get_data():
         # have been sent before the script had a chance to run
         sys.stdout.write('\r\033[K')
     data = base64.standard_b64decode(data)
-    with temporary_directory(dir=HOME, prefix='.kitty-ssh-kitten-untar-') as tdir, tarfile.open(fileobj=io.BytesIO(data)) as tf:
+    with temporary_directory(dir=HOME, prefix='.alatty-ssh-kitten-untar-') as tdir, tarfile.open(fileobj=io.BytesIO(data)) as tf:
         tf.extractall(tdir)
         with open(tdir + '/data.sh') as f:
             env_vars = f.read()
         apply_env_vars(env_vars)
-        data_dir = os.environ.pop('KITTY_SSH_KITTEN_DATA_DIR')
+        data_dir = os.environ.pop('ALATTY_SSH_KITTEN_DATA_DIR')
         if not os.path.isabs(data_dir):
             data_dir = os.path.join(HOME, data_dir)
         data_dir = os.path.abspath(data_dir)
@@ -230,15 +230,15 @@ def exec_zsh_with_integration():
     zdotdir = os.environ.get('ZDOTDIR') or ''
     if not zdotdir:
         zdotdir = HOME
-        os.environ.pop('KITTY_ORIG_ZDOTDIR', None)  # ensure this is not propagated
+        os.environ.pop('ALATTY_ORIG_ZDOTDIR', None)  # ensure this is not propagated
     else:
-        os.environ['KITTY_ORIG_ZDOTDIR'] = zdotdir
+        os.environ['ALATTY_ORIG_ZDOTDIR'] = zdotdir
     # dont prevent zsh-newuser-install from running
     for q in ('.zshrc', '.zshenv', '.zprofile', '.zlogin'):
         if os.path.exists(os.path.join(zdotdir, q)):
             os.environ['ZDOTDIR'] = shell_integration_dir + '/zsh'
             os.execlp(login_shell, os.path.basename(login_shell), '-l')
-    os.environ.pop('KITTY_ORIG_ZDOTDIR', None)  # ensure this is not propagated
+    os.environ.pop('ALATTY_ORIG_ZDOTDIR', None)  # ensure this is not propagated
 
 
 def exec_fish_with_integration():
@@ -246,16 +246,16 @@ def exec_fish_with_integration():
         os.environ['XDG_DATA_DIRS'] = shell_integration_dir
     else:
         os.environ['XDG_DATA_DIRS'] = shell_integration_dir + ':' + os.environ['XDG_DATA_DIRS']
-    os.environ['KITTY_FISH_XDG_DATA_DIR'] = shell_integration_dir
+    os.environ['ALATTY_FISH_XDG_DATA_DIR'] = shell_integration_dir
     os.execlp(login_shell, os.path.basename(login_shell), '-l')
 
 
 def exec_bash_with_integration():
-    os.environ['ENV'] = os.path.join(shell_integration_dir, 'bash', 'kitty.bash')
-    os.environ['KITTY_BASH_INJECT'] = '1'
+    os.environ['ENV'] = os.path.join(shell_integration_dir, 'bash', 'alatty.bash')
+    os.environ['ALATTY_BASH_INJECT'] = '1'
     if not os.environ.get('HISTFILE'):
         os.environ['HISTFILE'] = os.path.join(HOME, '.bash_history')
-        os.environ['KITTY_BASH_UNEXPORT_HISTFILE'] = '1'
+        os.environ['ALATTY_BASH_UNEXPORT_HISTFILE'] = '1'
     os.execlp(login_shell, os.path.basename('login_shell'), '--posix')
 
 
@@ -269,15 +269,15 @@ def exec_with_shell_integration():
         exec_bash_with_integration()
 
 
-def install_kitty_bootstrap():
-    kitty_remote = os.environ.pop('KITTY_REMOTE', '')
-    kitty_exists = shutil.which('kitty')
-    if kitty_remote == 'yes' or (kitty_remote == 'if-needed' and not kitty_exists):
-        kitty_dir = os.path.join(data_dir, 'kitty', 'bin')
-        if kitty_exists:
-            os.environ['PATH'] = kitty_dir + os.pathsep + os.environ['PATH']
+def install_alatty_bootstrap():
+    alatty_remote = os.environ.pop('ALATTY_REMOTE', '')
+    alatty_exists = shutil.which('alatty')
+    if alatty_remote == 'yes' or (alatty_remote == 'if-needed' and not alatty_exists):
+        alatty_dir = os.path.join(data_dir, 'alatty', 'bin')
+        if alatty_exists:
+            os.environ['PATH'] = alatty_dir + os.pathsep + os.environ['PATH']
         else:
-            os.environ['PATH'] = os.environ['PATH'] + os.pathsep + kitty_dir
+            os.environ['PATH'] = os.environ['PATH'] + os.pathsep + alatty_dir
 
 
 def main():
@@ -292,23 +292,23 @@ def main():
         get_data()
     finally:
         cleanup()
-    cwd = os.environ.pop('KITTY_LOGIN_CWD', '')
-    install_kitty_bootstrap()
+    cwd = os.environ.pop('ALATTY_LOGIN_CWD', '')
+    install_alatty_bootstrap()
     if cwd:
         try:
             os.chdir(cwd)
         except Exception as err:
             print(f'Failed to change working directory to: {cwd} with error: {err}', file=sys.stderr)
-    ksi = frozenset(filter(None, os.environ.get('KITTY_SHELL_INTEGRATION', '').split()))
+    ksi = frozenset(filter(None, os.environ.get('ALATTY_SHELL_INTEGRATION', '').split()))
     exec_cmd = b'EXEC_CMD'
     if exec_cmd:
-        os.environ.pop('KITTY_SHELL_INTEGRATION', None)
+        os.environ.pop('ALATTY_SHELL_INTEGRATION', None)
         cmd = base64.standard_b64decode(exec_cmd).decode('utf-8')
         os.execlp(login_shell, os.path.basename(login_shell), '-c', cmd)
     TEST_SCRIPT  # noqa
     if ksi and 'no-rc' not in ksi:
         exec_with_shell_integration()
-    os.environ.pop('KITTY_SHELL_INTEGRATION', None)
+    os.environ.pop('ALATTY_SHELL_INTEGRATION', None)
     os.execlp(login_shell, '-' + os.path.basename(login_shell))
 
 

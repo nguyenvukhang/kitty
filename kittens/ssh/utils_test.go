@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"kitty/tools/utils/shlex"
+	"alatty/tools/utils/shlex"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -57,15 +57,15 @@ func TestParseSSHArgs(t *testing.T) {
 	p(`--kitten=abc -np23 --kitten xyz host`, `-n -p 23`, `host`, `--kitten abc --kitten xyz`, true)
 }
 
-func TestRelevantKittyOpts(t *testing.T) {
+func TestRelevantAlattyOpts(t *testing.T) {
 	tdir := t.TempDir()
-	path := filepath.Join(tdir, "kitty.conf")
+	path := filepath.Join(tdir, "alatty.conf")
 	os.WriteFile(path, []byte("term XXX\nshell_integration changed\nterm abcd"), 0o600)
-	rko := read_relevant_kitty_opts(path)
+	rko := read_relevant_alatty_opts(path)
 	if rko.Term != "abcd" {
-		t.Fatalf("Unexpected TERM: %s", RelevantKittyOpts().Term)
+		t.Fatalf("Unexpected TERM: %s", RelevantAlattyOpts().Term)
 	}
 	if rko.Shell_integration != "changed" {
-		t.Fatalf("Unexpected shell_integration: %s", RelevantKittyOpts().Shell_integration)
+		t.Fatalf("Unexpected shell_integration: %s", RelevantAlattyOpts().Shell_integration)
 	}
 }

@@ -533,9 +533,9 @@ The value of ``bypass`` is of the form ``hash_function_name : hash_value``
 
 Terminal implementations are free to use their own more advanced hashing
 schemes, with prefixes other than those starting with ``sha``, which are
-reserved. For instance, kitty uses a scheme based on public key encryption
-via :envvar:`KITTY_PUBLIC_KEY`. For details of this scheme, see the
-``check_bypass()`` function in the kitty source code.
+reserved. For instance, alatty uses a scheme based on public key encryption
+via :envvar:`ALATTY_PUBLIC_KEY`. For details of this scheme, see the
+``check_bypass()`` function in the alatty source code.
 
 Encoding of transfer commands as escape codes
 ------------------------------------------------

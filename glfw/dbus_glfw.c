@@ -27,7 +27,7 @@
 
 #include "internal.h"
 #include "dbus_glfw.h"
-#include "../kitty/monotonic.h"
+#include "../alatty/monotonic.h"
 #include <stdlib.h>
 #include <string.h>
 

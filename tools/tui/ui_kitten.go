@@ -8,9 +8,9 @@ import (
 	"os"
 	"sync"
 
-	"kitty/tools/cli"
-	"kitty/tools/utils"
-	"kitty/tools/utils/base85"
+	"alatty/tools/cli"
+	"alatty/tools/utils"
+	"alatty/tools/utils/base85"
 )
 
 var _ = fmt.Print

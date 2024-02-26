@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty/tools/cli/markup"
-	"kitty/tools/utils"
+	"alatty/tools/cli/markup"
+	"alatty/tools/utils"
 
 	"golang.org/x/exp/maps"
 )
@@ -16,10 +16,10 @@ var _ = fmt.Print
 
 func fish_completion_script(commands []string) (string, error) {
 	// One command in fish requires one completion script.
-	// Usage: kitten __complete__ setup fish [kitty|kitten|clone-in-kitty]
+	// Usage: kitten __complete__ setup fish [alatty|kitten|clone-in-alatty]
 	all_commands := map[string]bool{
-		"kitty":          true,
-		"clone-in-kitty": true,
+		"alatty":          true,
+		"clone-in-alatty": true,
 		"kitten":         true,
 	}
 	if len(commands) == 0 {

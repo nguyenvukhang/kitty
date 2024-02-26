@@ -3,13 +3,13 @@
     <div id="intro-video-container" class="video-with-timestamps">
 
     <video controls width="640" height="360" poster="_static/poster.png">
-        <source src="https://download.calibre-ebook.com/videos/kitty.mp4" type="video/mp4">
-        <source src="https://download.calibre-ebook.com/videos/kitty.webm" type="video/webm">
+        <source src="https://download.calibre-ebook.com/videos/alatty.mp4" type="video/mp4">
+        <source src="https://download.calibre-ebook.com/videos/alatty.webm" type="video/webm">
     </video>
 
 .. rst-class:: caption caption-text
 
-    Watch kitty in action!
+    Watch alatty in action!
 
 Timestamps for the above video:
 
@@ -20,7 +20,7 @@ Timestamps for the above video:
 01:43
     Pager: View command output in a separate window
 02:14
-    Pager: Uses shell integration in kitty
+    Pager: Uses shell integration in alatty
 02:27
     Tab text: The output of cwd and last cmd
 03:03
@@ -42,7 +42,7 @@ Timestamps for the above video:
 10:36
     icat kitten: Download & display image/gif from internet
 11:03
-    Kitty Graphics Protocol: Live image preview in ranger
+    Alatty Graphics Protocol: Live image preview in ranger
 11:25
     icat kitten: Display image from remote server
 12:04
@@ -56,13 +56,13 @@ Timestamps for the above video:
 13:58
     Windows: Simultaneous input
 14:15
-    Interactive Kitty Shell: :kbd:`Ctrl+Shift+Esc`
+    Interactive Alatty Shell: :kbd:`Ctrl+Shift+Esc`
 14:36
     Broadcast text: ``launch --allow-remote-control kitten broadcast``
 15:18
-    Kitty Remote Control Protocol
+    Alatty Remote Control Protocol
 15:52
-    Interactive Kitty Shell: Help
+    Interactive Alatty Shell: Help
 16:34
     Choose theme interactively: ``kitten themes -h``
 17:23

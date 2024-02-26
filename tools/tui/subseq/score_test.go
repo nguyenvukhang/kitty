@@ -4,7 +4,7 @@ package subseq
 
 import (
 	"fmt"
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 	"strconv"
 	"strings"
 	"testing"

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"kitty/tools/utils/shlex"
+	"alatty/tools/utils/shlex"
 )
 
 var _ = fmt.Print

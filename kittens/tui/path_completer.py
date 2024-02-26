@@ -5,8 +5,8 @@
 import os
 from typing import Any, Callable, Dict, Generator, Optional, Sequence, Tuple
 
-from kitty.fast_data_types import wcswidth
-from kitty.utils import ScreenSize, screen_size_function
+from alatty.fast_data_types import wcswidth
+from alatty.utils import ScreenSize, screen_size_function
 
 from .operations import styled
 

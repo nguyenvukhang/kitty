@@ -5,31 +5,31 @@ package tool
 import (
 	"fmt"
 
-	"kitty/kittens/ask"
-	"kitty/kittens/clipboard"
-	"kitty/kittens/diff"
-	"kitty/kittens/hints"
-	"kitty/kittens/hyperlinked_grep"
-	"kitty/kittens/icat"
-	"kitty/kittens/show_key"
-	"kitty/kittens/ssh"
-	"kitty/kittens/themes"
-	"kitty/kittens/transfer"
-	"kitty/kittens/unicode_input"
-	"kitty/tools/cli"
-	"kitty/tools/cmd/at"
-	"kitty/tools/cmd/edit_in_kitty"
-	"kitty/tools/cmd/mouse_demo"
-	"kitty/tools/cmd/pytest"
-	"kitty/tools/cmd/run_shell"
-	"kitty/tools/cmd/show_error"
-	"kitty/tools/cmd/update_self"
-	"kitty/tools/tui"
+	"alatty/kittens/ask"
+	"alatty/kittens/clipboard"
+	"alatty/kittens/diff"
+	"alatty/kittens/hints"
+	"alatty/kittens/hyperlinked_grep"
+	"alatty/kittens/icat"
+	"alatty/kittens/show_key"
+	"alatty/kittens/ssh"
+	"alatty/kittens/themes"
+	"alatty/kittens/transfer"
+	"alatty/kittens/unicode_input"
+	"alatty/tools/cli"
+	"alatty/tools/cmd/at"
+	"alatty/tools/cmd/edit_in_alatty"
+	"alatty/tools/cmd/mouse_demo"
+	"alatty/tools/cmd/pytest"
+	"alatty/tools/cmd/run_shell"
+	"alatty/tools/cmd/show_error"
+	"alatty/tools/cmd/update_self"
+	"alatty/tools/tui"
 )
 
 var _ = fmt.Print
 
-func KittyToolEntryPoints(root *cli.Command) {
+func AlattyToolEntryPoints(root *cli.Command) {
 	root.Add(cli.OptionSpec{
 		Name: "--version", Type: "bool-set", Help: "The current kitten version."})
 	tui.PrepareRootCmd(root)
@@ -37,8 +37,8 @@ func KittyToolEntryPoints(root *cli.Command) {
 	at.EntryPoint(root)
 	// update-self
 	update_self.EntryPoint(root)
-	// edit-in-kitty
-	edit_in_kitty.EntryPoint(root)
+	// edit-in-alatty
+	edit_in_alatty.EntryPoint(root)
 	// clipboard
 	clipboard.EntryPoint(root)
 	// icat
@@ -54,7 +54,7 @@ func KittyToolEntryPoints(root *cli.Command) {
 	// mouse_demo
 	root.AddSubCommand(&cli.Command{
 		Name:             "mouse-demo",
-		ShortDescription: "Demo the mouse handling kitty implements for terminal programs",
+		ShortDescription: "Demo the mouse handling alatty implements for terminal programs",
 		OnlyArgsAllowed:  true,
 		Run: func(cmd *cli.Command, args []string) (rc int, err error) {
 			return mouse_demo.Run(args)

@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	"kitty/tools/cli"
-	"kitty/tools/cli/markup"
-	"kitty/tools/tui"
+	"alatty/tools/cli"
+	"alatty/tools/cli/markup"
+	"alatty/tools/tui"
 )
 
 var _ = fmt.Print

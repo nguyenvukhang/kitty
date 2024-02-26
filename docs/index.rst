@@ -1,4 +1,4 @@
-kitty
+alatty
 ==========================================================
 
 *The fast, feature-rich, GPU based terminal emulator*
@@ -21,7 +21,7 @@ kitty
 
    * Offloads rendering to the GPU for :doc:`lower system load <performance>`
    * Uses threaded rendering for :iss:`absolutely minimal latency <2701#issuecomment-636497270>`
-   * Performance tradeoffs can be :ref:`tuned <conf-kitty-performance>`
+   * Performance tradeoffs can be :ref:`tuned <conf-alatty-performance>`
 
 .. tab:: Capable
 

@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"kitty/tools/cli"
-	"kitty/tools/utils"
-	"kitty/tools/utils/shlex"
-	"kitty/tools/wcswidth"
+	"alatty/tools/cli"
+	"alatty/tools/utils"
+	"alatty/tools/utils/shlex"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print

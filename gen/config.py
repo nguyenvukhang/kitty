@@ -1,4 +1,4 @@
-#!./kitty/launcher/kitty +launch
+#!./alatty/launcher/alatty +launch
 # License: GPLv3 Copyright: 2021, Kovid Goyal <kovid at kovidgoyal.net>
 
 
@@ -8,7 +8,7 @@ import subprocess
 import sys
 from typing import List
 
-from kitty.conf.generate import write_output
+from alatty.conf.generate import write_output
 
 if __name__ == '__main__' and not __package__:
     import __main__
@@ -41,8 +41,8 @@ def patch_color_list(path: str, colors: List[str], name: str, spc: str = '    ')
 
 
 def main(args: List[str]=sys.argv) -> None:
-    from kitty.options.definition import definition
-    write_output('kitty', definition)
+    from alatty.options.definition import definition
+    write_output('alatty', definition)
     nullable_colors = []
     all_colors = []
     for opt in definition.iter_all_options():
@@ -52,7 +52,7 @@ def main(args: List[str]=sys.argv) -> None:
                 all_colors.append(opt.name)
             elif opt.parser_func.__name__ in ('to_color', 'titlebar_color', 'macos_titlebar_color'):
                 all_colors.append(opt.name)
-    patch_color_list('kitty/rc/set_colors.py', nullable_colors, 'NULLABLE')
+    patch_color_list('alatty/rc/set_colors.py', nullable_colors, 'NULLABLE')
     patch_color_list('tools/cmd/at/set_colors.go', nullable_colors, 'NULLABLE')
     patch_color_list('tools/themes/collection.go', all_colors, 'ALL')
 

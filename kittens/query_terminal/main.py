@@ -7,12 +7,12 @@ from binascii import hexlify, unhexlify
 from contextlib import suppress
 from typing import Dict, Iterable, List, Optional, Type
 
-from kitty.cli import parse_args
-from kitty.cli_stub import QueryTerminalCLIOptions
-from kitty.constants import appname, str_version
-from kitty.options.types import Options
-from kitty.terminfo import names
-from kitty.utils import TTYIO
+from alatty.cli import parse_args
+from alatty.cli_stub import QueryTerminalCLIOptions
+from alatty.constants import appname, str_version
+from alatty.options.types import Options
+from alatty.terminfo import names
+from alatty.utils import TTYIO
 
 
 class Query:
@@ -23,7 +23,7 @@ class Query:
 
     @property
     def query_name(self) -> str:
-        return self.override_query_name or f'kitty-query-{self.name}'
+        return self.override_query_name or f'alatty-query-{self.name}'
 
     def __init__(self) -> None:
         self.encoded_query_name = hexlify(self.query_name.encode('utf-8')).decode('ascii')
@@ -86,7 +86,7 @@ class TerminalVersion(Query):
 @query
 class AllowHyperlinks(Query):
     name: str = 'allow_hyperlinks'
-    help_text: str = 'The config option :opt:`allow_hyperlinks` in :file:`kitty.conf` for allowing hyperlinks can be :code:`yes`, :code:`no` or :code:`ask`'
+    help_text: str = 'The config option :opt:`allow_hyperlinks` in :file:`alatty.conf` for allowing hyperlinks can be :code:`yes`, :code:`no` or :code:`ask`'
 
     @staticmethod
     def get_result(opts: Options) -> str:
@@ -100,7 +100,7 @@ class FontFamily(Query):
 
     @staticmethod
     def get_result(opts: Options) -> str:
-        from kitty.fast_data_types import current_fonts
+        from alatty.fast_data_types import current_fonts
         cf = current_fonts()
         return str(cf['medium'].display_name())
 
@@ -112,7 +112,7 @@ class BoldFont(Query):
 
     @staticmethod
     def get_result(opts: Options) -> str:
-        from kitty.fast_data_types import current_fonts
+        from alatty.fast_data_types import current_fonts
         cf = current_fonts()
         return str(cf['bold'].display_name())
 
@@ -124,7 +124,7 @@ class ItalicFont(Query):
 
     @staticmethod
     def get_result(opts: Options) -> str:
-        from kitty.fast_data_types import current_fonts
+        from alatty.fast_data_types import current_fonts
         cf = current_fonts()
         return str(cf['italic'].display_name())
 
@@ -136,7 +136,7 @@ class BiFont(Query):
 
     @staticmethod
     def get_result(opts: Options) -> str:
-        from kitty.fast_data_types import current_fonts
+        from alatty.fast_data_types import current_fonts
         cf = current_fonts()
         return str(cf['bi'].display_name())
 
@@ -154,7 +154,7 @@ class FontSize(Query):
 @query
 class ClipboardControl(Query):
     name: str = 'clipboard_control'
-    help_text: str = 'The config option :opt:`clipboard_control` in :file:`kitty.conf` for allowing reads/writes to/from the clipboard'
+    help_text: str = 'The config option :opt:`clipboard_control` in :file:`alatty.conf` for allowing reads/writes to/from the clipboard'
 
     @staticmethod
     def get_result(opts: Options) -> str:
@@ -162,7 +162,7 @@ class ClipboardControl(Query):
 
 
 def get_result(name: str) -> Optional[str]:
-    from kitty.fast_data_types import get_options
+    from alatty.fast_data_types import get_options
     q = all_queries.get(name)
     if q is None:
         return None
@@ -215,7 +215,7 @@ The output is lines of the form::
 
     query: data
 
-If a particular :italic:`query` is unsupported by the running kitty version, the
+If a particular :italic:`query` is unsupported by the running alatty version, the
 :italic:`data` will be blank.
 
 Note that when calling this from another program, be very careful not to perform

@@ -30,7 +30,7 @@
 #include "internal.h"
 #include "backend_utils.h"
 #include "linux_desktop_settings.h"
-#include "../kitty/monotonic.h"
+#include "../alatty/monotonic.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -147,7 +147,7 @@ static void setCursor(GLFWCursorShape shape, _GLFWwindow* window)
         static uint32_t warned_width = 0, warned_height = 0;
         if (warned_width != image->width || warned_height != image->height) {
             _glfwInputError(GLFW_PLATFORM_ERROR, "WARNING: Cursor image size: %dx%d is not a multiple of window scale: %d. This will"
-                    " cause some compositors such as GNOME to crash. See https://github.com/kovidgoyal/kitty/issues/4878", image->width, image->height, scale);
+                    " cause some compositors such as GNOME to crash. See https://github.com/kovidgoyal/alatty/issues/4878", image->width, image->height, scale);
             warned_width = image->width; warned_height = image->height;
         }
     }

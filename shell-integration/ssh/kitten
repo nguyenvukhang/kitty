@@ -17,27 +17,27 @@ die() {
     exit 1;
 }
 
-exec_kitty() {
-    [ -n "$kitty_exe" ] && exec "$kitty_exe" "$@"
-    die "Failed to execute kitty"
+exec_alatty() {
+    [ -n "$alatty_exe" ] && exec "$alatty_exe" "$@"
+    die "Failed to execute alatty"
 }
 
 script_path="$(command readlink -f "$0" 2> /dev/null)"
 [ $? = 0 ] || script_path="$0"
 script_dir="$(command dirname "$script_path")"
 install_dir="$(command dirname "$script_dir")/install-tool"
-remote_kitty_version_file="$script_dir/../version"
-local_kitty_version_file="$install_dir/installed-kitten-version"
-kitty_exe="$install_dir/kitten"
-local_kitty_version=""
+remote_alatty_version_file="$script_dir/../version"
+local_alatty_version_file="$install_dir/installed-kitten-version"
+alatty_exe="$install_dir/kitten"
+local_alatty_version=""
 
-[ -f "$kitty_exe" -a -x "$kitty_exe" ] && exec_kitty "$@"
+[ -f "$alatty_exe" -a -x "$alatty_exe" ] && exec_alatty "$@"
 
-# Use kitten from the downloaded kitty installation, if available.
+# Use kitten from the downloaded alatty installation, if available.
 embed_exe="$(command dirname "$script_dir")/install/bin/kitten"
 [ -f "$embed_exe" -a -x "$embed_exe" ] && {
-    kitty_exe="$embed_exe"
-    exec_kitty "$@"
+    alatty_exe="$embed_exe"
+    exec_alatty "$@"
 }
 
 case "$(command uname)" in
@@ -78,17 +78,17 @@ case "$(command uname -m)" in
     *) die "Unknown CPU architecture $(command uname -m)";;
 esac
 
-url="https://github.com/kovidgoyal/kitty/releases/latest/download/kitten-$OS-$arch"
+url="https://github.com/kovidgoyal/alatty/releases/latest/download/kitten-$OS-$arch"
 
 printf "\033[33mkitten needs to be installed\033[m\n\n"
 command mkdir -p "$install_dir"
 printf "Downloading kitten from: \033[32m%s\033[m\n\n" "$url"
-download_dest="$(command mktemp "$kitty_exe.XXXXXXXXXX")"
+download_dest="$(command mktemp "$alatty_exe.XXXXXXXXXX")"
 fetch "$url" > "$download_dest" || {
     command rm -f "$download_dest"
     die "Failed to download kitten"
 }
 command chmod 755 "$download_dest"
-command mv "$download_dest" "$kitty_exe"
-command "$kitty_exe" --version | cut -d" " -f2 > "$local_kitty_version_file"
-exec_kitty "$@"
+command mv "$download_dest" "$alatty_exe"
+command "$alatty_exe" --version | cut -d" " -f2 > "$local_alatty_version_file"
+exec_alatty "$@"

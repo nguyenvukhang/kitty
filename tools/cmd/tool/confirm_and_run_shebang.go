@@ -9,10 +9,10 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"kitty/kittens/ask"
-	"kitty/tools/cli"
-	"kitty/tools/cli/markup"
-	"kitty/tools/utils"
+	"alatty/kittens/ask"
+	"alatty/tools/cli"
+	"alatty/tools/cli/markup"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print
@@ -49,7 +49,7 @@ func confirm_and_run_shebang(args []string) (rc int, err error) {
 			if err != nil {
 				return 1, err
 			}
-			editor := exec.Command(exe, "edit-in-kitty", script_path)
+			editor := exec.Command(exe, "edit-in-alatty", script_path)
 			editor.Stdin = os.Stdin
 			editor.Stdout = os.Stdout
 			editor.Stderr = os.Stderr

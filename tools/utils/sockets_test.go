@@ -47,13 +47,13 @@ func TestParseSocketAddress(t *testing.T) {
 	if runtime.GOOS == "linux" {
 		ea = "@test"
 	} else {
-		eerr = fmt.Errorf("bad kitty")
+		eerr = fmt.Errorf("bad alatty")
 	}
 	test("unix:@test")
 	testf("tcp:localhost:123", "tcp", "localhost:123")
 	testf("tcp:1.1.1.1:123", "ip", "1.1.1.1:123")
 	testf("tcp:fe80::1", "ip", "fe80::1")
-	teste("xxx", "bad kitty")
-	teste("xxx:yyy", "bad kitty")
-	teste(":yyy", "bad kitty")
+	teste("xxx", "bad alatty")
+	teste("xxx:yyy", "bad alatty")
+	teste(":yyy", "bad alatty")
 }

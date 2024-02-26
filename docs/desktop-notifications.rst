@@ -4,7 +4,7 @@
 Desktop notifications
 =======================
 
-|kitty| implements an extensible escape code (OSC 99) to show desktop
+|alatty| implements an extensible escape code (OSC 99) to show desktop
 notifications. It is easy to use from shell scripts and fully extensible to show
 title and body. Clicking on the notification can optionally focus the window it
 came from, and/or send an escape code back to the application running in that
@@ -125,10 +125,10 @@ Key      Value                 Default    Description
 
 .. note::
    Support for the ``o`` key to prevent notifications from focused windows
-   was added in kitty version 0.31.0
+   was added in alatty version 0.31.0
 
 
 .. note::
-   |kitty| also supports the `legacy OSC 9 protocol developed by iTerm2
+   |alatty| also supports the `legacy OSC 9 protocol developed by iTerm2
    <https://iterm2.com/documentation-escape-codes.html>`__ for desktop
    notifications.

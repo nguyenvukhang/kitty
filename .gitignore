@@ -13,9 +13,9 @@
 /tags
 /build/
 /linux-package/
-/kitty.app/
+/alatty.app/
 /glad/out/
-/kitty/launcher/kitt*
+/alatty/launcher/kitt*
 /*.dSYM/
 __pycache__/
 /glfw/wayland-*-client-protocol.[ch]

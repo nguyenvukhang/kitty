@@ -288,7 +288,7 @@ def graphics_parser() -> None:
         'V': ('offset_from_parent_y', 'int'),
     }
     text = generate('parse_graphics_code', 'screen_handle_graphics_command', 'graphics_command', keymap, 'GraphicsCommand')
-    write_header(text, 'kitty/parse-graphics-command.h')
+    write_header(text, 'alatty/parse-graphics-command.h')
 
 
 def main(args: List[str]=sys.argv) -> None:

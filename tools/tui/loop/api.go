@@ -12,10 +12,10 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"kitty/tools/tty"
-	"kitty/tools/utils"
-	"kitty/tools/utils/style"
-	"kitty/tools/wcswidth"
+	"alatty/tools/tty"
+	"alatty/tools/utils"
+	"alatty/tools/utils/style"
+	"alatty/tools/wcswidth"
 )
 
 type ScreenSize struct {
@@ -138,21 +138,21 @@ func NoAlternateScreen(self *Loop) {
 }
 
 func (self *Loop) OnlyDisambiguateKeys() *Loop {
-	self.terminal_options.kitty_keyboard_mode = DISAMBIGUATE_KEYS
+	self.terminal_options.alatty_keyboard_mode = DISAMBIGUATE_KEYS
 	return self
 }
 
 func OnlyDisambiguateKeys(self *Loop) {
-	self.terminal_options.kitty_keyboard_mode = DISAMBIGUATE_KEYS
+	self.terminal_options.alatty_keyboard_mode = DISAMBIGUATE_KEYS
 }
 
 func (self *Loop) FullKeyboardProtocol() *Loop {
-	self.terminal_options.kitty_keyboard_mode = FULL_KEYBOARD_PROTOCOL
+	self.terminal_options.alatty_keyboard_mode = FULL_KEYBOARD_PROTOCOL
 	return self
 }
 
 func FullKeyboardProtocol(self *Loop) {
-	self.terminal_options.kitty_keyboard_mode = FULL_KEYBOARD_PROTOCOL
+	self.terminal_options.alatty_keyboard_mode = FULL_KEYBOARD_PROTOCOL
 }
 
 func (self *Loop) MouseTrackingMode(mt MouseTracking) *Loop {

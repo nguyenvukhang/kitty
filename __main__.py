@@ -3,5 +3,5 @@
 
 
 if __name__ == '__main__':
-    from kitty.entry_points import main
+    from alatty.entry_points import main
     main()

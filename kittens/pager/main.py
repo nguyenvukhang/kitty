@@ -5,7 +5,7 @@
 import sys
 from typing import List
 
-from kitty.cli import CompletionSpec
+from alatty.cli import CompletionSpec
 
 OPTIONS = '''
 --role

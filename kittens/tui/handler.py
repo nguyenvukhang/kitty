@@ -8,8 +8,8 @@ from time import monotonic
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Callable, ContextManager, Deque, Dict, NamedTuple, Optional, Sequence, Type, Union, cast
 
-from kitty.types import DecoratedFunc, ParsedShortcut
-from kitty.typing import (
+from alatty.types import DecoratedFunc, ParsedShortcut
+from alatty.typing import (
     AbstractEventLoop,
     BossType,
     Debug,
@@ -26,7 +26,7 @@ from kitty.typing import (
 from .operations import MouseTracking, pending_update
 
 if TYPE_CHECKING:
-    from kitty.file_transmission import FileTransmissionCommand
+    from alatty.file_transmission import FileTransmissionCommand
 
 
 class ButtonEvent(NamedTuple):
@@ -83,7 +83,7 @@ class Handler:
         if not hasattr(self, '_key_shortcuts'):
             self._key_shortcuts: Dict[ParsedShortcut, KeyActionType] = {}
         if isinstance(spec, str):
-            from kitty.key_encoding import parse_shortcut
+            from alatty.key_encoding import parse_shortcut
             spec = parse_shortcut(spec)
         self._key_shortcuts[spec] = action
 
@@ -180,7 +180,7 @@ class Handler:
     def on_writing_finished(self) -> None:
         pass
 
-    def on_kitty_cmd_response(self, response: Dict[str, Any]) -> None:
+    def on_alatty_cmd_response(self, response: Dict[str, Any]) -> None:
         pass
 
     def on_clipboard_response(self, text: str, from_primary: bool = False) -> None:

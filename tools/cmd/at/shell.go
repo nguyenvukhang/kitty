@@ -11,12 +11,12 @@ import (
 	"strings"
 	"time"
 
-	"kitty/tools/cli"
-	"kitty/tools/cli/markup"
-	"kitty/tools/tui/loop"
-	"kitty/tools/tui/readline"
-	"kitty/tools/utils"
-	"kitty/tools/utils/shlex"
+	"alatty/tools/cli"
+	"alatty/tools/cli/markup"
+	"alatty/tools/tui/loop"
+	"alatty/tools/tui/readline"
+	"alatty/tools/utils"
+	"alatty/tools/utils/shlex"
 )
 
 var _ = fmt.Print
@@ -99,7 +99,7 @@ func shell_loop(rl *readline.Readline, kill_if_signaled bool) (int, error) {
 
 func show_basic_help() {
 	output := strings.Builder{}
-	fmt.Fprintln(&output, "Control kitty by sending it commands.")
+	fmt.Fprintln(&output, "Control alatty by sending it commands.")
 	fmt.Fprintln(&output)
 	fmt.Fprintln(&output, formatter.Title("Commands")+":")
 	r := EntryPoint(cli.NewRootCommand())
@@ -191,7 +191,7 @@ func completions(before_cursor, after_cursor string) (ans *cli.Completions) {
 		x.ShortDescription = desc
 	}
 	add_sc("help", "Show help")
-	add_sc("exit", "Exit the kitty shell")
+	add_sc("exit", "Exit the alatty shell")
 	root.Validate()
 	ans = root.GetCompletions(argv, nil)
 	ans.CurrentWordIdx = position_of_last_arg - len(prefix)
@@ -204,13 +204,13 @@ func shell_main(cmd *cli.Command, args []string) (int, error) {
 		return 1, err
 	}
 	formatter = markup.New(true)
-	fmt.Println("Welcome to the kitty shell!")
+	fmt.Println("Welcome to the alatty shell!")
 	fmt.Println("Use", formatter.Green("help"), "for assistance or", formatter.Green("exit"), "to quit.")
-	if atwid := os.Getenv("KITTY_SHELL_ACTIVE_WINDOW_ID"); atwid != "" {
+	if atwid := os.Getenv("ALATTY_SHELL_ACTIVE_WINDOW_ID"); atwid != "" {
 		amsg := "Previously active window id: " + atwid
-		os.Unsetenv("KITTY_SHELL_ACTIVE_WINDOW_ID")
-		if attid := os.Getenv("KITTY_SHELL_ACTIVE_TAB_ID"); attid != "" {
-			os.Unsetenv("KITTY_SHELL_ACTIVE_TAB_ID")
+		os.Unsetenv("ALATTY_SHELL_ACTIVE_WINDOW_ID")
+		if attid := os.Getenv("ALATTY_SHELL_ACTIVE_TAB_ID"); attid != "" {
+			os.Unsetenv("ALATTY_SHELL_ACTIVE_TAB_ID")
 			amsg += " and tab id: " + attid
 		}
 		fmt.Println(amsg)

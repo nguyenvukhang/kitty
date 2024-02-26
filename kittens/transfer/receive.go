@@ -15,15 +15,15 @@ import (
 	"strings"
 	"time"
 
-	"kitty"
-	"kitty/kittens/unicode_input"
-	"kitty/tools/cli/markup"
-	"kitty/tools/rsync"
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/humanize"
-	"kitty/tools/wcswidth"
+	"alatty"
+	"alatty/kittens/unicode_input"
+	"alatty/tools/cli/markup"
+	"alatty/tools/rsync"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/humanize"
+	"alatty/tools/wcswidth"
 
 	"golang.org/x/exp/slices"
 	"golang.org/x/sys/unix"
@@ -1086,7 +1086,7 @@ func receive_loop(opts *Options, spec []string, dest string) (err error, rc int)
 	for i := range spec {
 		handler.manager.spec_counts[i] = 0
 	}
-	handler.manager.prefix = fmt.Sprintf("\x1b]%d;id=%s;", kitty.FileTransferCode, handler.manager.request_id)
+	handler.manager.prefix = fmt.Sprintf("\x1b]%d;id=%s;", alatty.FileTransferCode, handler.manager.request_id)
 	if handler.manager.bypass != `` {
 		if handler.manager.bypass, err = encode_bypass(handler.manager.request_id, handler.manager.bypass); err != nil {
 			return err, 1
@@ -1117,7 +1117,7 @@ func receive_loop(opts *Options, spec []string, dest string) (err error, rc int)
 		return nil
 	}
 
-	ftc_code := strconv.Itoa(kitty.FileTransferCode)
+	ftc_code := strconv.Itoa(alatty.FileTransferCode)
 	lp.OnEscapeCode = func(et loop.EscapeCodeType, payload []byte) error {
 		if et == loop.OSC {
 			if idx := bytes.IndexByte(payload, ';'); idx > 0 {

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty"
+	"alatty"
 )
 
 type KeyboardStateBits uint8
@@ -64,7 +64,7 @@ const (
 	ALTERNATE_SCREEN       Mode = 1049 | private
 	BRACKETED_PASTE        Mode = 2004 | private
 	PENDING_UPDATE         Mode = 2026 | private
-	HANDLE_TERMIOS_SIGNALS Mode = kitty.HandleTermiosSignals | private
+	HANDLE_TERMIOS_SIGNALS Mode = alatty.HandleTermiosSignals | private
 )
 
 func (self Mode) escape_code(which string) string {
@@ -97,7 +97,7 @@ const (
 type TerminalStateOptions struct {
 	alternate_screen, restore_colors bool
 	mouse_tracking                   MouseTracking
-	kitty_keyboard_mode              KeyboardStateBits
+	alatty_keyboard_mode              KeyboardStateBits
 }
 
 func set_modes(sb *strings.Builder, modes ...Mode) {
@@ -132,8 +132,8 @@ func (self *TerminalStateOptions) SetStateEscapeCodes() string {
 		set_modes(&sb, ALTERNATE_SCREEN)
 		sb.WriteString(CLEAR_SCREEN)
 	}
-	if self.kitty_keyboard_mode > 0 {
-		sb.WriteString(fmt.Sprintf("\033[>%du", self.kitty_keyboard_mode))
+	if self.alatty_keyboard_mode > 0 {
+		sb.WriteString(fmt.Sprintf("\033[>%du", self.alatty_keyboard_mode))
 	} else {
 		sb.WriteString("\033[>u")
 	}

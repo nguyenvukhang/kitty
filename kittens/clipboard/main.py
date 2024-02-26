@@ -7,7 +7,7 @@ OPTIONS = r'''
 --get-clipboard -g
 type=bool-set
 Output the current contents of the clipboard to STDOUT. Note that by default
-kitty will prompt for permission to access the clipboard. Can be controlled
+alatty will prompt for permission to access the clipboard. Can be controlled
 by :opt:`clipboard_control`.
 
 
@@ -82,7 +82,7 @@ usage = '[files to copy to/from]'
 if __name__ == '__main__':
     raise SystemExit('This should be run as kitten clipboard')
 elif __name__ == '__doc__':
-    from kitty.cli import CompletionSpec
+    from alatty.cli import CompletionSpec
     cd = sys.cli_docs  # type: ignore
     cd['usage'] = usage
     cd['options'] = OPTIONS

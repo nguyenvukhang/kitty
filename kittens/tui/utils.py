@@ -6,12 +6,12 @@ import sys
 from contextlib import suppress
 from typing import TYPE_CHECKING, Optional, Sequence, Tuple, cast
 
-from kitty.types import run_once
+from alatty.types import run_once
 
 from .operations import raw_mode, set_cursor_visible
 
 if TYPE_CHECKING:
-    from kitty.options.types import Options
+    from alatty.options.types import Options
 
 
 def get_key_press(allowed: str, default: str) -> str:
@@ -56,25 +56,25 @@ def human_size(
     return format_number(size / 1024**exponent, max_num_of_decimals) + sep + unit_list[exponent]
 
 
-def kitty_opts() -> 'Options':
-    from kitty.fast_data_types import get_options, set_options
+def alatty_opts() -> 'Options':
+    from alatty.fast_data_types import get_options, set_options
     try:
         ans = cast(Optional['Options'], get_options())
     except RuntimeError:
         ans = None
     if ans is None:
-        from kitty.cli import create_default_opts
-        from kitty.utils import suppress_error_logging
+        from alatty.cli import create_default_opts
+        from alatty.utils import suppress_error_logging
         with suppress_error_logging():
             ans = create_default_opts()
             set_options(ans)
     return ans
 
 
-def set_kitty_opts(paths: Sequence[str], overrides: Sequence[str] = ()) -> 'Options':
-    from kitty.config import load_config
-    from kitty.fast_data_types import set_options
-    from kitty.utils import suppress_error_logging
+def set_alatty_opts(paths: Sequence[str], overrides: Sequence[str] = ()) -> 'Options':
+    from alatty.config import load_config
+    from alatty.fast_data_types import set_options
+    from alatty.utils import suppress_error_logging
     with suppress_error_logging():
         opts = load_config(*paths, overrides=overrides or None)
         set_options(opts)
@@ -115,7 +115,7 @@ def running_in_tmux() -> str:
             return ''
     except OSError:
         return ''
-    from kitty.child import cmdline_of_pid
+    from alatty.child import cmdline_of_pid
     c = cmdline_of_pid(int(parts[1]))
     if not c:
         return ''

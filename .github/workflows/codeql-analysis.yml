@@ -42,7 +42,7 @@ jobs:
         languages: python, c
         setup-python-dependencies: false
 
-    - name: Build kitty
+    - name: Build alatty
       run: python3 .github/workflows/ci.py build
 
     - name: Perform CodeQL Analysis

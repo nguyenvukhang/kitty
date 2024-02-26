@@ -19,7 +19,7 @@ terminals. They include:
   for this, leading to bugs, for example:
   `neovim #2035 <https://github.com/neovim/neovim/issues/2035>`_.
 
-To solve these issues and others, kitty has created a new keyboard protocol,
+To solve these issues and others, alatty has created a new keyboard protocol,
 that is backward compatible but allows applications to opt-in to support more
 advanced usages. The protocol is based on initial work in `fixterms
 <http://www.leonerd.org.uk/hacks/fixterms/>`_, however, it corrects various
@@ -28,14 +28,14 @@ issues in that proposal, listed at the :ref:`bottom of this document
 
 You can see this protocol with all enhancements in action by running::
 
-    kitten show_key -m kitty
+    kitten show_key -m alatty
 
-inside the kitty terminal to report key events.
+inside the alatty terminal to report key events.
 
-In addition to kitty, this protocol is also implemented in:
+In addition to alatty, this protocol is also implemented in:
 
 * The `foot terminal <https://codeberg.org/dnkl/foot/issues/319>`__
-* The `WezTerm terminal <https://wezfurlong.org/wezterm/config/lua/config/enable_kitty_keyboard.html>`__
+* The `WezTerm terminal <https://wezfurlong.org/wezterm/config/lua/config/enable_alatty_keyboard.html>`__
 * The `alacritty terminal <https://github.com/alacritty/alacritty/pull/7125>`__
 * The `rio terminal <https://github.com/raphamorim/rio/commit/cd463ca37677a0fc48daa8795ea46dadc92b1e95>`__
 * The `notcurses library
@@ -429,7 +429,7 @@ second form when modifiers are present (``SS3 is the bytes 0x1b 0x4f``).
 
 These sequences must match entries in the terminfo database for maximum
 compatibility. The table below lists the key, its terminfo entry name and
-the escape code used for it by kitty. A different terminal would use whatever
+the escape code used for it by alatty. A different terminal would use whatever
 escape code is present in its terminfo database for the key.
 Some keys have an alternate representation when the terminal is in *cursor key
 mode* (the ``smkx/rmkx`` terminfo capabilities). This form is used only in
@@ -483,9 +483,9 @@ All keypad keys are reported as their equivalent non-keypad keys. To
 distinguish these, use the :ref:`disambiguate <disambiguate>` flag.
 
 Terminals may choose what they want to do about functional keys that have no
-legacy encoding. kitty chooses to encode these using ``CSI u`` encoding even in
+legacy encoding. alatty chooses to encode these using ``CSI u`` encoding even in
 legacy mode, so that they become usable even in programs that do not
-understand the full kitty keyboard protocol. However, terminals may instead choose to
+understand the full alatty keyboard protocol. However, terminals may instead choose to
 ignore such keys in legacy mode instead, or have an option to control this behavior.
 
 .. _legacy_text:

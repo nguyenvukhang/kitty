@@ -12,7 +12,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 
 	"golang.org/x/sys/unix"
 )

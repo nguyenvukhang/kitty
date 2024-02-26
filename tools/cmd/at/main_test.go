@@ -5,8 +5,8 @@ package at
 import (
 	"encoding/json"
 	"fmt"
-	"kitty/tools/crypto"
-	"kitty/tools/utils"
+	"alatty/tools/crypto"
+	"alatty/tools/utils"
 	"testing"
 )
 

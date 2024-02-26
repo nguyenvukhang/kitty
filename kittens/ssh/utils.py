@@ -8,8 +8,8 @@ import traceback
 from contextlib import suppress
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Set, Tuple
 
-from kitty.types import run_once
-from kitty.utils import SSHConnectionData
+from alatty.types import run_once
+from alatty.utils import SSHConnectionData
 
 
 @run_once
@@ -61,7 +61,7 @@ def is_kitten_cmdline(q: Sequence[str]) -> bool:
         return True
     if len(q) < 4:
         return False
-    if exe_name != 'kitty':
+    if exe_name != 'alatty':
         return False
     if q[1:3] == ['+kitten', 'ssh'] or q[1:4] == ['+', 'kitten', 'ssh']:
         return True
@@ -88,7 +88,7 @@ def create_shared_memory(data: Any, prefix: str) -> str:
     import atexit
     import json
 
-    from kitty.shm import SharedMemory
+    from alatty.shm import SharedMemory
     db = json.dumps(data).encode('utf-8')
     with SharedMemory(size=len(db) + SharedMemory.num_bytes_for_size, prefix=prefix) as shm:
         shm.write_data_with_size(db)
@@ -101,7 +101,7 @@ def read_data_from_shared_memory(shm_name: str) -> Any:
     import json
     import stat
 
-    from kitty.shm import SharedMemory
+    from alatty.shm import SharedMemory
     with SharedMemory(shm_name, readonly=True) as shm:
         shm.unlink()
         if shm.stats.st_uid != os.geteuid() or shm.stats.st_gid != os.getegid():
@@ -114,7 +114,7 @@ def read_data_from_shared_memory(shm_name: str) -> Any:
 
 def get_ssh_data(msg: str, request_id: str) -> Iterator[bytes]:
     from base64 import standard_b64decode
-    yield b'\nKITTY_DATA_START\n'  # to discard leading data
+    yield b'\nALATTY_DATA_START\n'  # to discard leading data
     try:
         msg = standard_b64decode(msg).decode('utf-8')
         md = dict(x.split('=', 1) for x in msg.split(':'))
@@ -130,7 +130,7 @@ def get_ssh_data(msg: str, request_id: str) -> Iterator[bytes]:
             if pw != env_data['pw']:
                 raise ValueError('Incorrect password')
             if rq_id != request_id:
-                raise ValueError(f'Incorrect request id: {rq_id!r} expecting the KITTY_PID-KITTY_WINDOW_ID for the current kitty window')
+                raise ValueError(f'Incorrect request id: {rq_id!r} expecting the ALATTY_PID-ALATTY_WINDOW_ID for the current alatty window')
         except Exception as e:
             traceback.print_exc()
             yield f'{e}\n'.encode('utf-8')
@@ -145,11 +145,11 @@ def get_ssh_data(msg: str, request_id: str) -> Iterator[bytes]:
                 yield encoded_data[:line_sz]
                 yield b'\n'
                 encoded_data = encoded_data[line_sz:]
-            yield b'KITTY_DATA_END\n'
+            yield b'ALATTY_DATA_END\n'
 
 
 def set_env_in_cmdline(env: Dict[str, str], argv: List[str], clone: bool = True) -> None:
-    from kitty.options.utils import DELETE_ENV_VAR
+    from alatty.options.utils import DELETE_ENV_VAR
     if clone:
         patch_cmdline('clone_env', create_shared_memory(env, 'ksse-'), argv)
         return

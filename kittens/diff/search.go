@@ -8,10 +8,10 @@ import (
 	"strings"
 	"sync"
 
-	"kitty/tools/tui"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/wcswidth"
+	"alatty/tools/tui"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/wcswidth"
 
 	"golang.org/x/exp/slices"
 )

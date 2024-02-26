@@ -14,8 +14,8 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"kitty/tools/tty"
-	"kitty/tools/utils"
+	"alatty/tools/tty"
+	"alatty/tools/utils"
 )
 
 var SIGNULL unix.Signal
@@ -24,7 +24,7 @@ func new_loop() *Loop {
 	l := Loop{controlling_term: nil}
 	l.terminal_options.alternate_screen = true
 	l.terminal_options.restore_colors = true
-	l.terminal_options.kitty_keyboard_mode = DISAMBIGUATE_KEYS | REPORT_ALTERNATE_KEYS | REPORT_ALL_KEYS_AS_ESCAPE_CODES | REPORT_TEXT_WITH_KEYS
+	l.terminal_options.alatty_keyboard_mode = DISAMBIGUATE_KEYS | REPORT_ALTERNATE_KEYS | REPORT_ALL_KEYS_AS_ESCAPE_CODES | REPORT_TEXT_WITH_KEYS
 	l.escape_code_parser.HandleCSI = l.handle_csi
 	l.escape_code_parser.HandleOSC = l.handle_osc
 	l.escape_code_parser.HandleDCS = l.handle_dcs

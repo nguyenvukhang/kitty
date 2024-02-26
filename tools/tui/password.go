@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"strings"
 
-	"kitty/tools/tui/loop"
-	"kitty/tools/wcswidth"
+	"alatty/tools/tui/loop"
+	"alatty/tools/wcswidth"
 )
 
 type KilledBySignal struct {

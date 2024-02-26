@@ -6,13 +6,13 @@ from base64 import standard_b64encode
 from gettext import gettext as _
 from typing import Any, Dict, List, Optional, Tuple
 
-from kitty.cli import parse_args
-from kitty.cli_stub import BroadcastCLIOptions
-from kitty.key_encoding import encode_key_event
-from kitty.rc.base import MATCH_TAB_OPTION, MATCH_WINDOW_OPTION
-from kitty.remote_control import create_basic_command, encode_send
-from kitty.short_uuid import uuid4
-from kitty.typing import KeyEventType, ScreenSize
+from alatty.cli import parse_args
+from alatty.cli_stub import BroadcastCLIOptions
+from alatty.key_encoding import encode_key_event
+from alatty.rc.base import MATCH_TAB_OPTION, MATCH_WINDOW_OPTION
+from alatty.remote_control import create_basic_command, encode_send
+from alatty.short_uuid import uuid4
+from alatty.typing import KeyEventType, ScreenSize
 
 from ..tui.handler import Handler
 from ..tui.line_edit import LineEdit
@@ -90,7 +90,7 @@ class Broadcast(Handler):
 
         ek = encode_key_event(key_event)
         ek = standard_b64encode(ek.encode('utf-8')).decode('ascii')
-        self.write_broadcast_data('kitty-key:' + ek)
+        self.write_broadcast_data('alatty-key:' + ek)
 
     def end_line(self) -> None:
         self.print('')
@@ -124,12 +124,12 @@ Key to press to end the broadcast session.
 
 
 ''' + MATCH_WINDOW_OPTION + '\n\n' + MATCH_TAB_OPTION.replace('--match -m', '--match-tab -t')).format
-help_text = 'Broadcast typed text to kitty windows. By default text is sent to all windows, unless one of the matching options is specified'
+help_text = 'Broadcast typed text to alatty windows. By default text is sent to all windows, unless one of the matching options is specified'
 usage = '[initial text to send ...]'
 
 
 def parse_broadcast_args(args: List[str]) -> Tuple[BroadcastCLIOptions, List[str]]:
-    return parse_args(args, OPTIONS, usage, help_text, 'kitty +kitten broadcast', result_class=BroadcastCLIOptions)
+    return parse_args(args, OPTIONS, usage, help_text, 'alatty +kitten broadcast', result_class=BroadcastCLIOptions)
 
 
 def main(args: List[str]) -> Optional[Dict[str, Any]]:
@@ -160,4 +160,4 @@ elif __name__ == '__doc__':
     cd['usage'] = usage
     cd['options'] = OPTIONS
     cd['help_text'] = help_text
-    cd['short_desc'] = 'Broadcast typed text to kitty windows'
+    cd['short_desc'] = 'Broadcast typed text to alatty windows'

@@ -6,7 +6,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

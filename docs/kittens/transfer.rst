@@ -36,7 +36,7 @@ remote computer::
     <remote computer> $ kitten transfer some-file /path/on/local/computer
 
 This, will copy :file:`some-file` from the computer into which you have SSHed
-to your local computer at :file:`/path/on/local/computer`. kitty will ask you
+to your local computer at :file:`/path/on/local/computer`. alatty will ask you
 for confirmation before allowing the transfer, so that the file transfer
 protocol cannot be abused to read/write files on your computer.
 
@@ -50,15 +50,15 @@ For more detailed usage examples, see the command line interface section below.
 .. note::
    If you dont want to use the ssh kitten, you can install the kitten binary on
    the remote machine yourself, it is a standalone, statically compiled binary
-   available from the `kitty releases page
-   <https://github.com/kovidgoyal/kitty/releases>`__. Or you can write your own
+   available from the `alatty releases page
+   <https://github.com/kovidgoyal/alatty/releases>`__. Or you can write your own
    script/program to use the underlying :doc:`file transfer protocol
    </file-transfer-protocol>`.
 
 Avoiding the confirmation prompt
 ------------------------------------
 
-Normally, when you start a file transfer kitty will prompt you for confirmation.
+Normally, when you start a file transfer alatty will prompt you for confirmation.
 This is to ensure that hostile programs running on a remote machine cannot
 read/write files on your computer without your permission. If the remote machine
 is trusted, then you can disable the confirmation prompt by:
@@ -66,7 +66,7 @@ is trusted, then you can disable the confirmation prompt by:
 #. Setting the :opt:`file_transfer_confirmation_bypass` option to some password.
 
 #. When invoking the kitten use the :option:`--permissions-bypass
-   <kitty +kitten transfer --permissions-bypass>` to supply the password you set
+   <alatty +kitten transfer --permissions-bypass>` to supply the password you set
    in step one.
 
 .. warning:: Using a password to bypass confirmation means any software running
@@ -79,7 +79,7 @@ Delta transfers
 
 This kitten has the ability to use the rsync_ protocol to only transfer the
 differences between files. To turn it on use the :option:`--transmit-deltas
-<kitty +kitten transfer --transmit-deltas>` option. Note that this will
+<alatty +kitten transfer --transmit-deltas>` option. Note that this will
 actually be slower when transferring small files or on a very fast network, because
 of round trip overhead, so use with care.
 

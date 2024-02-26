@@ -5,12 +5,12 @@ import sys
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
-from kitty.cli_stub import HintsCLIOptions
-from kitty.clipboard import set_clipboard_string, set_primary_selection
-from kitty.constants import website_url
-from kitty.fast_data_types import get_options
-from kitty.typing import BossType
-from kitty.utils import resolve_custom_file
+from alatty.cli_stub import HintsCLIOptions
+from alatty.clipboard import set_clipboard_string, set_primary_selection
+from alatty.constants import website_url
+from alatty.fast_data_types import get_options
+from alatty.typing import BossType
+from alatty.utils import resolve_custom_file
 
 from ..tui.handler import result_handler
 
@@ -54,8 +54,8 @@ class Mark:
 
 
 def parse_hints_args(args: List[str]) -> Tuple[HintsCLIOptions, List[str]]:
-    from kitty.cli import parse_args
-    return parse_args(args, OPTIONS, usage, help_text, 'kitty +kitten hints', result_class=HintsCLIOptions)
+    from alatty.cli import parse_args
+    return parse_args(args, OPTIONS, usage, help_text, 'alatty +kitten hints', result_class=HintsCLIOptions)
 
 
 def custom_marking() -> None:
@@ -91,10 +91,10 @@ for the operating system. Various special values are supported:
 
 :code:`default`
     run the default open program. Note that when using the hyperlink :code:`--type`
-    the default is to use the kitty :doc:`hyperlink handling </open_actions>` facilities.
+    the default is to use the alatty :doc:`hyperlink handling </open_actions>` facilities.
 
 :code:`launch`
-    run :doc:`/launch` to open the program in a new kitty tab, window, overlay, etc.
+    run :doc:`/launch` to open the program in a new alatty tab, window, overlay, etc.
     For example::
 
         --program "launch --type=tab vim"
@@ -132,33 +132,33 @@ default=self
 type=choice
 choices=self,window,tab,os_window,background
 Where to perform the action on matched errors. :code:`self` means the current
-window, :code:`window` a new kitty window, :code:`tab` a new tab,
+window, :code:`window` a new alatty window, :code:`tab` a new tab,
 :code:`os_window` a new OS window and :code:`background` run in the background.
 The actual action is whatever arguments are provided to the kitten, for
 example:
 :code:`kitten hints --type=linenum --linenum-action=tab vim +{line} {path}`
 will open the matched path at the matched line number in vim in
-a new kitty tab. Note that in order to use :option:`--program` to copy or paste
+a new alatty tab. Note that in order to use :option:`--program` to copy or paste
 the provided arguments, you need to use the special value :code:`self`.
 
 
 --url-prefixes
 default=default
 Comma separated list of recognized URL prefixes. Defaults to the list of
-prefixes defined by the :opt:`url_prefixes` option in :file:`kitty.conf`.
+prefixes defined by the :opt:`url_prefixes` option in :file:`alatty.conf`.
 
 
 --url-excluded-characters
 default=default
 Characters to exclude when matching URLs. Defaults to the list of characters
-defined by the :opt:`url_excluded_characters` option in :file:`kitty.conf`.
+defined by the :opt:`url_excluded_characters` option in :file:`alatty.conf`.
 The syntax for this option is the same as for :opt:`url_excluded_characters`.
 
 
 --word-characters
 Characters to consider as part of a word. In addition, all characters marked as
 alphanumeric in the Unicode database will be considered as word characters.
-Defaults to the :opt:`select_by_word_characters` option from :file:`kitty.conf`.
+Defaults to the :opt:`select_by_word_characters` option from :file:`alatty.conf`.
 
 
 --minimum-match-length
@@ -231,7 +231,7 @@ The foreground color for text pointed to by the hints.
 
 
 --customize-processing
-Name of a python file in the kitty config directory which will be imported to
+Name of a python file in the alatty config directory which will be imported to
 provide custom implementations for pattern finding and performing actions
 on selected matches. You can also specify absolute paths to load the script from
 elsewhere. See {hints_url} for details.
@@ -357,7 +357,7 @@ def handle_result(args: List[str], data: Dict[str, Any], target_window_id: int, 
             else:
                 boss.set_clipboard_buffer(program[1:], joined_text())
         else:
-            from kitty.conf.utils import to_cmdline
+            from alatty.conf.utils import to_cmdline
             cwd = data['cwd']
             is_default_program = program == 'default'
             program = get_options().open_url_with if is_default_program else program
@@ -384,7 +384,7 @@ def handle_result(args: List[str], data: Dict[str, Any], target_window_id: int, 
 
 
 if __name__ == '__main__':
-    # Run with kitty +kitten hints
+    # Run with alatty +kitten hints
     ans = main(sys.argv)
     if ans:
         print(ans)

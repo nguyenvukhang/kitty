@@ -9,10 +9,10 @@ build:
 	python3 build.py
 
 c:
-	./kitty.app/Contents/MacOS/kitty
+	./alatty.app/Contents/MacOS/alatty
 
 open:
-	open kitty.app
+	open alatty.app
 
 size:
 	-du -sh ./alatty.app

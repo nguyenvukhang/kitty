@@ -9,8 +9,8 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"kitty/tools/tty"
-	"kitty/tools/utils"
+	"alatty/tools/tty"
+	"alatty/tools/utils"
 )
 
 var _ = fmt.Print

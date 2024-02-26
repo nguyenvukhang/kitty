@@ -6,7 +6,7 @@ set the default foreground, background, selection and cursor colors and the ANSI
 color table. This allows for various performance optimizations when drawing the
 screen. The problem is that if the user previously used the escape codes to
 change these colors themselves, then running the full screen application will
-lose those changes even after it exits. To avoid this, kitty introduces a new
+lose those changes even after it exits. To avoid this, alatty introduces a new
 pair of *OSC* escape codes to push and pop the current color values from a
 stack::
 
@@ -21,6 +21,6 @@ foreground, selection background, selection foreground and cursor color and the
    extension, without acknowledgement, and using incompatible escape codes
    (XTPUSHCOLORS, XTPOPCOLORS, XTREPORTCOLORS). And they decided to save not
    just the dynamic colors but the entire ANSI color table. In the interests of
-   promoting interoperability, kitty added support for xterm's escape codes as
+   promoting interoperability, alatty added support for xterm's escape codes as
    well, and changed this extension to also save/restore the entire ANSI color
    table.

@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"kitty/tools/utils"
+	"alatty/tools/utils"
 )
 
 const (
@@ -350,10 +350,10 @@ func (self *Term) GetSize() (*unix.Winsize, error) {
 // go doesn't have a wrapper for ctermid()
 func Ctermid() string { return "/dev/tty" }
 
-var KittyStdout = sync.OnceValue(func() *os.File {
-	if fds := os.Getenv(`KITTY_STDIO_FORWARDED`); fds != "" {
+var AlattyStdout = sync.OnceValue(func() *os.File {
+	if fds := os.Getenv(`ALATTY_STDIO_FORWARDED`); fds != "" {
 		if fd, err := strconv.Atoi(fds); err == nil && fd > -1 {
-			if f := os.NewFile(uintptr(fd), "<kitty_stdout>"); f != nil {
+			if f := os.NewFile(uintptr(fd), "<alatty_stdout>"); f != nil {
 				return f
 			}
 		}
@@ -362,7 +362,7 @@ var KittyStdout = sync.OnceValue(func() *os.File {
 })
 
 func DebugPrintln(a ...any) {
-	if f := KittyStdout(); f != nil {
+	if f := AlattyStdout(); f != nil {
 		fmt.Fprintln(f, a...)
 		return
 	}

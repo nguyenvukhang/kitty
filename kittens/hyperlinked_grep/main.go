@@ -15,8 +15,8 @@ import (
 	"sync"
 	"unicode"
 
-	"kitty/tools/cli"
-	"kitty/tools/utils"
+	"alatty/tools/cli"
+	"alatty/tools/utils"
 
 	"golang.org/x/sys/unix"
 )

@@ -15,11 +15,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"kitty/tools/tty"
-	"kitty/tools/tui/graphics"
-	"kitty/tools/utils"
-	"kitty/tools/utils/images"
-	"kitty/tools/utils/shm"
+	"alatty/tools/tty"
+	"alatty/tools/tui/graphics"
+	"alatty/tools/utils"
+	"alatty/tools/utils/images"
+	"alatty/tools/utils/shm"
 )
 
 var _ = fmt.Print

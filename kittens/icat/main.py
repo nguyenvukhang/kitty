@@ -126,7 +126,7 @@ Wait for a key press before exiting after displaying the images.
 type=bool-set
 Use the Unicode placeholder method to display the images. Useful to display
 images from within full screen terminal programs that do not understand the
-kitty graphics protocol such as multiplexers or editors. See
+alatty graphics protocol such as multiplexers or editors. See
 :ref:`graphics_unicode_placeholders` for details. Note that when using this
 method, placed (with :option:`--place`) images that do not fit on the screen,
 will get wrapped at the screen edge instead of getting truncated. This
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 elif __name__ == '__doc__':
     import sys
 
-    from kitty.cli import CompletionSpec
+    from alatty.cli import CompletionSpec
     cd = sys.cli_docs  # type: ignore
     cd['usage'] = usage
     cd['options'] = lambda: OPTIONS.format()

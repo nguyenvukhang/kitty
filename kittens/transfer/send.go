@@ -20,14 +20,14 @@ import (
 	"golang.org/x/exp/constraints"
 	"golang.org/x/exp/slices"
 
-	"kitty"
-	"kitty/tools/cli/markup"
-	"kitty/tools/rsync"
-	"kitty/tools/tui"
-	"kitty/tools/tui/loop"
-	"kitty/tools/utils"
-	"kitty/tools/utils/humanize"
-	"kitty/tools/wcswidth"
+	"alatty"
+	"alatty/tools/cli/markup"
+	"alatty/tools/rsync"
+	"alatty/tools/tui"
+	"alatty/tools/tui/loop"
+	"alatty/tools/utils"
+	"alatty/tools/utils/humanize"
+	"alatty/tools/wcswidth"
 )
 
 var _ = fmt.Print
@@ -381,7 +381,7 @@ func (self *SendManager) initialize() {
 	self.active_idx = -1
 	self.current_chunk_uncompressed_sz = -1
 	self.current_chunk_for_file_id = ""
-	self.prefix = fmt.Sprintf("\x1b]%d;id=%s;", kitty.FileTransferCode, self.request_id)
+	self.prefix = fmt.Sprintf("\x1b]%d;id=%s;", alatty.FileTransferCode, self.request_id)
 	self.suffix = "\x1b\\"
 	for _, f := range self.files {
 		if f.file_size > 0 {
@@ -1220,7 +1220,7 @@ func send_loop(opts *Options, files []*File) (err error, rc int) {
 		lp.SetCursorVisible(true)
 		return ""
 	}
-	ftc_code := strconv.Itoa(kitty.FileTransferCode)
+	ftc_code := strconv.Itoa(alatty.FileTransferCode)
 	lp.OnEscapeCode = func(et loop.EscapeCodeType, payload []byte) error {
 		if et == loop.OSC {
 			if idx := bytes.IndexByte(payload, ';'); idx > 0 {
