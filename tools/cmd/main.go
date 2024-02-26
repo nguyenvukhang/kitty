@@ -4,7 +4,6 @@ package main
 
 import (
 	"alatty/tools/cli"
-	"alatty/tools/cmd/completion"
 	"alatty/tools/cmd/tool"
 )
 
@@ -19,7 +18,6 @@ func main() {
 	}
 
 	tool.AlattyToolEntryPoints(root)
-	completion.EntryPoint(root)
 
 	root.Exec()
 }

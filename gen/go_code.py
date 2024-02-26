@@ -23,7 +23,6 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Set,
     TextIO,
     Tuple,
     Union,
@@ -32,7 +31,6 @@ from typing import (
 import alatty.constants as kc
 from kittens.tui.operations import Mode
 from kittens.tui.spinners import spinners
-from alatty.actions import get_all_actions
 from alatty.cli import (
     CompletionSpec,
     GoOption,
@@ -46,8 +44,6 @@ from alatty.guess_mime_type import known_extensions, text_mimes
 from alatty.key_encoding import config_mod_map
 from alatty.key_names import character_key_name_aliases, functional_key_name_aliases
 from alatty.options.types import Options
-from alatty.rc.base import RemoteCommand, all_command_names, command_for_name
-from alatty.remote_control import global_options_spec
 from alatty.rgb import color_names
 
 if __name__ == '__main__' and not __package__:
@@ -173,13 +169,6 @@ def stringify_file(path: str) -> None:
             print('if err = json.Unmarshal(data, &x); err != nil {return err}')
             print('return self.SetString(x)}')
 
-
-def stringify() -> None:
-    for path in (
-        'tools/tui/graphics/command.go',
-        'tools/rsync/algorithm.go',
-    ):
-        stringify_file(path)
 # }}}
 
 # Completions {{{
@@ -330,96 +319,6 @@ class JSONField:
 
     def go_declaration(self) -> str:
         return self.struct_field_name + ' ' + go_field_type(self.field_type) + f'`json:"{self.field},omitempty"`'
-
-
-def go_code_for_remote_command(name: str, cmd: RemoteCommand, template: str) -> str:
-    template = '\n' + template[len('//go:build exclude'):]
-    NO_RESPONSE_BASE = 'false'
-    af: List[str] = []
-    a = af.append
-    af.extend(cmd.args.as_go_completion_code('ans'))
-    od: List[str] = []
-    option_map: Dict[str, GoOption] = {}
-    for o in rc_command_options(name):
-        option_map[o.go_var_name] = o
-        a(o.as_option('ans'))
-        if o.go_var_name in ('NoResponse', 'ResponseTimeout'):
-            continue
-        od.append(o.struct_declaration())
-    jd: List[str] = []
-    json_fields = []
-    field_types: Dict[str, str] = {}
-    for line in cmd.protocol_spec.splitlines():
-        line = line.strip()
-        if ':' not in line:
-            continue
-        f = JSONField(line)
-        json_fields.append(f)
-        field_types[f.field] = f.field_type
-        jd.append(f.go_declaration())
-    jc: List[str] = []
-    handled_fields: Set[str] = set()
-    jc.extend(cmd.args.as_go_code(name, field_types, handled_fields))
-
-    unhandled = {}
-    used_options = set()
-    for field in json_fields:
-        oq = (cmd.field_to_option_map or {}).get(field.field, field.field)
-        oq = ''.join(x.capitalize() for x in oq.split('_'))
-        if oq in option_map:
-            o = option_map[oq]
-            used_options.add(oq)
-            optstring = f'options_{name}.{o.go_var_name}'
-            if field.special_parser:
-                optstring = f'{field.special_parser}({optstring})'
-            if field.field_type == 'str':
-                jc.append(f'payload.{field.struct_field_name} = escaped_string({optstring})')
-            elif field.field_type == 'list.str':
-                jc.append(f'payload.{field.struct_field_name} = escape_list_of_strings({optstring})')
-            elif field.field_type == 'dict.str':
-                jc.append(f'payload.{field.struct_field_name} = escape_dict_of_strings({optstring})')
-            else:
-                jc.append(f'payload.{field.struct_field_name} = {optstring}')
-        elif field.field in handled_fields:
-            pass
-        else:
-            unhandled[field.field] = field
-    for x in tuple(unhandled):
-        if x == 'match_window' and 'Match' in option_map and 'Match' not in used_options:
-            used_options.add('Match')
-            o = option_map['Match']
-            field = unhandled[x]
-            if field.field_type == 'str':
-                jc.append(f'payload.{field.struct_field_name} = escaped_string(options_{name}.{o.go_var_name})')
-            else:
-                jc.append(f'payload.{field.struct_field_name} = options_{name}.{o.go_var_name}')
-            del unhandled[x]
-    if unhandled:
-        raise SystemExit(f'Cant map fields: {", ".join(unhandled)} for cmd: {name}')
-    if name != 'send_text':
-        unused_options = set(option_map) - used_options - {'NoResponse', 'ResponseTimeout'}
-        if unused_options:
-            raise SystemExit(f'Unused options: {", ".join(unused_options)} for command: {name}')
-
-    argspec = cmd.args.spec
-    if argspec:
-        argspec = ' ' + argspec
-    ans = replace(
-        template,
-        CMD_NAME=name, __FILE__=__file__, CLI_NAME=name.replace('_', '-'),
-        SHORT_DESC=serialize_as_go_string(cmd.short_desc),
-        LONG_DESC=serialize_as_go_string(cmd.desc.strip()),
-        IS_ASYNC='true' if cmd.is_asynchronous else 'false',
-        NO_RESPONSE_BASE=NO_RESPONSE_BASE, ADD_FLAGS_CODE='\n'.join(af),
-        WAIT_TIMEOUT=str(cmd.response_timeout),
-        OPTIONS_DECLARATION_CODE='\n'.join(od),
-        JSON_DECLARATION_CODE='\n'.join(jd),
-        JSON_INIT_CODE='\n'.join(jc), ARGSPEC=argspec,
-        STRING_RESPONSE_IS_ERROR='true' if cmd.string_return_is_error else 'false',
-        STREAM_WANTED='true' if cmd.reads_streaming_data else 'false',
-    )
-    return ans
-# }}}
 
 
 # kittens {{{
@@ -628,65 +527,6 @@ def replace_if_needed(path: str, show_diff: bool = False) -> Iterator[io.StringI
             f.write(new)
 
 
-@lru_cache(maxsize=256)
-def rc_command_options(name: str) -> Tuple[GoOption, ...]:
-    cmd = command_for_name(name)
-    return tuple(go_options_for_seq(parse_option_spec(cmd.options_spec or '\n\n')[0]))
-
-
-def update_at_commands() -> None:
-    with open('tools/cmd/at/template.go') as f:
-        template = f.read()
-    for name in all_command_names():
-        cmd = command_for_name(name)
-        code = go_code_for_remote_command(name, cmd, template)
-        dest = f'tools/cmd/at/cmd_{name}_generated.go'
-        with replace_if_needed(dest) as f:
-            f.write(code)
-    struct_def = []
-    opt_def = []
-    for o in go_options_for_seq(parse_option_spec(global_options_spec())[0]):
-        struct_def.append(o.struct_declaration())
-        opt_def.append(o.as_option(depth=1, group="Global options"))
-    sdef = '\n'.join(struct_def)
-    odef = '\n'.join(opt_def)
-    code = f'''
-package at
-import "alatty/tools/cli"
-type rc_global_options struct {{
-{sdef}
-}}
-var rc_global_opts rc_global_options
-
-func add_rc_global_opts(cmd *cli.Command) {{
-{odef}
-}}
-'''
-    with replace_if_needed('tools/cmd/at/global_opts_generated.go') as f:
-        f.write(code)
-
-
-def update_completion() -> None:
-    with replace_if_needed('tools/cmd/completion/alatty_generated.go'):
-        generate_completions_for_alatty()
-
-    with replace_if_needed('tools/cmd/at/alatty_actions_generated.go'):
-        print("package at")
-        print("const AlattyActionNames = `", end='')
-        for grp, actions in get_all_actions().items():
-            for ac in actions:
-                print(ac.name)
-        print('`')
-
-    with replace_if_needed('tools/cmd/edit_in_alatty/launch_generated.go'):
-        print('package edit_in_alatty')
-        print('import "alatty/tools/cli"')
-        print('func AddCloneSafeOpts(cmd *cli.Command) {')
-        completion_for_launch_wrappers('cmd')
-        print(''.join(CompletionSpec.from_string('type:file mime:text/* group:"Text files"').as_go_code('cmd.ArgCompleter', ' = ')))
-        print('}')
-
-
 def define_enum(package_name: str, type_name: str, items: str, underlying_type: str = 'uint') -> str:
     actions = []
     for x in items.splitlines():
@@ -848,15 +688,9 @@ def main(args: List[str]=sys.argv) -> None:
         f.write(generate_mimetypes())
     with replace_if_needed('tools/utils/mimetypes_textual_generated.go') as f:
         f.write(generate_textual_mimetypes())
-    if newer('tools/unicode_names/data_generated.bin', 'tools/unicode_names/names.txt'):
-        with open('tools/unicode_names/data_generated.bin', 'wb') as dest, open('tools/unicode_names/names.txt') as src:
-            generate_unicode_names(src, dest)
     generate_ssh_kitten_data()
 
-    update_completion()
-    update_at_commands()
     kitten_clis()
-    stringify()
     print(json.dumps(changed, indent=2))
 
 
