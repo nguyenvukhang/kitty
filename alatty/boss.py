@@ -37,7 +37,7 @@ from .clipboard import (
     set_clipboard_string,
     set_primary_selection,
 )
-from .conf.utils import BadLine, KeyAction, to_cmdline
+from .conf.utils import BadLine, KeyAction
 from .config import common_opts_as_dict, prepare_config_file_for_editing
 from .constants import (
     RC_ENCRYPTION_PROTOCOL_VERSION,
@@ -69,14 +69,12 @@ from .fast_data_types import (
     cocoa_hide_app,
     cocoa_hide_other_apps,
     cocoa_minimize_os_window,
-    cocoa_set_menubar_title,
     create_os_window,
     current_application_quit_request,
     current_focused_os_window_id,
     current_os_window,
     destroy_global_data,
     focus_os_window,
-    get_boss,
     get_options,
     get_os_window_size,
     global_font_size,
@@ -84,7 +82,6 @@ from .fast_data_types import (
     mark_os_window_for_close,
     os_window_focus_counters,
     os_window_font_size,
-    redirect_mouse_handling,
     run_with_activation_token,
     safe_pipe,
     set_application_quit_request,
@@ -1082,8 +1079,6 @@ class Boss:
             w = tm.active_window
             if w is not None:
                 w.focus_changed(focused)
-                if is_macos and focused:
-                    cocoa_set_menubar_title(w.title or '')
             tm.mark_tab_bar_dirty()
 
     def on_activity_since_last_focus(self, window: Window) -> None:
@@ -1194,8 +1189,6 @@ class Boss:
             tm.destroy()
         for window_id in tuple(w.id for w in self.window_id_map.values() if getattr(w, 'os_window_id', None) == os_window_id):
             self.window_id_map.pop(window_id, None)
-        if not self.os_window_map and is_macos:
-            cocoa_set_menubar_title('')
         action = self.os_window_death_actions.pop(os_window_id, None)
         if action is not None:
             action()

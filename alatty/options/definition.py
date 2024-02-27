@@ -3202,24 +3202,6 @@ length of the title in the menu bar.
 '''
     )
 
-opt('macos_menubar_title_max_length', '0',
-    option_type='positive_int', ctype='int',
-    long_text='''
-The maximum number of characters from the window title to show in the macOS
-global menu bar. Values less than one means that there is no maximum limit.
-'''
-    )
-
-opt('macos_custom_beam_cursor', 'no',
-    option_type='to_bool',
-    long_text='''
-Use a custom mouse cursor for macOS that is easier to see on both light
-and dark backgrounds. Nowadays, the default macOS cursor already comes with a
-white border. WARNING: this might make your mouse cursor invisible on
-dual GPU machines. Changing this option by reloading the config is not supported.
-'''
-    )
-
 opt('macos_colorspace', 'srgb',
     choices=('srgb', 'default', 'displayp3'), ctype='macos_colorspace',
     long_text='''

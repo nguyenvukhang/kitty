@@ -687,17 +687,6 @@ collect_cursor_info(CursorRenderInfo *ans, Window *w, monotonic_t now, OSWindow 
     return cursor_needs_render(w);
 }
 
-static void
-change_menubar_title(PyObject *title UNUSED) {
-#ifdef __APPLE__
-    static PyObject *current_title = NULL;
-    if (title != current_title) {
-        current_title = title;
-        if (title && OPT(macos_show_window_title_in) & MENUBAR) update_menu_bar_title(title);
-    }
-#endif
-}
-
 static bool
 prepare_to_render_os_window(OSWindow *os_window, monotonic_t now, unsigned int *active_window_id, color_type *active_window_bg, unsigned int *num_visible_windows, bool *all_windows_have_same_bg, bool scan_for_animated_images) {
 #define TD os_window->tab_bar_render_data
@@ -826,7 +815,6 @@ bool
 render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames, bool scan_for_animated_images) {
     if (!w->num_tabs) return false;
     if (!should_os_window_be_rendered(w)) {
-        if (w->is_focused) change_menubar_title(w->window_title);
         return false;
     }
     if (!ignore_render_frames && USE_RENDER_FRAMES && w->render_state != RENDER_FRAME_READY) {
@@ -855,7 +843,6 @@ render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames, bool s
     if (w->last_active_window_id != active_window_id || w->last_active_tab != w->active_tab || w->focused_at_last_render != w->is_focused) needs_render = true;
     if (w->render_calls < 3) needs_render = true;
     if (needs_render) render_prepared_os_window(w, active_window_id, active_window_bg, num_visible_windows, all_windows_have_same_bg);
-    if (w->is_focused) change_menubar_title(w->window_title);
     return needs_render;
 }
 
@@ -1945,16 +1932,6 @@ safe_pipe(PyObject *self UNUSED, PyObject *args) {
 }
 
 static PyObject*
-cocoa_set_menubar_title(PyObject *self UNUSED, PyObject *args UNUSED) {
-#ifdef __APPLE__
-    PyObject *title = NULL;
-    if (!PyArg_ParseTuple(args, "U", &title)) return NULL;
-    change_menubar_title(title);
-#endif
-    Py_RETURN_NONE;
-}
-
-static PyObject*
 send_data_to_peer(PyObject *self UNUSED, PyObject *args) {
     char * msg; Py_ssize_t sz;
     unsigned long long peer_id;
@@ -1989,7 +1966,6 @@ static PyMethodDef module_methods[] = {
     {"remove_timer", (PyCFunction)remove_python_timer, METH_VARARGS, ""},
     METHODB(monitor_pid, METH_VARARGS),
     METHODB(send_data_to_peer, METH_VARARGS),
-    METHODB(cocoa_set_menubar_title, METH_VARARGS),
     METHODB(mask_alatty_signals_process_wide, METH_NOARGS),
     {"sigqueue", (PyCFunction)sig_queue, METH_VARARGS, ""},
     {NULL}  /* Sentinel */

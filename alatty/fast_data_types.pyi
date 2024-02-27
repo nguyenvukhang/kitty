@@ -797,10 +797,6 @@ def current_focused_os_window_id() -> int:
     pass
 
 
-def cocoa_set_menubar_title(title: str) -> None:
-    pass
-
-
 def change_os_window_state(state: int, os_window_id: Optional[int] = 0) -> None:
     pass
 

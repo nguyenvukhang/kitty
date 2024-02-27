@@ -576,35 +576,6 @@ cocoa_send_notification(PyObject *self UNUSED, PyObject *args) {
 
 // global menu {{{
 
-static void
-add_user_global_menu_entry(struct MenuItem *e, NSMenu *bar, size_t action_index) {
-    NSMenu *parent = bar;
-    UserMenuItem *final_item = nil;
-    GlobalMenuTarget *global_menu_target = [GlobalMenuTarget shared_instance];
-    for (size_t i = 0; i < e->location_count; i++) {
-        NSMenuItem *item = [parent itemWithTitle:@(e->location[i])];
-        if (!item) {
-            final_item = [[UserMenuItem alloc] initWithTitle:@(e->location[i]) action:@selector(user_menu_action:) keyEquivalent:@""];
-            final_item.target = global_menu_target;
-            [parent addItem:final_item];
-            item = final_item;
-            [final_item release];
-        }
-        if (i + 1 < e->location_count) {
-            if (![item hasSubmenu]) {
-                NSMenu* sub_menu = [[NSMenu alloc] initWithTitle:item.title];
-                [item setSubmenu:sub_menu];
-                [sub_menu release];
-            }
-            parent = [item submenu];
-            if (!parent) return;
-        }
-    }
-    if (final_item != nil) {
-        final_item.action_index = action_index;
-    }
-}
-
 void
 cocoa_create_global_menu(void) {
     NSString* app_name = find_app_name();
@@ -696,14 +667,6 @@ cocoa_create_global_menu(void) {
     [NSApp setWindowsMenu:windowMenu];
     [windowMenu release];
 
-    if (OPT(global_menu.entries)) {
-        for (size_t i = 0; i < OPT(global_menu.count); i++) {
-            struct MenuItem *e = OPT(global_menu.entries) + i;
-            if (e->definition && e->location && e->location_count > 1) {
-                add_user_global_menu_entry(e, bar, i);
-            }
-        }
-    }
     [bar release];
 
 
@@ -717,28 +680,6 @@ cocoa_create_global_menu(void) {
     [NSApp setServicesProvider:[[[ServiceProvider alloc] init] autorelease]];
 
 #undef MENU_ITEM
-}
-
-void
-cocoa_update_menu_bar_title(PyObject *pytitle) {
-    NSString *title = nil;
-    if (OPT(macos_menubar_title_max_length) > 0 && PyUnicode_GetLength(pytitle) > OPT(macos_menubar_title_max_length)) {
-        static char fmt[64];
-        snprintf(fmt, sizeof(fmt), "%%%ld.%ldU%%s", OPT(macos_menubar_title_max_length), OPT(macos_menubar_title_max_length));
-        RAII_PyObject(st, PyUnicode_FromFormat(fmt, pytitle, "…"));
-        if (st) title = @(PyUnicode_AsUTF8(st));
-    } else {
-        title = @(PyUnicode_AsUTF8(pytitle));
-    }
-    if (!title) return;
-    NSMenu *bar = [NSApp mainMenu];
-    if (title_menu != NULL) {
-        [bar removeItem:title_menu];
-    }
-    title_menu = [bar addItemWithTitle:@"" action:NULL keyEquivalent:@""];
-    NSMenu *m = [[NSMenu alloc] initWithTitle:[NSString stringWithFormat:@" :: %@", title]];
-    [title_menu setSubmenu:m];
-    [m release];
 }
 
 void

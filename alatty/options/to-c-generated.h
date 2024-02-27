@@ -1059,19 +1059,6 @@ convert_from_opts_macos_show_window_title_in(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_macos_menubar_title_max_length(PyObject *val, Options *opts) {
-    opts->macos_menubar_title_max_length = PyLong_AsLong(val);
-}
-
-static void
-convert_from_opts_macos_menubar_title_max_length(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "macos_menubar_title_max_length");
-    if (ret == NULL) return;
-    convert_from_python_macos_menubar_title_max_length(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_macos_colorspace(PyObject *val, Options *opts) {
     opts->macos_colorspace = macos_colorspace(val);
 }
@@ -1247,8 +1234,6 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     convert_from_opts_macos_traditional_fullscreen(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_macos_show_window_title_in(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_macos_menubar_title_max_length(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_macos_colorspace(py_opts, opts);
     if (PyErr_Occurred()) return false;
