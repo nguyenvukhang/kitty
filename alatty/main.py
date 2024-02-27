@@ -17,7 +17,6 @@ from .conf.utils import BadLine
 from .config import cached_values_for
 from .constants import (
     appname,
-    beam_cursor_data_file,
     clear_handled_signals,
     config_dir,
     glfw_path,
@@ -36,9 +35,7 @@ from .fast_data_types import (
     free_font_data,
     glfw_init,
     glfw_terminate,
-    load_png_data,
     mask_alatty_signals_process_wide,
-    set_custom_cursor,
     set_default_window_icon,
     set_options,
 )
@@ -52,7 +49,6 @@ from .shaders import CompileError, load_shader_programs
 from .utils import (
     cleanup_ssh_control_masters,
     detach,
-    expandvars,
     get_custom_window_icon,
     log_error,
     parse_os_window_state,
@@ -182,8 +178,6 @@ def set_cocoa_global_shortcuts(opts: Options) -> Dict[str, SingleKey]:
 def _run_app(opts: Options, args: CLIOptions, bad_lines: Sequence[BadLine] = ()) -> None:
     if is_macos:
         global_shortcuts = set_cocoa_global_shortcuts(opts)
-        if opts.macos_custom_beam_cursor:
-            set_custom_ibeam_cursor()
         set_macos_app_custom_icon()
     else:
         global_shortcuts = {}

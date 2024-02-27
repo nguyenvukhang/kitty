@@ -1379,8 +1379,6 @@ def package(args: Options, bundle_type: str) -> None:
     shutil.copy2('__main__.py', libdir)
     shutil.copy2('logo/alatty-128.png', os.path.join(libdir, 'logo'))
     shutil.copy2('logo/alatty.png', os.path.join(libdir, 'logo'))
-    shutil.copy2('logo/beam-cursor.png', os.path.join(libdir, 'logo'))
-    shutil.copy2('logo/beam-cursor@2x.png', os.path.join(libdir, 'logo'))
     allowed_extensions = frozenset('py glsl so'.split())
 
     def src_ignore(parent: str, entries: Iterable[str]) -> List[str]:

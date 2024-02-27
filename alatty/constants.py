@@ -174,7 +174,6 @@ def wakeup_io_loop() -> None:
 
 terminfo_dir = os.path.join(alatty_base_dir, 'terminfo')
 logo_png_file = os.path.join(alatty_base_dir, 'logo', 'alatty.png')
-beam_cursor_data_file = os.path.join(alatty_base_dir, 'logo', 'beam-cursor.png')
 try:
     shell_path = pwd.getpwuid(os.geteuid()).pw_shell or '/bin/sh'
 except KeyError:

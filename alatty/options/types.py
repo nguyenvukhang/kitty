@@ -359,7 +359,6 @@ option_names = (  # {{{
  'linux_bell_theme',
  'linux_display_server',
  'macos_colorspace',
- 'macos_custom_beam_cursor',
  'macos_hide_from_tasks',
  'macos_option_as_alt',
  'macos_quit_when_last_window_closed',
@@ -511,7 +510,6 @@ class Options:
     linux_bell_theme: str = '__custom'
     linux_display_server: choices_for_linux_display_server = 'auto'
     macos_colorspace: choices_for_macos_colorspace = 'srgb'
-    macos_custom_beam_cursor: bool = False
     macos_hide_from_tasks: bool = False
     macos_option_as_alt: int = 0
     macos_quit_when_last_window_closed: bool = False

@@ -1026,9 +1026,6 @@ class Parser:
 
     choices_for_macos_colorspace = frozenset(('srgb', 'default', 'displayp3'))
 
-    def macos_custom_beam_cursor(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['macos_custom_beam_cursor'] = to_bool(val)
-
     def macos_hide_from_tasks(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['macos_hide_from_tasks'] = to_bool(val)
 
