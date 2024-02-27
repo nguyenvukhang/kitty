@@ -1175,9 +1175,7 @@ The tab bar style, can be one of:
     :disc:`this discussion <4447>`
     for examples from alatty users.
 :code:`hidden`
-    The tab bar is hidden. If you use this, you might want to create
-    a mapping for the :ac:`select_tab` action which presents you with a list of
-    tabs and allows for easy switching to a tab.
+    The tab bar is hidden.
 '''
     )
 

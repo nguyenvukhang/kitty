@@ -1985,60 +1985,6 @@ class Boss:
         self._cleanup_tab_after_window_removal(tab)
         target_tab.make_active()
 
-    def choose_entry(
-        self, title: str, entries: Iterable[Tuple[Union[_T, str, None], str]],
-        callback: Callable[[Union[_T, str, None]], None],
-        subtitle: str = '',
-        hints_args: Optional[Tuple[str, ...]] = None,
-    ) -> Optional[Window]:
-        lines = [title, subtitle, ' '] if subtitle else [title, ' ']
-        idx_map: List[Union[_T, str, None]] = []
-        ans: Union[str, _T, None] = None
-        fmt = ': {1}'
-
-        for obj, text in entries:
-            idx_map.append(obj)
-            if obj is None:
-                lines.append(text)
-            else:
-                lines.append(fmt.format(len(idx_map), text))
-
-        def done(data: Dict[str, Any], target_window_id: int, self: Boss) -> None:
-            nonlocal ans
-            ans = idx_map[int(data['groupdicts'][0]['index'])]
-
-        def done2(target_window_id: int, self: Boss) -> None:
-            callback(ans)
-
-        q = self.run_kitten_with_metadata(
-            'hints', args=(
-                '--ascending', '--customize-processing=::import::alatty.choose_entry',
-                '--window-title', title,
-                *(hints_args or ())
-            ), input_data='\r\n'.join(lines).encode('utf-8'), custom_callback=done, action_on_removal=done2
-        )
-        return q if isinstance(q, Window) else None
-
-    @ac('tab', 'Interactively select a tab to switch to')
-    def select_tab(self) -> None:
-
-        def chosen(ans: Union[None, str, int]) -> None:
-            if isinstance(ans, int):
-                for tab in self.all_tabs:
-                    if tab.id == ans:
-                        self.set_active_tab(tab)
-
-        def format_tab_title(tab: Tab) -> str:
-            w = 'windows' if tab.num_window_groups > 1 else 'window'
-            return f'{tab.name or tab.title} [{tab.num_window_groups} {w}]'
-
-        ct = self.active_tab
-        self.choose_entry(
-            'Choose a tab to switch to',
-            ((None, f'Current tab: {format_tab_title(t)}') if t is ct else (t.id, format_tab_title(t)) for t in self.all_tabs),
-            chosen
-        )
-
     @ac('win', '''
         Detach a window, moving it to another tab or OS Window
 
@@ -2050,23 +1996,6 @@ class Boss:
         if args[0] in ('new-tab', 'tab-prev', 'tab-left', 'tab-right'):
             where = 'new' if args[0] == 'new-tab' else args[0][4:]
             return self._move_window_to(target_tab_id=where)
-        ct = self.active_tab
-        items: List[Tuple[Union[str, int], str]] = [(t.id, t.effective_title) for t in self.all_tabs if t is not ct]
-        items.append(('new_tab', 'New tab'))
-        items.append(('new_os_window', 'New OS Window'))
-        target_window = self.active_window
-
-        def chosen(ans: Union[None, str, int]) -> None:
-            if ans is not None:
-                if isinstance(ans, str):
-                    if ans == 'new_os_window':
-                        self._move_window_to(target_os_window_id='new')
-                    elif ans == 'new_tab':
-                        self._move_window_to(target_tab_id=ans)
-                else:
-                    self._move_window_to(target_window, target_tab_id=ans)
-
-        self.choose_entry('Choose a tab to move the window to', items, chosen)
 
     @ac('tab', '''
         Detach a tab, moving it to another OS Window
@@ -2076,21 +2005,6 @@ class Boss:
     def detach_tab(self, *args: str) -> None:
         if not args or args[0] == 'new':
             return self._move_tab_to()
-
-        items: List[Tuple[Union[str, int], str]] = []
-        ct = self.active_tab_manager
-        for osw_id, tm in self.os_window_map.items():
-            if tm is not ct and tm.active_tab:
-                items.append((osw_id, tm.active_tab.title))
-        items.append(('new', 'New OS Window'))
-        target_tab = self.active_tab
-
-        def chosen(ans: Union[None, int, str]) -> None:
-            if ans is not None:
-                os_window_id = None if isinstance(ans, str) else ans
-                self._move_tab_to(tab=target_tab, target_os_window_id=os_window_id)
-
-        self.choose_entry('Choose an OS window to move the tab to', items, chosen)
 
     # Can be called with alatty -o "map f1 send_test_notification"
     def send_test_notification(self) -> None:
