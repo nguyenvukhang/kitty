@@ -5,25 +5,16 @@ import ctypes
 import sys
 from functools import partial
 from math import ceil, cos, floor, pi
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union, cast
 
 from alatty.constants import is_macos
 from alatty.fast_data_types import (
     NUM_UNDERLINE_STYLES,
-    Screen,
-    create_test_font_group,
-    get_fallback_font,
     get_options,
     set_font_data,
-    set_options,
-    set_send_sprite_to_gpu,
-    sprite_map_set_limits,
-    test_render_line,
-    test_shape,
 )
 from alatty.fonts.box_drawing import BufType, distribute_dots, render_box_char, render_missing_glyph
 from alatty.options.types import Options, defaults
-from alatty.types import _T
 from alatty.typing import CoreTextFont, FontConfigPattern
 from alatty.utils import log_error
 
@@ -52,118 +43,8 @@ def font_for_family(family: str) -> FontObject:
     return font_for_family_fontconfig(family)
 
 
-def merge_ranges(
-    a: Tuple[Tuple[int, int], _T], b: Tuple[Tuple[int, int], _T], priority_map: Dict[Tuple[int, int], int]
-) -> Generator[Tuple[Tuple[int, int], _T], None, None]:
-    a_start, a_end = a[0]
-    b_start, b_end = b[0]
-    a_val, b_val = a[1], b[1]
-    a_prio, b_prio = priority_map[a[0]], priority_map[b[0]]
-    if b_start > a_end:
-        if b_start == a_end + 1 and a_val == b_val:
-            # ranges can be coalesced
-            r = ((a_start, b_end), a_val)
-            priority_map[r[0]] = max(a_prio, b_prio)
-            yield r
-            return
-        # disjoint ranges
-        yield a
-        yield b
-        return
-    if a_val == b_val:
-        # mergeable ranges
-        r = ((a_start, max(a_end, b_end)), a_val)
-        priority_map[r[0]] = max(a_prio, b_prio)
-        yield r
-        return
-    before_range = mid_range = after_range = None
-    before_range_prio = mid_range_prio = after_range_prio = 0
-    if b_start > a_start:
-        before_range = ((a_start, b_start - 1), a_val)
-        before_range_prio = a_prio
-    mid_end = min(a_end, b_end)
-    if mid_end >= b_start:
-        # overlap range
-        mid_range = ((b_start, mid_end), a_val if priority_map[a[0]] >= priority_map[b[0]] else b_val)
-        mid_range_prio = max(a_prio, b_prio)
-    # after range
-    if mid_end is a_end:
-        if b_end > a_end:
-            after_range = ((a_end + 1, b_end), b_val)
-            after_range_prio = b_prio
-    else:
-        if a_end > b_end:
-            after_range = ((b_end + 1, a_end), a_val)
-            after_range_prio = a_prio
-    # check if the before, mid and after ranges can be coalesced
-    ranges: List[Tuple[Tuple[int, int], _T]] = []
-    priorities: List[int] = []
-    for rq, prio in ((before_range, before_range_prio), (mid_range, mid_range_prio), (after_range, after_range_prio)):
-        if rq is None:
-            continue
-        r = rq
-        if ranges:
-            x = ranges[-1]
-            if x[0][1] + 1 == r[0][0] and x[1] == r[1]:
-                ranges[-1] = ((x[0][0], r[0][1]), x[1])
-                priorities[-1] = max(priorities[-1], prio)
-            else:
-                ranges.append(r)
-                priorities.append(prio)
-        else:
-            ranges.append(r)
-            priorities.append(prio)
-    for r, p in zip(ranges, priorities):
-        priority_map[r[0]] = p
-    yield from ranges
-
-
-def coalesce_symbol_maps(maps: Dict[Tuple[int, int], _T]) -> Dict[Tuple[int, int], _T]:
-    if not maps:
-        return maps
-    priority_map = {r: i for i, r in enumerate(maps.keys())}
-    ranges = tuple((r, maps[r]) for r in sorted(maps))
-    ans = [ranges[0]]
-
-    for i in range(1, len(ranges)):
-        r = ranges[i]
-        new_ranges = merge_ranges(ans[-1], r, priority_map)
-        if ans:
-            del ans[-1]
-        if not ans:
-            ans = list(new_ranges)
-        else:
-            for r in new_ranges:
-                prev = ans[-1]
-                if prev[0][1] + 1 == r[0][0] and prev[1] == r[1]:
-                    ans[-1] = (prev[0][0], r[0][1]), prev[1]
-                else:
-                    ans.append(r)
-    return dict(ans)
-
-
 def descriptor_for_idx(idx: int) -> Tuple[FontObject, bool, bool]:
     return current_faces[idx]
-
-
-def dump_faces(ftypes: List[str], indices: Dict[str, int]) -> None:
-    def face_str(f: Tuple[FontObject, bool, bool]) -> str:
-        fo = f[0]
-        if 'index' in fo:
-            return '{}:{}'.format(fo['path'], cast('FontConfigPattern', fo)['index'])
-        fo = cast('CoreTextFont', fo)
-        return fo['path']
-
-    log_error('Preloaded font faces:')
-    log_error('normal face:', face_str(current_faces[0]))
-    for ftype in ftypes:
-        if indices[ftype]:
-            log_error(ftype, 'face:', face_str(current_faces[indices[ftype]]))
-    si_faces = current_faces[max(indices.values())+1:]
-    if si_faces:
-        log_error('Symbol map faces:')
-        for face in si_faces:
-            log_error(face_str(face))
 
 
 def set_font_family(opts: Optional[Options] = None, override_font_size: Optional[float] = None) -> None:
@@ -178,10 +59,7 @@ def set_font_family(opts: Optional[Options] = None, override_font_size: Optional
     for face, _, _ in current_faces:
         font_features[face['postscript_name']] = find_font_features(face['postscript_name'])
     font_features.update(opts.font_features)
-    set_font_data(
-        render_box_drawing, prerender_function, descriptor_for_idx,
-        num_symbol_fonts, sz, font_features
-    )
+    set_font_data(render_box_drawing, prerender_function, descriptor_for_idx, num_symbol_fonts, sz, font_features)
 
 
 if TYPE_CHECKING:
@@ -261,29 +139,30 @@ def add_dots(buf: CBufType, cell_width: int, position: int, thickness: int, cell
     y = 1 + position - thickness // 2
     for i in range(y, min(y + thickness, cell_height)):
         for j, s in enumerate(spacing):
-            buf[cell_width * i + j * size + s: cell_width * i + (j + 1) * size + s] = [255] * size
+            buf[cell_width * i + j * size + s : cell_width * i + (j + 1) * size + s] = [255] * size
 
 
 def add_dashes(buf: CBufType, cell_width: int, position: int, thickness: int, cell_height: int) -> None:
     halfspace_width = cell_width // 4
     y = 1 + position - thickness // 2
     for i in range(y, min(y + thickness, cell_height)):
-        buf[cell_width * i:cell_width * i + (cell_width - 3 * halfspace_width)] = [255] * (cell_width - 3 * halfspace_width)
-        buf[cell_width * i + 3 * halfspace_width:cell_width * (i + 1)] = [255] * (cell_width - 3 * halfspace_width)
+        buf[cell_width * i : cell_width * i + (cell_width - 3 * halfspace_width)] = [255] * (cell_width - 3 * halfspace_width)
+        buf[cell_width * i + 3 * halfspace_width : cell_width * (i + 1)] = [255] * (cell_width - 3 * halfspace_width)
 
 
 def render_special(
     underline: int = 0,
     strikethrough: bool = False,
     missing: bool = False,
-    cell_width: int = 0, cell_height: int = 0,
+    cell_width: int = 0,
+    cell_height: int = 0,
     baseline: int = 0,
     underline_position: int = 0,
     underline_thickness: int = 0,
     strikethrough_position: int = 0,
     strikethrough_thickness: int = 0,
-    dpi_x: float = 96.,
-    dpi_y: float = 96.,
+    dpi_x: float = 96.0,
+    dpi_y: float = 96.0,
 ) -> CBufType:
     underline_position = min(underline_position, cell_height - sum(divmod(underline_thickness, 2)))
     CharTexture = ctypes.c_ubyte * (cell_width * cell_height)
@@ -313,13 +192,7 @@ def render_special(
 
 
 def render_cursor(
-    which: int,
-    cursor_beam_thickness: float,
-    cursor_underline_thickness: float,
-    cell_width: int = 0,
-    cell_height: int = 0,
-    dpi_x: float = 0,
-    dpi_y: float = 0
+    which: int, cursor_beam_thickness: float, cursor_underline_thickness: float, cell_width: int = 0, cell_height: int = 0, dpi_x: float = 0, dpi_y: float = 0
 ) -> CBufType:
     CharTexture = ctypes.c_ubyte * (cell_width * cell_height)
     ans = CharTexture()
@@ -363,19 +236,30 @@ def prerender_function(
     cursor_beam_thickness: float,
     cursor_underline_thickness: float,
     dpi_x: float,
-    dpi_y: float
+    dpi_y: float,
 ) -> Tuple[Tuple[int, ...], Tuple[CBufType, ...]]:
     # Pre-render the special underline, strikethrough and missing and cursor cells
     f = partial(
-        render_special, cell_width=cell_width, cell_height=cell_height, baseline=baseline,
-        underline_position=underline_position, underline_thickness=underline_thickness,
-        strikethrough_position=strikethrough_position, strikethrough_thickness=strikethrough_thickness,
-        dpi_x=dpi_x, dpi_y=dpi_y
+        render_special,
+        cell_width=cell_width,
+        cell_height=cell_height,
+        baseline=baseline,
+        underline_position=underline_position,
+        underline_thickness=underline_thickness,
+        strikethrough_position=strikethrough_position,
+        strikethrough_thickness=strikethrough_thickness,
+        dpi_x=dpi_x,
+        dpi_y=dpi_y,
     )
     c = partial(
-        render_cursor, cursor_beam_thickness=cursor_beam_thickness,
-        cursor_underline_thickness=cursor_underline_thickness, cell_width=cell_width,
-        cell_height=cell_height, dpi_x=dpi_x, dpi_y=dpi_y)
+        render_cursor,
+        cursor_beam_thickness=cursor_beam_thickness,
+        cursor_underline_thickness=cursor_underline_thickness,
+        cell_width=cell_width,
+        cell_height=cell_height,
+        dpi_x=dpi_x,
+        dpi_y=dpi_y,
+    )
     # If you change the mapping of these cells you will need to change
     # NUM_UNDERLINE_STYLES and BEAM_IDX in shader.c and STRIKE_SPRITE_INDEX in
     # window.py and MISSING_GLYPH in font.c
@@ -390,66 +274,8 @@ def prerender_function(
 def render_box_drawing(codepoint: int, cell_width: int, cell_height: int, dpi: float) -> Tuple[int, CBufType]:
     CharTexture = ctypes.c_ubyte * (cell_width * cell_height)
     buf = CharTexture()
-    render_box_char(
-        chr(codepoint), cast(BufType, buf), cell_width, cell_height, dpi
-    )
+    render_box_char(chr(codepoint), cast(BufType, buf), cell_width, cell_height, dpi)
     return ctypes.addressof(buf), buf
-
-
-class setup_for_testing:
-
-    def __init__(self, family: str = 'monospace', size: float = 11.0, dpi: float = 96.0):
-        self.family, self.size, self.dpi = family, size, dpi
-
-    def __enter__(self) -> Tuple[Dict[Tuple[int, int, int], bytes], int, int]:
-        opts = defaults._replace(font_family=self.family, font_size=self.size)
-        set_options(opts)
-        sprites = {}
-
-        def send_to_gpu(x: int, y: int, z: int, data: bytes) -> None:
-            sprites[(x, y, z)] = data
-
-        sprite_map_set_limits(100000, 100)
-        set_send_sprite_to_gpu(send_to_gpu)
-        try:
-            set_font_family(opts)
-            cell_width, cell_height = create_test_font_group(self.size, self.dpi, self.dpi)
-            return sprites, cell_width, cell_height
-        except Exception:
-            set_send_sprite_to_gpu(None)
-            raise
-
-    def __exit__(self, *args: Any) -> None:
-        set_send_sprite_to_gpu(None)
-
-
-def render_string(text: str, family: str = 'monospace', size: float = 11.0, dpi: float = 96.0) -> Tuple[int, int, List[bytes]]:
-    with setup_for_testing(family, size, dpi) as (sprites, cell_width, cell_height):
-        s = Screen(None, 1, len(text)*2)
-        line = s.line(0)
-        s.draw(text)
-        test_render_line(line)
-    cells = []
-    found_content = False
-    for i in reversed(range(s.columns)):
-        sp = list(line.sprite_at(i))
-        sp[2] &= 0xfff
-        tsp = sp[0], sp[1], sp[2]
-        if tsp == (0, 0, 0) and not found_content:
-            continue
-        found_content = True
-        cells.append(sprites[tsp])
-    return cell_width, cell_height, list(reversed(cells))
-
-
-def shape_string(
-    text: str = "abcd", family: str = 'monospace', size: float = 11.0, dpi: float = 96.0, path: Optional[str] = None
-) -> List[Tuple[int, int, int, Tuple[int, ...]]]:
-    with setup_for_testing(family, size, dpi) as (sprites, cell_width, cell_height):
-        s = Screen(None, 1, len(text)*2)
-        line = s.line(0)
-        s.draw(text)
-        return test_shape(line, path)
 
 
 def show(outfile: str, width: int, height: int, fmt: int) -> None:
@@ -457,6 +283,7 @@ def show(outfile: str, width: int, height: int, fmt: int) -> None:
     from base64 import standard_b64encode
 
     from kittens.tui.images import GraphicsCommand
+
     cmd = GraphicsCommand()
     cmd.a = 'T'
     cmd.f = fmt
@@ -466,12 +293,3 @@ def show(outfile: str, width: int, height: int, fmt: int) -> None:
     sys.stdout.flush()
     sys.stdout.buffer.write(cmd.serialize(standard_b64encode(os.path.abspath(outfile).encode())))
     sys.stdout.buffer.flush()
-
-
-def display_bitmap(rgb_data: bytes, width: int, height: int) -> None:
-    from tempfile import NamedTemporaryFile
-    setattr(display_bitmap, 'detected', True)
-    with NamedTemporaryFile(suffix='.rgba', delete=False) as f:
-        f.write(rgb_data)
-    assert len(rgb_data) == 4 * width * height
-    show(f.name, width, height, 32)

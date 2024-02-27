@@ -950,10 +950,6 @@ def test_shape(line: Line,
     pass
 
 
-def test_render_line(line: Line) -> None:
-    pass
-
-
 def sprite_map_set_limits(w: int, h: int) -> None:
     pass
 
@@ -979,11 +975,6 @@ def set_font_data(
 
 
 def get_fallback_font(text: str) -> Any:
-    pass
-
-
-def create_test_font_group(sz: float, dpix: float,
-                           dpiy: float) -> Tuple[int, int]:
     pass
 
 

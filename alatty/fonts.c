@@ -1475,15 +1475,6 @@ set_send_sprite_to_gpu(PyObject UNUSED *self, PyObject *func) {
 }
 
 static PyObject*
-test_render_line(PyObject UNUSED *self, PyObject *args) {
-    PyObject *line;
-    if (!PyArg_ParseTuple(args, "O!", &Line_Type, &line)) return NULL;
-    if (!num_font_groups) { PyErr_SetString(PyExc_RuntimeError, "must create font group first"); return NULL; }
-    render_line((FONTS_DATA_HANDLE)font_groups, (Line*)line, NULL);
-    Py_RETURN_NONE;
-}
-
-static PyObject*
 concat_cells(PyObject UNUSED *self, PyObject *args) {
     // Concatenate cells returning RGBA data
     unsigned int cell_width, cell_height;
@@ -1561,15 +1552,6 @@ get_fallback_font(PyObject UNUSED *self, PyObject *args) {
 }
 
 static PyObject*
-create_test_font_group(PyObject *self UNUSED, PyObject *args) {
-    double sz, dpix, dpiy;
-    if (!PyArg_ParseTuple(args, "ddd", &sz, &dpix, &dpiy)) return NULL;
-    FontGroup *fg = font_group_for(sz, dpix, dpiy);
-    if (!fg->sprite_map) send_prerendered_sprites(fg);
-    return Py_BuildValue("II", fg->cell_width, fg->cell_height);
-}
-
-static PyObject*
 free_font_data(PyObject *self UNUSED, PyObject *args UNUSED) {
     finalize();
     Py_RETURN_NONE;
@@ -1595,14 +1577,12 @@ static PyMethodDef module_methods[] = {
     METHODB(set_font_data, METH_VARARGS),
     METHODB(free_font_data, METH_NOARGS),
     METHODB(parse_font_feature, METH_O),
-    METHODB(create_test_font_group, METH_VARARGS),
     METHODB(sprite_map_set_layout, METH_VARARGS),
     METHODB(test_sprite_position_for, METH_VARARGS),
     METHODB(concat_cells, METH_VARARGS),
     METHODB(set_send_sprite_to_gpu, METH_O),
     METHODB(test_shape, METH_VARARGS),
     METHODB(current_fonts, METH_NOARGS),
-    METHODB(test_render_line, METH_VARARGS),
     METHODB(get_fallback_font, METH_VARARGS),
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
