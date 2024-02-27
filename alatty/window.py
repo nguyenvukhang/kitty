@@ -1535,33 +1535,6 @@ class Window:
             return None
         return True
 
-    @ac('mk', 'Toggle the current marker on/off')
-    def toggle_marker(self, ftype: str, spec: Union[str, Tuple[Tuple[int, str], ...]], flags: int) -> None:
-        from .marks import marker_from_spec
-        key = ftype, spec
-        if key == self.current_marker_spec:
-            self.remove_marker()
-            return
-        self.screen.set_marker(marker_from_spec(ftype, spec, flags))
-        self.current_marker_spec = key
-
-    def set_marker(self, spec: Union[str, Sequence[str]]) -> None:
-        from .marks import marker_from_spec
-        from .options.utils import parse_marker_spec, toggle_marker
-        if isinstance(spec, str):
-            func, (ftype, spec_, flags) = toggle_marker('toggle_marker', spec)
-        else:
-            ftype, spec_, flags = parse_marker_spec(spec[0], spec[1:])
-        key = ftype, spec_
-        self.screen.set_marker(marker_from_spec(ftype, spec_, flags))
-        self.current_marker_spec = key
-
-    @ac('mk', 'Remove a previously created marker')
-    def remove_marker(self) -> None:
-        if self.current_marker_spec is not None:
-            self.screen.set_marker()
-            self.current_marker_spec = None
-
     @ac('mk', 'Scroll to the next or previous mark of the specified type')
     def scroll_to_mark(self, prev: bool = True, mark: int = 0) -> None:
         self.screen.scroll_to_next_mark(mark, prev)

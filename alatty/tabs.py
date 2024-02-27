@@ -509,7 +509,6 @@ class Tab:  # {{{
         env: Optional[Dict[str, str]] = None,
         location: Optional[str] = None,
         copy_colors_from: Optional[Window] = None,
-        marker: Optional[str] = None,
         watchers: Optional[Watchers] = None,
         overlay_behind: bool = False,
         is_clone_launch: str = '',
@@ -527,12 +526,6 @@ class Tab:  # {{{
         # Must add child before laying out so that resize_pty succeeds
         get_boss().add_child(window)
         self._add_window(window, location=location, overlay_for=overlay_for, overlay_behind=overlay_behind)
-        if marker:
-            try:
-                window.set_marker(marker)
-            except Exception:
-                import traceback
-                traceback.print_exc()
         return window
 
     def new_special_window(

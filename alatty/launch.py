@@ -191,19 +191,6 @@ When using :option:`--stdin-source <launch --stdin-source>` add formatting
 escape codes, without this only plain text will be sent.
 
 
---stdin-add-line-wrap-markers
-type=bool-set
-When using :option:`--stdin-source <launch --stdin-source>` add a carriage
-return at every line wrap location (where long lines are wrapped at screen
-edges). This is useful if you want to pipe to program that wants to duplicate
-the screen layout of the screen.
-
-
---marker
-Create a marker that highlights text in the newly created window. The syntax is
-the same as for the :ac:`toggle_marker` action (see :doc:`/marks`).
-
-
 --os-window-class
 Set the :italic:`WM_CLASS` property on X11 and the application id property on
 Wayland for the newly created OS window when using :option:`--type=os-window
@@ -379,7 +366,6 @@ class LaunchKwds(TypedDict):
     location: Optional[str]
     override_title: Optional[str]
     copy_colors_from: Optional[Window]
-    marker: Optional[str]
     cmd: Optional[List[str]]
     overlay_for: Optional[int]
     stdin: Optional[bytes]
@@ -445,7 +431,6 @@ def _launch(
         'location': None,
         'override_title': opts.window_title or None,
         'copy_colors_from': None,
-        'marker': opts.marker or None,
         'cmd': None,
         'overlay_for': None,
         'stdin': None,
@@ -479,8 +464,6 @@ def _launch(
             if q in ('@screen', '@screen_scrollback', '@alternate', '@alternate_scrollback',
                      '@first_cmd_output_on_screen', '@last_cmd_output', '@last_visited_cmd_output'):
                 q = f'@ansi_{q[1:]}'
-        if opts.stdin_add_line_wrap_markers:
-            q += '_wrap'
         penv, stdin = boss.process_stdin_source(window=active, stdin=q, copy_pipe_data=pipe_data)
         if stdin:
             kw['stdin'] = stdin

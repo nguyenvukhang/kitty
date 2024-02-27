@@ -4025,45 +4025,6 @@ send_escape_code_to_child(Screen *self, PyObject *args) {
     if (written) { Py_RETURN_TRUE; } else { Py_RETURN_FALSE; }
 }
 
-static void
-screen_mark_all(Screen *self) {
-    for (index_type y = 0; y < self->main_linebuf->ynum; y++) {
-        linebuf_init_line(self->main_linebuf, y);
-        mark_text_in_line(self->marker, self->main_linebuf->line);
-    }
-    for (index_type y = 0; y < self->alt_linebuf->ynum; y++) {
-        linebuf_init_line(self->alt_linebuf, y);
-        mark_text_in_line(self->marker, self->alt_linebuf->line);
-    }
-    for (index_type y = 0; y < self->historybuf->count; y++) {
-        historybuf_init_line(self->historybuf, y, self->historybuf->line);
-        mark_text_in_line(self->marker, self->historybuf->line);
-    }
-    self->is_dirty = true;
-}
-
-static PyObject*
-set_marker(Screen *self, PyObject *args) {
-    PyObject *marker = NULL;
-    if (!PyArg_ParseTuple(args, "|O", &marker)) return NULL;
-    if (!marker) {
-        if (self->marker) {
-            Py_CLEAR(self->marker);
-            screen_mark_all(self);
-        }
-        Py_RETURN_NONE;
-    }
-    if (!PyCallable_Check(marker)) {
-        PyErr_SetString(PyExc_TypeError, "marker must be a callable");
-        return NULL;
-    }
-    self->marker = marker;
-    Py_INCREF(marker);
-    screen_mark_all(self);
-    Py_RETURN_NONE;
-}
-
-
 static PyObject*
 scroll_to_next_mark(Screen *self, PyObject *args) {
     int backwards = 1;
@@ -4364,7 +4325,6 @@ static PyMethodDef methods[] = {
     MND(has_focus, METH_NOARGS)
     MND(has_activity_since_last_focus, METH_NOARGS)
     MND(copy_colors_from, METH_O)
-    MND(set_marker, METH_VARARGS)
     MND(marked_cells, METH_NOARGS)
     MND(scroll_to_next_mark, METH_VARARGS)
     MND(update_only_line_graphics_data, METH_NOARGS)

@@ -16,7 +16,6 @@ from typing import (
 from alatty.boss import Boss
 from alatty.fonts import FontFeature
 from alatty.fonts.render import FontObject
-from alatty.marks import MarkerFunc
 from alatty.options.types import Options
 from alatty.types import SignalInfo
 
@@ -1128,9 +1127,6 @@ class Screen:
         pass
 
     def refresh_sprite_positions(self) -> None:
-        pass
-
-    def set_marker(self, marker: Optional[MarkerFunc] = None) -> None:
         pass
 
     def paste_bytes(self, data: bytes) -> None:
