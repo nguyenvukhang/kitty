@@ -7,16 +7,6 @@ import sys
 from typing import List
 
 
-def icat(args: List[str]) -> None:
-    from alatty.constants import kitten_exe
-    os.execl(kitten_exe(), "kitten", *args)
-
-
-def list_fonts(args: List[str]) -> None:
-    from alatty.fonts.list import main as list_main
-    list_main(args)
-
-
 def runpy(args: List[str]) -> None:
     if len(args) < 2:
         raise SystemExit('Usage: alatty +runpy "some python code"')
@@ -27,19 +17,6 @@ def runpy(args: List[str]) -> None:
 def hold(args: List[str]) -> None:
     from alatty.constants import kitten_exe
     args = ['kitten', '__hold_till_enter__'] + args[1:]
-    os.execvp(kitten_exe(), args)
-
-
-def complete(args: List[str]) -> None:
-    # Delegate to kitten to maintain backward compatibility
-    if len(args) < 2 or args[1] not in ('setup', 'zsh', 'fish2', 'bash'):
-        raise SystemExit(1)
-    if args[1] == 'fish2':
-        args[1:1] = ['fish', '_legacy_completion=fish2']
-    elif len(args) >= 3 and args [1:3] == ['setup', 'fish2']:
-        args[2] = 'fish'
-    from alatty.constants import kitten_exe
-    args = ['kitten', '__complete__'] + args[1:]
     os.execvp(kitten_exe(), args)
 
 
@@ -66,48 +43,6 @@ def launch(args: List[str]) -> None:
     runpy.run_path(exe, run_name='__main__')
 
 
-def edit(args: List[str]) -> None:
-    import shutil
-
-    from .constants import is_macos
-    if is_macos:
-        # On macOS vim fails to handle SIGWINCH if it occurs early, so add a small delay.
-        import time
-        time.sleep(0.05)
-    exe = args[1]
-    if not os.path.isabs(exe):
-        exe = shutil.which(exe) or ''
-    if not exe or not os.access(exe, os.X_OK):
-        print('Cannot find an editor on your system. Set the \x1b[33meditor\x1b[39m value in alatty.conf'
-              ' to the absolute path of your editor of choice.', file=sys.stderr)
-        from alatty.utils import hold_till_enter
-        hold_till_enter()
-        raise SystemExit(1)
-    os.execv(exe, args[1:])
-
-
-def shebang(args: List[str]) -> None:
-    from alatty.constants import kitten_exe
-    script_path = args[1]
-    cmd = args[2:]
-    if cmd == ['__ext__']:
-        cmd = [os.path.splitext(script_path)[1][1:].lower()]
-    try:
-        f = open(script_path)
-    except FileNotFoundError:
-        raise SystemExit(f'The file {script_path} does not exist')
-    with f:
-        if f.read(2) == '#!':
-            line = f.readline().strip()
-            _plat = sys.platform.lower()
-            is_macos: bool = 'darwin' in _plat
-            if is_macos:
-                cmd = line.split(' ')
-            else:
-                cmd = line.split(' ', maxsplit=1)
-    os.execvp(kitten_exe(), ['kitten', '__confirm_and_run_shebang__'] + cmd + [script_path])
-
-
 def run_kitten(args: List[str]) -> None:
     try:
         kitten = args[1]
@@ -118,14 +53,6 @@ def run_kitten(args: List[str]) -> None:
     sys.argv = args[1:]
     from kittens.runner import run_kitten as rk
     rk(kitten)
-
-
-def edit_config_file(args: List[str]) -> None:
-    from alatty.cli import create_default_opts
-    from alatty.fast_data_types import set_options
-    from alatty.utils import edit_config_file as f
-    set_options(create_default_opts())
-    f()
 
 
 def namespaced(args: List[str]) -> None:
@@ -142,21 +69,13 @@ def namespaced(args: List[str]) -> None:
 
 
 entry_points = {
-    # These two are here for backwards compat
-    'icat': icat,
-    'list-fonts': list_fonts,
-
     '+': namespaced,
 }
 namespaced_entry_points = {k: v for k, v in entry_points.items() if k[0] not in '+@'}
 namespaced_entry_points['hold'] = hold
-namespaced_entry_points['complete'] = complete
-namespaced_entry_points['runpy'] = runpy
+# namespaced_entry_points['runpy'] = runpy
 namespaced_entry_points['launch'] = launch
 namespaced_entry_points['kitten'] = run_kitten
-namespaced_entry_points['edit-config'] = edit_config_file
-namespaced_entry_points['shebang'] = shebang
-namespaced_entry_points['edit'] = edit
 
 
 def setup_openssl_environment(ext_dir: str) -> None:
