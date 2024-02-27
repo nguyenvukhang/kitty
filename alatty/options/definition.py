@@ -63,37 +63,6 @@ terminals.
 '''
     )
 
-opt('+symbol_map', 'U+E0A0-U+E0A3,U+E0C0-U+E0C7 PowerlineSymbols',
-    option_type='symbol_map',
-    add_to_default=False,
-    long_text='''
-Map the specified Unicode codepoints to a particular font. Useful if you need
-special rendering for some symbols, such as for Powerline. Avoids the need for
-patched fonts. Each Unicode code point is specified in the form ``U+<code
-point in hexadecimal>``. You can specify multiple code points, separated by
-commas and ranges separated by hyphens. This option can be specified multiple
-times. The syntax is::
-
-    symbol_map codepoints Font Family Name
-'''
-    )
-
-opt('+narrow_symbols', 'U+E0A0-U+E0A3,U+E0C0-U+E0C7 1',
-    option_type='narrow_symbols',
-    add_to_default=False,
-    long_text='''
-Usually, for Private Use Unicode characters and some symbol/dingbat characters,
-if the character is followed by one or more spaces, alatty will use those extra
-cells to render the character larger, if the character in the font has a wide
-aspect ratio. Using this option you can force alatty to restrict the specified
-code points to render in the specified number of cells (defaulting to one cell).
-This option can be specified multiple times. The syntax is::
-
-    narrow_symbols codepoints [optionally the number of cells]
-'''
-    )
-
-
 opt('+font_features', 'none',
     option_type='font_features',
     add_to_default=False,

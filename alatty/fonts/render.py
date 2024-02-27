@@ -142,24 +142,6 @@ def coalesce_symbol_maps(maps: Dict[Tuple[int, int], _T]) -> Dict[Tuple[int, int
     return dict(ans)
 
 
-def create_symbol_map(opts: Options) -> Tuple[Tuple[int, int, int], ...]:
-    val = coalesce_symbol_maps(opts.symbol_map)
-    family_map: Dict[str, int] = {}
-    count = 0
-    for family in val.values():
-        if family not in family_map:
-            font = font_for_family(family)
-            family_map[family] = count
-            count += 1
-            current_faces.append((font, False, False))
-    sm = tuple((a, b, family_map[f]) for (a, b), f in val.items())
-    return sm
-
-
-def create_narrow_symbols(opts: Options) -> Tuple[Tuple[int, int, int], ...]:
-    return tuple((a, b, v) for (a, b), v in coalesce_symbol_maps(opts.narrow_symbols).items())
-
-
 def descriptor_for_idx(idx: int) -> Tuple[FontObject, bool, bool]:
     return current_faces[idx]
 
@@ -191,8 +173,6 @@ def set_font_family(opts: Optional[Options] = None, override_font_size: Optional
     font_map = get_font_files(opts)
     current_faces = [(font_map['medium'], False, False)]
     before = len(current_faces)
-    sm = create_symbol_map(opts)
-    ns = create_narrow_symbols(opts)
     num_symbol_fonts = len(current_faces) - before
     font_features = {}
     for face, _, _ in current_faces:
@@ -200,7 +180,7 @@ def set_font_family(opts: Optional[Options] = None, override_font_size: Optional
     font_features.update(opts.font_features)
     set_font_data(
         render_box_drawing, prerender_function, descriptor_for_idx,
-        num_symbol_fonts, sm, sz, font_features, ns
+        num_symbol_fonts, sz, font_features
     )
 
 

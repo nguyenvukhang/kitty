@@ -378,7 +378,6 @@ option_names = (  # {{{
  'modify_font',
  'mouse_hide_wait',
  'mouse_map',
- 'narrow_symbols',
  'notify_on_cmd_finish',
  'paste_actions',
  'placement_strategy',
@@ -401,7 +400,6 @@ option_names = (  # {{{
  'single_window_padding_width',
  'startup_session',
  'strip_trailing_spaces',
- 'symbol_map',
  'sync_to_monitor',
  'tab_activity_symbol',
  'tab_bar_align',
@@ -595,8 +593,6 @@ class Options:
     kitten_alias: typing.Dict[str, str] = {}
     menu_map: typing.Dict[typing.Tuple[str, ...], str] = {}
     modify_font: typing.Dict[str, alatty.fonts.FontModification] = {}
-    narrow_symbols: typing.Dict[typing.Tuple[int, int], int] = {}
-    symbol_map: typing.Dict[typing.Tuple[int, int], str] = {}
     watcher: typing.Dict[str, str] = {}
     map: typing.List[alatty.options.utils.KeyDefinition] = []
     keyboard_modes: KeyboardModeMap = {}
@@ -716,8 +712,6 @@ defaults.font_features = {}
 defaults.kitten_alias = {}
 defaults.menu_map = {}
 defaults.modify_font = {}
-defaults.narrow_symbols = {}
-defaults.symbol_map = {}
 defaults.watcher = {}
 defaults.map = [
     # copy_to_clipboard

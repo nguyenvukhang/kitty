@@ -49,9 +49,6 @@ typedef struct {
     size_t font_idx;
 } SymbolMap;
 
-static SymbolMap *symbol_maps = NULL, *narrow_symbols = NULL;
-static size_t num_symbol_maps = 0, num_narrow_symbols = 0;
-
 typedef enum { SPACER_STRATEGY_UNKNOWN, SPACERS_BEFORE, SPACERS_AFTER, SPACERS_IOSEVKA } SpacerStrategy;
 
 typedef struct {
@@ -503,15 +500,6 @@ fallback_font(FontGroup *fg, CPUCell *cpu_cell, GPUCell *gpu_cell) {
     return idx;
 }
 
-static ssize_t
-in_symbol_maps(FontGroup *fg, char_type ch) {
-    for (size_t i = 0; i < num_symbol_maps; i++) {
-        if (symbol_maps[i].left <= ch && ch <= symbol_maps[i].right) return fg->first_symbol_font_idx + symbol_maps[i].font_idx;
-    }
-    return NO_FONT;
-}
-
-
 // Decides which 'font' to use for a given cell.
 //
 // Possible results:
@@ -541,8 +529,6 @@ START_ALLOW_CASE_RANGE
             return BOX_FONT;
         default:
             *is_emoji_presentation = has_emoji_presentation(cpu_cell, gpu_cell);
-            ans = in_symbol_maps(fg, cpu_cell->ch);
-            if (ans > -1) return ans;
             ans = fg->medium_font_idx;
             if (!*is_emoji_presentation && has_cell_text(fg->fonts + ans, cpu_cell)) { *is_main_font = true; return ans; }
             return fallback_font(fg, cpu_cell, gpu_cell);
@@ -1254,17 +1240,6 @@ is_non_emoji_dingbat(char_type ch) {
     return false;
 }
 
-static unsigned int
-cell_cap_for_codepoint(const char_type cp) {
-    unsigned int ans = UINT_MAX;
-    for (size_t i = 0; i < num_narrow_symbols; i++) {
-        SymbolMap *sm = narrow_symbols + i;
-        if (sm->left <= cp && cp <= sm->right) ans = sm->font_idx;
-    }
-    return ans;
-}
-
-
 void
 render_line(FONTS_DATA_HANDLE fg_, Line *line, Cursor *cursor) {
 #define RENDER if (run_font_idx != NO_FONT && i > first_cell_in_run) { \
@@ -1296,7 +1271,6 @@ render_line(FONTS_DATA_HANDLE fg_, Line *line, Cursor *cursor) {
                 int width = get_glyph_width(font->face, glyph_id);
                 desired_cells = (unsigned int)ceilf((float)width / fg->cell_width);
             }
-            desired_cells = MIN(desired_cells, cell_cap_for_codepoint(cpu_cell->ch));
 
             unsigned int num_spaces = 0;
             while (
@@ -1346,45 +1320,21 @@ render_simple_text(FONTS_DATA_HANDLE fg_, const char *text) {
     return ans;
 }
 
-static void
-clear_symbol_maps(void) {
-    if (symbol_maps) { free(symbol_maps); symbol_maps = NULL; num_symbol_maps = 0; }
-    if (narrow_symbols) { free(narrow_symbols); narrow_symbols = NULL; num_narrow_symbols = 0; }
-}
-
 typedef struct {
     unsigned int main, num_symbol_fonts;
 } DescriptorIndices;
 
 DescriptorIndices descriptor_indices = {0};
 
-static bool
-set_symbol_maps(SymbolMap **maps, size_t *num, const PyObject *sm) {
-    *num = PyTuple_GET_SIZE(sm);
-    *maps = calloc(*num, sizeof(SymbolMap));
-    if (*maps == NULL) { PyErr_NoMemory(); return false; }
-    for (size_t s = 0; s < *num; s++) {
-        unsigned int left, right, font_idx;
-        SymbolMap *x = *maps + s;
-        if (!PyArg_ParseTuple(PyTuple_GET_ITEM(sm, s), "III", &left, &right, &font_idx)) return NULL;
-        x->left = left; x->right = right; x->font_idx = font_idx;
-    }
-    return true;
-}
-
 static PyObject*
 set_font_data(PyObject UNUSED *m, PyObject *args) {
-    PyObject *sm, *ns;
     Py_CLEAR(box_drawing_function); Py_CLEAR(prerender_function); Py_CLEAR(descriptor_for_idx); Py_CLEAR(font_feature_settings);
-    if (!PyArg_ParseTuple(args, "OOOIO!dOO!",
+    if (!PyArg_ParseTuple(args, "OOOIdO",
                 &box_drawing_function, &prerender_function, &descriptor_for_idx,
                 &descriptor_indices.num_symbol_fonts,
-                &PyTuple_Type, &sm, &OPT(font_size), &font_feature_settings, &PyTuple_Type, &ns)) return NULL;
+                &OPT(font_size), &font_feature_settings)) return NULL;
     Py_INCREF(box_drawing_function); Py_INCREF(prerender_function); Py_INCREF(descriptor_for_idx); Py_INCREF(font_feature_settings);
     free_font_groups();
-    clear_symbol_maps();
-    set_symbol_maps(&symbol_maps, &num_symbol_maps, sm);
-    set_symbol_maps(&narrow_symbols, &num_narrow_symbols, ns);
     Py_RETURN_NONE;
 }
 
@@ -1472,7 +1422,6 @@ load_fonts_data(double font_sz_in_pts, double dpi_x, double dpi_y) {
 static void
 finalize(void) {
     Py_CLEAR(python_send_to_gpu_impl);
-    clear_symbol_maps();
     Py_CLEAR(box_drawing_function);
     Py_CLEAR(prerender_function);
     Py_CLEAR(descriptor_for_idx);
