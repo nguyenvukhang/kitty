@@ -133,8 +133,6 @@ typedef struct {
     PyObject *marker;
     bool has_focus;
     bool has_activity_since_last_focus;
-    hyperlink_id_type active_hyperlink_id;
-    HYPERLINK_POOL_HANDLE hyperlink_pool;
     ANSIBuf as_ansi_buf;
     char_type last_graphic_char;
     uint8_t main_key_encoding_flags[8], alt_key_encoding_flags[8], *key_encoding_flags;
@@ -259,7 +257,6 @@ PyObject* as_text_history_buf(HistoryBuf *self, PyObject *args, ANSIBuf *output)
 Line* screen_visual_line(Screen *self, index_type y);
 unsigned long screen_current_char_width(Screen *self);
 void screen_mark_url(Screen *self, index_type start_x, index_type start_y, index_type end_x, index_type end_y);
-void set_active_hyperlink(Screen*, char*, char*);
 hyperlink_id_type screen_mark_hyperlink(Screen*, index_type, index_type);
 void screen_handle_graphics_command(Screen *self, const GraphicsCommand *cmd, const uint8_t *payload);
 bool screen_set_last_visited_prompt(Screen*, index_type);

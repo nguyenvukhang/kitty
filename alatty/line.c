@@ -281,29 +281,6 @@ write_sgr(const char *val, ANSIBuf *output) {
 }
 
 static void
-write_hyperlink(hyperlink_id_type hid, ANSIBuf *output) {
-#define W(c) output->buf[output->len++] = c
-    const char *key = hid ? get_hyperlink_for_id(output->hyperlink_pool, hid, false) : NULL;
-    if (!key) hid = 0;
-    output->active_hyperlink_id = hid;
-    W(0x1b); W(']'); W('8');
-    if (!hid) {
-        W(';'); W(';');
-    } else {
-        const char* partition = strstr(key, ":");
-        W(';');
-        if (partition != key) {
-            W('i'); W('d'); W('=');
-            while (key != partition) W(*(key++));
-        }
-        W(';');
-        while(*(++partition))  W(*partition);
-    }
-    W(0x1b); W('\\');
-#undef W
-}
-
-static void
 write_mark(const char *mark, ANSIBuf *output) {
 #define W(c) output->buf[output->len++] = c
     W(0x1b); W(']'); W('1'); W('3'); W('3'); W(';');
@@ -352,13 +329,6 @@ line_as_ansi(Line *self, ANSIBuf *output, const GPUCell** prev_cell, index_type 
             if (previous_width == 2) { previous_width = 0; continue; }
             ch = ' ';
         }
-        if (output->hyperlink_pool) {
-            hyperlink_id_type hid = self->cpu_cells[pos].hyperlink_id;
-            if (hid != output->active_hyperlink_id) {
-                WRITE_HYPERLINK(hid);
-            }
-        }
-
         cell = &self->gpu_cells[pos];
 
 #define CMP_ATTRS (cell->attrs.val & mask_for_sgr.val) != ((*prev_cell)->attrs.val & mask_for_sgr.val)
@@ -860,7 +830,6 @@ as_text_generic(PyObject *args, void *container, get_line_func get_line, index_t
     RAII_PyObject(sgr_reset, PyUnicode_FromString("\x1b[m"));
     if (nl == NULL || cr == NULL || sgr_reset == NULL) return NULL;
     const GPUCell *prev_cell = NULL;
-    ansibuf->active_hyperlink_id = 0;
     bool need_newline = false;
     for (index_type y = 0; y < lines; y++) {
         Line *line = get_line(container, y);
@@ -884,11 +853,6 @@ as_text_generic(PyObject *args, void *container, get_line_func get_line, index_t
         need_newline = !line->gpu_cells[line->xnum-1].attrs.next_char_was_wrapped;
     }
     if (need_newline && add_trailing_newline) APPEND(nl);
-    if (ansibuf->active_hyperlink_id) {
-        ansibuf->active_hyperlink_id = 0;
-        t = PyUnicode_FromString("\x1b]8;;\x1b\\");
-        APPEND_AND_DECREF(t);
-    }
     Py_RETURN_NONE;
 #undef APPEND
 #undef APPEND_AND_DECREF

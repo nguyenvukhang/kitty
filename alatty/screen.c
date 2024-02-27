@@ -14,7 +14,6 @@
 #include "iqsort.h"
 #include "fonts.h"
 #include "lineops.h"
-#include "hyperlink.h"
 #include <structmember.h>
 #include <limits.h>
 #include <sys/types.h>
@@ -137,7 +136,6 @@ new(PyTypeObject *type, PyObject *args, PyObject UNUSED *kwds) {
         self->historybuf = alloc_historybuf(MAX(scrollback, lines), columns, OPT(scrollback_pager_history_size));
         self->main_grman = grman_alloc();
         self->alt_grman = grman_alloc();
-        self->active_hyperlink_id = 0;
 
         self->grman = self->main_grman;
         self->pending_mode.wait_time = s_double_to_monotonic_t(2.0);
@@ -156,9 +154,6 @@ new(PyTypeObject *type, PyObject *args, PyObject UNUSED *kwds) {
         init_tabstops(self->alt_tabstops, self->columns);
         self->key_encoding_flags = self->main_key_encoding_flags;
         if (!init_overlay_line(self, self->columns, false)) { Py_CLEAR(self); return NULL; }
-        self->hyperlink_pool = alloc_hyperlink_pool();
-        if (!self->hyperlink_pool) { Py_CLEAR(self); return PyErr_NoMemory(); }
-        self->as_ansi_buf.hyperlink_pool = self->hyperlink_pool;
     }
     return (PyObject*) self;
 }
@@ -185,11 +180,9 @@ screen_reset(Screen *self) {
     self->alt_savepoint.is_valid = false;
     linebuf_clear(self->linebuf, BLANK_CHAR);
     historybuf_clear(self->historybuf);
-    clear_hyperlink_pool(self->hyperlink_pool);
     grman_clear(self->grman, false, self->cell_size);
     self->modes = empty_modes;
     self->saved_modes = empty_modes;
-    self->active_hyperlink_id = 0;
 #define R(name) self->color_profile->overridden.name.val = 0
     R(default_fg); R(default_bg); R(cursor_color); R(highlight_fg); R(highlight_bg);
 #undef R
@@ -486,7 +479,6 @@ dealloc(Screen* self) {
     free(self->pending_mode.buf);
     free(self->selections.items);
     free(self->url_ranges.items);
-    free_hyperlink_pool(self->hyperlink_pool);
     free(self->as_ansi_buf.buf);
     free(self->last_rendered_window_char.canvas);
     Py_TYPE(self)->tp_free((PyObject*)self);
@@ -560,17 +552,6 @@ selection_has_screen_line(const Selections *selections, const int y) {
         }
     }
     return false;
-}
-
-void
-set_active_hyperlink(Screen *self, char *id, char *url) {
-    if (OPT(allow_hyperlinks)) {
-        if (!url || !url[0]) {
-            self->active_hyperlink_id = 0;
-            return;
-        }
-        self->active_hyperlink_id = get_id_for_hyperlink(self, id, url);
-    }
 }
 
 hyperlink_id_type
@@ -657,7 +638,7 @@ draw_combining_char(Screen *self, char_type ch) {
             CPUCell *cpu_cell = self->linebuf->line->cpu_cells + xpos;
             GPUCell *gpu_cell = self->linebuf->line->gpu_cells + xpos;
             if (gpu_cell->attrs.width != 2 && cpu_cell->cc_idx[0] == VS16 && is_emoji_presentation_base(cpu_cell->ch)) {
-                if (self->cursor->x <= self->columns - 1) line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, self->active_hyperlink_id);
+                if (self->cursor->x <= self->columns - 1) line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, 0);
                 gpu_cell->attrs.width = 2;
                 if (xpos == self->columns - 1) move_widened_char(self, cpu_cell, gpu_cell, xpos, ypos);
                 else self->cursor->x++;
@@ -719,10 +700,10 @@ draw_codepoint(Screen *self, char_type och, bool from_input_stream) {
     if (self->modes.mIRM) {
         line_right_shift(self->linebuf->line, self->cursor->x, char_width);
     }
-    line_set_char(self->linebuf->line, self->cursor->x, ch, char_width, self->cursor, self->active_hyperlink_id);
+    line_set_char(self->linebuf->line, self->cursor->x, ch, char_width, self->cursor, 0);
     self->cursor->x++;
     if (char_width == 2) {
-        line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, self->active_hyperlink_id);
+        line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, 0);
         self->cursor->x++;
     }
     if (UNLIKELY(ch == IMAGE_PLACEHOLDER_CHAR)) {
@@ -930,7 +911,6 @@ screen_handle_graphics_command(Screen *self, const GraphicsCommand *cmd, const u
 void
 screen_toggle_screen_buffer(Screen *self, bool save_cursor, bool clear_alt_screen) {
     bool to_alt = self->linebuf == self->main_linebuf;
-    self->active_hyperlink_id = 0;
     if (to_alt) {
         if (clear_alt_screen) {
             linebuf_clear(self->alt_linebuf, BLANK_CHAR);
@@ -2874,27 +2854,13 @@ ansi_for_range(Screen *self, const Selection *sel, bool insert_newlines, bool st
         if (!t) return NULL;
         PyTuple_SET_ITEM(ans, i, t);
     }
-    PyObject *t = PyUnicode_FromFormat("%s%s", has_escape_codes ? "\x1b[m" : "", output.active_hyperlink_id ? "\x1b]8;;\x1b\\" : "");
+    PyObject *t = PyUnicode_FromFormat("%s%s", has_escape_codes ? "\x1b[m" : "", 0 ? "\x1b]8;;\x1b\\" : "");
     if (!t) return NULL;
     PyTuple_SET_ITEM(ans, PyTuple_GET_SIZE(ans) - 1, t);
     Py_INCREF(ans);
     return ans;
 }
 
-
-static hyperlink_id_type
-hyperlink_id_for_range(Screen *self, const Selection *sel) {
-    IterationData idata;
-    iteration_data(self, sel, &idata, -self->historybuf->count, false);
-    for (int i = 0, y = idata.y; y < idata.y_limit && y < (int)self->lines; y++, i++) {
-        Line *line = range_line_(self, y);
-        XRange xr = xrange_for_iteration(&idata, y, line);
-        for (index_type x = xr.x; x < xr.x_limit; x++) {
-            if (line->cpu_cells[x].hyperlink_id) return line->cpu_cells[x].hyperlink_id;
-        }
-    }
-    return 0;
-}
 
 static PyObject*
 extend_tuple(PyObject *a, PyObject *b) {
@@ -3102,24 +3068,10 @@ update_overlay_line_data(Screen *self, uint8_t *data) {
 #define WRAP2(name, defval1, defval2) static PyObject* name(Screen *self, PyObject *args) { unsigned int a=defval1, b=defval2; if(!PyArg_ParseTuple(args, "|II", &a, &b)) return NULL; screen_##name(self, a, b); Py_RETURN_NONE; }
 #define WRAP2B(name) static PyObject* name(Screen *self, PyObject *args) { unsigned int a, b; int p; if(!PyArg_ParseTuple(args, "IIp", &a, &b, &p)) return NULL; screen_##name(self, a, b, (bool)p); Py_RETURN_NONE; }
 
-WRAP0(garbage_collect_hyperlink_pool)
-
 static PyObject*
 has_selection(Screen *self, PyObject *a UNUSED) {
     if (screen_has_selection(self)) Py_RETURN_TRUE;
     Py_RETURN_FALSE;
-}
-
-static PyObject*
-hyperlinks_as_list(Screen *self, PyObject *args UNUSED) {
-    return screen_hyperlinks_as_list(self);
-}
-
-static PyObject*
-hyperlink_for_id(Screen *self, PyObject *val) {
-    unsigned long id = PyLong_AsUnsignedLong(val);
-    if (id > HYPERLINK_MAX_NUMBER) { PyErr_SetString(PyExc_IndexError, "Out of bounds"); return NULL; }
-    return Py_BuildValue("s", get_hyperlink_for_id(self->hyperlink_pool, id, true));
 }
 
 static PyObject*
@@ -4243,18 +4195,6 @@ screen_is_emoji_presentation_base(PyObject UNUSED *self, PyObject *code_) {
 }
 
 static PyObject*
-hyperlink_at(Screen *self, PyObject *args) {
-    unsigned int x, y;
-    if (!PyArg_ParseTuple(args, "II", &x, &y)) return NULL;
-    screen_mark_hyperlink(self, x, y);
-    if (!self->url_ranges.count) Py_RETURN_NONE;
-    hyperlink_id_type hid = hyperlink_id_for_range(self, self->url_ranges.items);
-    if (!hid) Py_RETURN_NONE;
-    const char *url = get_hyperlink_for_id(self->hyperlink_pool, hid, true);
-    return Py_BuildValue("s", url);
-}
-
-static PyObject*
 reverse_scroll(Screen *self, PyObject *args) {
     int fill_from_scrollback = 0;
     unsigned int amt;
@@ -4370,9 +4310,6 @@ static PyMethodDef methods[] = {
     MND(erase_in_display, METH_VARARGS)
     MND(clear_scrollback, METH_NOARGS)
     MND(scroll_until_cursor_prompt, METH_NOARGS)
-    MND(hyperlinks_as_list, METH_NOARGS)
-    MND(garbage_collect_hyperlink_pool, METH_NOARGS)
-    MND(hyperlink_for_id, METH_O)
     MND(reverse_scroll, METH_VARARGS)
     MND(scroll_prompt_to_bottom, METH_NOARGS)
     METHOD(current_char_width, METH_NOARGS)
@@ -4419,7 +4356,6 @@ static PyMethodDef methods[] = {
     MND(scroll, METH_VARARGS)
     MND(scroll_to_prompt, METH_VARARGS)
     MND(send_escape_code_to_child, METH_VARARGS)
-    MND(hyperlink_at, METH_VARARGS)
     MND(toggle_alt_screen, METH_NOARGS)
     MND(reset_callbacks, METH_NOARGS)
     MND(paste, METH_O)

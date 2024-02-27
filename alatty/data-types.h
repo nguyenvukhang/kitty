@@ -265,12 +265,9 @@ typedef struct {
     bool rewrap_needed;
 } PagerHistoryBuf;
 
-typedef struct {int x;} *HYPERLINK_POOL_HANDLE;
 typedef struct {
     Py_UCS4 *buf;
     size_t len, capacity;
-    HYPERLINK_POOL_HANDLE hyperlink_pool;
-    hyperlink_id_type active_hyperlink_id;
 } ANSIBuf;
 
 typedef struct {
@@ -420,5 +417,4 @@ void play_canberra_sound(const char *which_sound, const char *event_id, bool is_
 #endif
 SPRITE_MAP_HANDLE alloc_sprite_map(unsigned int, unsigned int);
 SPRITE_MAP_HANDLE free_sprite_map(SPRITE_MAP_HANDLE);
-const char* get_hyperlink_for_id(const HYPERLINK_POOL_HANDLE, hyperlink_id_type id, bool only_url);
 void log_event(const char *format, ...) __attribute__((format(printf, 1, 2)));

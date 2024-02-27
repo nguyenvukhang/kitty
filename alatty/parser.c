@@ -130,9 +130,6 @@ _report_params(PyObject *dump_callback, const char *name, int *params, unsigned 
 #define REPORT_OSC2(name, code, string) \
     Py_XDECREF(PyObject_CallFunction(dump_callback, "siO", #name, code, string)); PyErr_Clear();
 
-#define REPORT_HYPERLINK(id, url) \
-    Py_XDECREF(PyObject_CallFunction(dump_callback, "szz", "set_active_hyperlink", id, url)); PyErr_Clear();
-
 #else
 
 #define DUMP_UNUSED UNUSED
@@ -146,7 +143,6 @@ _report_params(PyObject *dump_callback, const char *name, int *params, unsigned 
 #define FLUSH_DRAW
 #define REPORT_OSC(name, string)
 #define REPORT_OSC2(name, code, string)
-#define REPORT_HYPERLINK(id, url)
 
 #endif
 
@@ -315,48 +311,6 @@ dispatch_esc_mode_char(Screen *screen, uint32_t ch, PyObject DUMP_UNUSED *dump_c
 
 // OSC mode {{{
 
-static bool
-parse_osc_8(char *buf, char **id, char **url) {
-    char *boundary = strstr(buf, ";");
-    if (boundary == NULL) return false;
-    *boundary = 0;
-    if (*(boundary + 1)) *url = boundary + 1;
-    char *save = NULL, *token = strtok_r(buf, ":", &save);
-    while (token != NULL) {
-        size_t len = strlen(token);
-        if (len > 3 && token[0] == 'i' && token[1] == 'd' && token[2] == '=' && token[3]) {
-            *id = token + 3;
-            break;
-        }
-        token = strtok_r(NULL, ":", &save);
-    }
-    return true;
-}
-
-static void
-dispatch_hyperlink(Screen *screen, size_t pos, size_t size, PyObject DUMP_UNUSED *dump_callback) {
-    // since the spec says only ASCII printable chars are allowed in OSC 8, we
-    // can just convert to char* directly
-    if (!size) return;  // ignore empty OSC 8 since it must have two semi-colons to be valid, which means one semi-colon here
-    char *id = NULL, *url = NULL;
-    char *data = malloc(size + 1);
-    if (!data) fatal("Out of memory");
-    for (size_t i = 0; i < size; i++) {
-        data[i] = screen->parser_buf[i + pos] & 0x7f;
-        if (data[i] < 32 || data[i] > 126) data[i] = '_';
-    }
-    data[size] = 0;
-
-    if (parse_osc_8(data, &id, &url)) {
-        REPORT_HYPERLINK(id, url);
-        set_active_hyperlink(screen, id, url);
-    } else {
-        REPORT_ERROR("Ignoring malformed OSC 8 code");
-    }
-
-    free(data);
-}
-
 static void
 continue_osc_52(Screen *screen) {
     screen->parser_buf[0] = '5'; screen->parser_buf[1] = '2'; screen->parser_buf[2] = ';';
@@ -414,7 +368,6 @@ dispatch_osc(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
             DISPATCH_OSC_WITH_CODE(process_cwd_notification);
             END_DISPATCH
         case 8:
-            dispatch_hyperlink(screen, i, limit-i, dump_callback);
             break;
         case 9:
         case 99:
