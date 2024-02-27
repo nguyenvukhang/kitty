@@ -1890,8 +1890,6 @@ class Boss:
         if bad_lines:
             self.show_bad_config_lines(bad_lines)
         self.apply_new_options(opts)
-        from .guess_mime_type import clear_mime_cache
-        clear_mime_cache()
 
     def safe_delete_temp_file(self, path: str) -> None:
         if is_path_in_temp_dir(path):

@@ -11,7 +11,6 @@ import shlex
 import struct
 import subprocess
 import sys
-import tarfile
 from contextlib import contextmanager, suppress
 from functools import lru_cache
 from itertools import chain
@@ -21,7 +20,6 @@ from typing import (
     Dict,
     Iterator,
     List,
-    Optional,
     Sequence,
     TextIO,
     Tuple,
@@ -38,7 +36,6 @@ from alatty.cli import (
 )
 from alatty.conf.generate import gen_go_code
 from alatty.conf.types import Definition
-from alatty.guess_mime_type import known_extensions, text_mimes
 from alatty.key_encoding import config_mod_map
 from alatty.key_names import character_key_name_aliases, functional_key_name_aliases
 from alatty.options.types import Options
@@ -465,30 +462,6 @@ def generate_readline_actions() -> str:
     ''')
 
 
-def generate_mimetypes() -> str:
-    import mimetypes
-    if not mimetypes.inited:
-        mimetypes.init()
-    ans = ['package utils', 'import "sync"', 'var only_once sync.Once', 'var builtin_types_map map[string]string',
-           'func set_builtins() {', 'builtin_types_map = map[string]string{',]
-    for k, v in mimetypes.types_map.items():
-        ans.append(f'  "{serialize_as_go_string(k)}": "{serialize_as_go_string(v)}",')
-    ans.append('}}')
-    return '\n'.join(ans)
-
-
-def generate_textual_mimetypes() -> str:
-    ans = ['package utils', 'var KnownTextualMimes = map[string]bool{',]
-    for k in text_mimes:
-        ans.append(f'  "{serialize_as_go_string(k)}": true,')
-    ans.append('}')
-    ans.append('var KnownExtensions = map[string]string{')
-    for k, v in known_extensions.items():
-        ans.append(f'  ".{serialize_as_go_string(k)}": "{serialize_as_go_string(v)}",')
-    ans.append('}')
-    return '\n'.join(ans)
-
-
 def write_compressed_data(data: bytes, d: BinaryIO) -> None:
     d.write(struct.pack('<I', len(data)))
     d.write(bz2.compress(data))
@@ -518,10 +491,6 @@ def main(args: List[str]=sys.argv) -> None:
         f.write(generate_color_names())
     with replace_if_needed('tools/tui/readline/actions_generated.go') as f:
         f.write(generate_readline_actions())
-    with replace_if_needed('tools/utils/mimetypes_generated.go') as f:
-        f.write(generate_mimetypes())
-    with replace_if_needed('tools/utils/mimetypes_textual_generated.go') as f:
-        f.write(generate_textual_mimetypes())
 
     kitten_clis()
     print(json.dumps(changed, indent=2))
