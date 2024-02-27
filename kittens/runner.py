@@ -73,32 +73,13 @@ def create_kitten_handler(kitten: str, orig_args: List[str]) -> Any:
     return ans
 
 
-def set_debug(kitten: str) -> None:
-    import builtins
-
-    from kittens.tui.loop import debug
-    setattr(builtins, 'debug', debug)
-
-
 def launch(args: List[str]) -> None:
     config_dir, kitten = args[:2]
     kitten = resolved_kitten(kitten)
     del args[:2]
     args = [kitten] + args
     os.environ['ALATTY_CONFIG_DIRECTORY'] = config_dir
-    set_debug(kitten)
-    m = import_kitten_main_module(config_dir, kitten)
-    try:
-        result = m['start'](args)
-    finally:
-        sys.stdin = sys.__stdin__
-    if result is not None:
-        import base64
-        import json
-        data = base64.b85encode(json.dumps(result).encode('utf-8'))
-        sys.stdout.buffer.write(b'\x1bP@kitty-kitten-result|')
-        sys.stdout.buffer.write(data)
-        sys.stdout.buffer.write(b'\x1b\\')
+    sys.stdin = sys.__stdin__
     sys.stderr.flush()
     sys.stdout.flush()
 
@@ -107,7 +88,6 @@ def run_kitten(kitten: str, run_name: str = '__main__') -> None:
     import runpy
     original_kitten_name = kitten
     kitten = resolved_kitten(kitten)
-    set_debug(kitten)
     if kitten in all_kitten_names():
         runpy.run_module(f'kittens.{kitten}.main', run_name=run_name)
         return

@@ -24,7 +24,6 @@ func PrepareRootCmd(root *cli.Command) {
 	if RunningAsUI() {
 		root.CallbackOnError = func(cmd *cli.Command, err error, during_parsing bool, exit_code int) int {
 			cli.ShowError(err)
-			os.Stdout.WriteString("\x1bP@kitty-overlay-ready|\x1b\\")
 			HoldTillEnter(true)
 			return exit_code
 		}

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"alatty/tools/cli/markup"
-	"alatty/tools/tty"
 	"alatty/tools/tui/loop"
 	"alatty/tools/utils"
 	"alatty/tools/utils/style"
@@ -60,9 +59,6 @@ func truncate_at_space(text string, width int) (string, string) {
 func extra_for(width, screen_width int) int {
 	return max(0, screen_width-width)/2 + 1
 }
-
-var debugprintln = tty.DebugPrintln
-var _ = debugprintln
 
 func GetChoices(o *Options) (response string, err error) {
 	response = ""

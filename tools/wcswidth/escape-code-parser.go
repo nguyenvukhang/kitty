@@ -55,7 +55,6 @@ type EscapeCodeParser struct {
 	HandleEndOfBracketedPaste func() error
 	HandleCSI                 func([]byte) error
 	HandleOSC                 func([]byte) error
-	HandleDCS                 func([]byte) error
 	HandlePM                  func([]byte) error
 	HandleSOS                 func([]byte) error
 	HandleAPC                 func([]byte) error
@@ -230,9 +229,6 @@ func (self *EscapeCodeParser) dispatch_char(ch utils.UTF8State) error {
 	switch ch {
 	case 0x1b:
 		self.state = esc
-	case 0x90:
-		self.state = st
-		self.current_callback = self.HandleDCS
 	case 0x9b:
 		self.state = csi
 		self.current_callback = self.HandleCSI
@@ -258,9 +254,6 @@ func (self *EscapeCodeParser) dispatch_byte(ch byte) error {
 	switch self.state {
 	case esc:
 		switch ch {
-		case 'P':
-			self.state = st
-			self.current_callback = self.HandleDCS
 		case '[':
 			self.state = csi
 			self.csi_state = parameter

@@ -226,22 +226,6 @@ func (self *Loop) Printf(format string, args ...any) {
 	self.QueueWriteString(fmt.Sprintf(format, args...))
 }
 
-func (self *Loop) DebugPrintln(args ...any) {
-	if self.controlling_term != nil {
-		const limit = 2048
-		msg := fmt.Sprintln(args...)
-		for i := 0; i < len(msg); i += limit {
-			end := i + limit
-			if end > len(msg) {
-				end = len(msg)
-			}
-			self.QueueWriteString("\x1bP@kitty-print|")
-			self.QueueWriteString(base64.StdEncoding.EncodeToString([]byte(msg[i:end])))
-			self.QueueWriteString("\x1b\\")
-		}
-	}
-}
-
 func (self *Loop) Run() (err error) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -407,10 +391,6 @@ func (self *Loop) SetWindowTitle(title string) {
 
 func (self *Loop) ClearScreen() {
 	self.QueueWriteString("\x1b[H\x1b[2J")
-}
-
-func (self *Loop) SendOverlayReady() {
-	self.QueueWriteString("\x1bP@kitty-overlay-ready|\x1b\\")
 }
 
 func (self *Loop) Quit(exit_code int) {

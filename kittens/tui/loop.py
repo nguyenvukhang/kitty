@@ -8,7 +8,6 @@ import os
 import re
 import selectors
 import signal
-import sys
 import termios
 from contextlib import contextmanager, suppress
 from enum import Enum, IntFlag, auto
@@ -18,46 +17,11 @@ from typing import Any, Callable, Dict, Generator, List, NamedTuple, Optional
 from alatty.constants import is_macos
 from alatty.fast_data_types import close_tty, normal_tty, open_tty, parse_input_from_terminal, raw_tty
 from alatty.key_encoding import ALT, CTRL, SHIFT, backspace_key, decode_key_event, enter_key
-from alatty.typing import ImageManagerType, KeyEventType, Protocol
+from alatty.typing import ImageManagerType, KeyEventType
 from alatty.utils import ScreenSize, ScreenSizeGetter, screen_size_function, write_all
 
 from .handler import Handler
 from .operations import MouseTracking, init_state, reset_state
-
-
-class BinaryWrite(Protocol):
-
-    def write(self, data: bytes) -> None:
-        pass
-
-    def flush(self) -> None:
-        pass
-
-
-def debug_write(*a: Any, **kw: Any) -> None:
-    from base64 import standard_b64encode
-    fobj = kw.pop('file', sys.stderr.buffer)
-    buf = io.StringIO()
-    kw['file'] = buf
-    print(*a, **kw)
-    stext = buf.getvalue()
-    for i in range(0, len(stext), 256):
-        chunk = stext[i:i + 256]
-        text = b'\x1bP@kitty-print|' + standard_b64encode(chunk.encode('utf-8')) + b'\x1b\\'
-        fobj.write(text)
-    fobj.flush()
-
-
-class Debug:
-
-    fobj: Optional[BinaryWrite] = None
-
-    def __call__(self, *a: Any, **kw: Any) -> None:
-        kw['file'] = self.fobj or sys.stdout.buffer
-        debug_write(*a, **kw)
-
-
-debug = Debug()
 
 
 class TermManager:
@@ -227,7 +191,6 @@ class Loop:
         else:
             self.asyncio_loop = asyncio.get_event_loop()
         self.return_code = 0
-        self.overlay_ready_reported = False
         self.optional_actions = optional_actions
         self.read_buf = ''
         self.decoder = codecs.getincrementaldecoder('utf-8')('ignore')
@@ -235,7 +198,7 @@ class Loop:
             self.iov_limit = max(os.sysconf('SC_IOV_MAX') - 1, 255)
         except Exception:
             self.iov_limit = 255
-        self.parse_input_from_terminal = partial(parse_input_from_terminal, self._on_text, self._on_dcs, self._on_csi, self._on_osc, self._on_pm, self._on_apc)
+        self.parse_input_from_terminal = partial(parse_input_from_terminal, self._on_text, self._on_csi, self._on_osc, self._on_pm, self._on_apc)
         self.ebs_pat = re.compile('([\177\r\x03\x04])')
         self.in_bracketed_paste = False
         self.sanitize_bracketed_paste = bool(sanitize_bracketed_paste)
@@ -283,21 +246,6 @@ class Loop:
                     self.handler.on_text(chunk, self.in_bracketed_paste)
             elif chunk:
                 self.handler.on_text(chunk, self.in_bracketed_paste)
-
-    def _on_dcs(self, dcs: str) -> None:
-        if dcs.startswith('@kitty-cmd'):
-            import json
-            self.handler.on_alatty_cmd_response(json.loads(dcs[len('@kitty-cmd'):]))
-        elif dcs.startswith('1+r'):
-            from binascii import unhexlify
-            vals = dcs[3:].split(';')
-            for q in vals:
-                parts = q.split('=', 1)
-                try:
-                    name, val = parts[0], unhexlify(parts[1]).decode('utf-8', 'replace')
-                except Exception:
-                    continue
-                self.handler.on_capability_response(name, val)
 
     def _on_csi(self, csi: str) -> None:
         q = csi[-1]
@@ -416,10 +364,8 @@ class Loop:
                 tb += '\n' + ''.join(traceback.format_exception(exc.__class__, exc, exc.__traceback__))
 
         self.asyncio_loop.set_exception_handler(handle_exception)
-        handler._initialize(self._get_screen_size(), term_manager, schedule_write, self, debug, image_manager)
+        handler._initialize(self._get_screen_size(), term_manager, schedule_write, self, image_manager)
         with handler:
-            if handler.overlay_ready_report_needed:
-                handler.cmd.overlay_ready()
             self.asyncio_loop.add_reader(
                     tty_fd, self._read_ready, handler, tty_fd)
             self.asyncio_loop.add_writer(
@@ -452,12 +398,10 @@ class Loop:
 
             term_manager.extra_finalize = b''.join(self.write_buf).decode('utf-8')
             if tb is not None:
-                report_overlay_ready = handler.overlay_ready_report_needed and not self.overlay_ready_reported
                 self.return_code = 1
                 if not handler.terminal_io_ended:
-                    self._report_error_loop(tb, term_manager, report_overlay_ready)
+                    self._report_error_loop(tb, term_manager)
 
-    def _report_error_loop(self, tb: str, term_manager: TermManager, overlay_ready_report_needed: bool) -> None:
+    def _report_error_loop(self, tb: str, term_manager: TermManager) -> None:
         handler = UnhandledException(tb)
-        handler.overlay_ready_report_needed = overlay_ready_report_needed
         self.loop_impl(handler, term_manager)

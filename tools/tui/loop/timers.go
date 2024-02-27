@@ -8,12 +8,8 @@ import (
 
 	"golang.org/x/exp/slices"
 
-	"alatty/tools/tty"
 	"alatty/tools/utils"
 )
-
-var debugprintln = tty.DebugPrintln
-var _ = debugprintln
 
 type timer struct {
 	interval time.Duration

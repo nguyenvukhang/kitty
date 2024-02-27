@@ -3,7 +3,6 @@
 package tty
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -316,24 +315,6 @@ func (self *Term) WriteString(b string) (int, error) {
 	return self.os_file.WriteString(b)
 }
 
-func (self *Term) DebugPrintln(a ...any) {
-	msg := []byte(fmt.Sprintln(a...))
-	const limit = 2048
-	encoded := make([]byte, limit*2)
-	for i := 0; i < len(msg); i += limit {
-		end := i + limit
-		if end > len(msg) {
-			end = len(msg)
-		}
-		chunk := msg[i:end]
-		encoded = encoded[:cap(encoded)]
-		base64.StdEncoding.Encode(encoded, chunk)
-		_, _ = self.WriteString("\x1bP@kitty-print|")
-		_, _ = self.Write(encoded)
-		_, _ = self.WriteString("\x1b\\")
-	}
-}
-
 func GetSize(fd int) (*unix.Winsize, error) {
 	for {
 		sz, err := unix.IoctlGetWinsize(fd, unix.TIOCGWINSZ)
@@ -360,15 +341,3 @@ var AlattyStdout = sync.OnceValue(func() *os.File {
 	}
 	return nil
 })
-
-func DebugPrintln(a ...any) {
-	if f := AlattyStdout(); f != nil {
-		fmt.Fprintln(f, a...)
-		return
-	}
-	term, err := OpenControllingTerm()
-	if err == nil {
-		defer term.Close()
-		term.DebugPrintln(a...)
-	}
-}

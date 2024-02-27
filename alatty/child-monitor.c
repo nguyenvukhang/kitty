@@ -230,52 +230,7 @@ static void* io_loop(void *data);
 static void* talk_loop(void *data);
 static void send_response_to_peer(id_type peer_id, const char *msg, size_t msg_sz);
 static void wakeup_talk_loop(bool);
-static bool add_peer_to_injection_queue(int peer_fd, int pipe_fd);
 static bool talk_thread_started = false;
-
-static bool
-simple_read_from_pipe(int fd, void *data, size_t sz) {
-    // read a small amount of data to a pipe handling only EINTR
-    while (true) {
-        ssize_t ret = read(fd, data, sz);
-        if (ret == -1 && errno == EINTR) continue;
-        return ret == (ssize_t)sz;
-    }
-}
-
-
-static PyObject*
-inject_peer(PyObject *s, PyObject *a) {
-#define inject_peer_doc "inject_peer(fd) -> Start communication with a peer over the specified file descriptor"
-    ChildMonitor *self = (ChildMonitor*)s;
-    if (!PyLong_Check(a)) { PyErr_SetString(PyExc_TypeError, "peer fd must be an int"); return NULL; }
-    long fd = PyLong_AsLong(a);
-    if (fd < 0) { PyErr_Format(PyExc_ValueError, "Invalid peer fd: %ld", fd); return NULL; }
-    if (!talk_thread_started) {
-        int ret;
-        if ((ret = pthread_create(&self->talk_thread, NULL, talk_loop, self)) != 0) {
-            return PyErr_Format(PyExc_OSError, "Failed to start talk thread with error: %s", strerror(ret));
-        }
-        talk_thread_started = true;
-    }
-    int fds[2] = {0};
-    if (!self_pipe(fds, false)) {
-        safe_close(fd, __FILE__, __LINE__);
-        return PyErr_SetFromErrno(PyExc_OSError);
-    }
-    if (!add_peer_to_injection_queue(fd, fds[1])) {
-        safe_close(fd, __FILE__, __LINE__);
-        safe_close(fds[0], __FILE__, __LINE__); safe_close(fds[1], __FILE__, __LINE__);
-        PyErr_SetString(PyExc_RuntimeError, "Too many peers waiting to be injected");
-        return NULL;
-    }
-    wakeup_talk_loop(false);
-    id_type peer_id = 0;
-    bool ok = simple_read_from_pipe(fds[0], &peer_id, sizeof(peer_id));
-    safe_close(fds[0], __FILE__, __LINE__);
-    if (!ok) { PyErr_SetString(PyExc_RuntimeError, "Failed to read peer id from self pipe"); return NULL; }
-    return PyLong_FromUnsignedLongLong(peer_id);
-}
 
 static PyObject *
 start(PyObject *s, PyObject *a UNUSED) {
@@ -1631,8 +1586,6 @@ free_peer(Peer *peer) {
     if (peer->fd > -1) { nuke_socket(peer->fd); peer->fd = -1; }
 }
 
-#define ALATTY_CMD_PREFIX "\x1bP@kitty-cmd{"
-
 static void
 queue_peer_message(ChildMonitor *self, Peer *peer) {
     talk_mutex(lock);
@@ -1662,36 +1615,6 @@ notify_on_peer_removal(ChildMonitor *self, const Peer *p) {
     m->peer_id = p->id;
 }
 
-static bool
-has_complete_peer_command(Peer *peer) {
-    peer->read.command_end = 0;
-    if (peer->read.used > sizeof(ALATTY_CMD_PREFIX) && memcmp(peer->read.data, ALATTY_CMD_PREFIX, sizeof(ALATTY_CMD_PREFIX)-1) == 0) {
-        for (size_t i = sizeof(ALATTY_CMD_PREFIX)-1; i < peer->read.used - 1; i++) {
-            if (peer->read.data[i] == 0x1b && peer->read.data[i+1] == '\\') {
-                peer->read.command_end = i + 2;
-                break;
-            }
-        }
-    }
-    return peer->read.command_end ? true : false;
-}
-
-
-static void
-dispatch_peer_command(ChildMonitor *self, Peer *peer) {
-    if (peer->read.command_end) {
-        size_t used = peer->read.used;
-        peer->read.used = peer->read.command_end;
-        queue_peer_message(self, peer);
-        peer->read.used = used;
-        if (peer->read.used > peer->read.command_end) {
-            peer->read.used -= peer->read.command_end;
-            memmove(peer->read.data, peer->read.data + peer->read.command_end, peer->read.used);
-        } else peer->read.used = 0;
-        peer->read.command_end = 0;
-    }
-}
-
 static void
 read_from_peer(ChildMonitor *self, Peer *peer) {
 #define failed(msg) { log_error("Reading from peer failed: %s", msg); shutdown(peer->fd, SHUT_RD); peer->read.finished = true; return; }
@@ -1705,7 +1628,6 @@ read_from_peer(ChildMonitor *self, Peer *peer) {
     if (n == 0) {
         peer->read.finished = true;
         shutdown(peer->fd, SHUT_RD);
-        while (has_complete_peer_command(peer)) dispatch_peer_command(self, peer);
         queue_peer_message(self, peer);
         free(peer->read.data); peer->read.data = NULL;
         peer->read.used = 0; peer->read.capacity = 0;
@@ -1713,7 +1635,6 @@ read_from_peer(ChildMonitor *self, Peer *peer) {
         if (errno != EINTR) failed(strerror(errno));
     } else {
         peer->read.used += n;
-        while (has_complete_peer_command(peer)) dispatch_peer_command(self, peer);
     }
 #undef failed
 }
@@ -1757,20 +1678,6 @@ static struct {
     size_t num;
     struct { int peer_fd, pipe_fd; } fds[16];
 } peers_to_inject = {0};
-
-static bool
-add_peer_to_injection_queue(int peer_fd, int pipe_fd) {
-    bool added = false;
-    talk_mutex(lock);
-    if (peers_to_inject.num < arraysz(peers_to_inject.fds)) {
-        peers_to_inject.fds[peers_to_inject.num].peer_fd = peer_fd;
-        peers_to_inject.fds[peers_to_inject.num].pipe_fd = pipe_fd;
-        peers_to_inject.num++;
-        added = true;
-    }
-    talk_mutex(unlock);
-    return added;
-}
 
 static void
 simple_write_to_pipe(int fd, void *data, size_t sz) {
@@ -1894,7 +1801,6 @@ send_response_to_peer(id_type peer_id, const char *msg, size_t msg_sz) {
 // Boilerplate {{{
 static PyMethodDef methods[] = {
     METHOD(add_child, METH_VARARGS)
-    METHOD(inject_peer, METH_O)
     METHOD(needs_write, METH_VARARGS)
     METHOD(start, METH_NOARGS)
     METHOD(wakeup, METH_NOARGS)

@@ -3,7 +3,6 @@
 package loop
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -27,7 +26,6 @@ func new_loop() *Loop {
 	l.terminal_options.alatty_keyboard_mode = DISAMBIGUATE_KEYS | REPORT_ALTERNATE_KEYS | REPORT_ALL_KEYS_AS_ESCAPE_CODES | REPORT_TEXT_WITH_KEYS
 	l.escape_code_parser.HandleCSI = l.handle_csi
 	l.escape_code_parser.HandleOSC = l.handle_osc
-	l.escape_code_parser.HandleDCS = l.handle_dcs
 	l.escape_code_parser.HandleAPC = l.handle_apc
 	l.escape_code_parser.HandleSOS = l.handle_sos
 	l.escape_code_parser.HandlePM = l.handle_pm
@@ -164,16 +162,6 @@ func (self *Loop) handle_key_event(ev *KeyEvent) error {
 func (self *Loop) handle_osc(raw []byte) error {
 	if self.OnEscapeCode != nil {
 		return self.OnEscapeCode(OSC, raw)
-	}
-	return nil
-}
-
-func (self *Loop) handle_dcs(raw []byte) error {
-	if self.OnRCResponse != nil && bytes.HasPrefix(raw, utils.UnsafeStringToBytes("@kitty-cmd")) {
-		return self.OnRCResponse(raw[len("@kitty-cmd"):])
-	}
-	if self.OnEscapeCode != nil {
-		return self.OnEscapeCode(DCS, raw)
 	}
 	return nil
 }

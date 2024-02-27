@@ -56,7 +56,6 @@ func create_truncate_iterator() *truncate_iterator {
 	ans.w.parser.HandleCSI = ans.handle_csi
 	ans.w.parser.HandleOSC = ans.handle_st_terminated_escape_code
 	ans.w.parser.HandleAPC = ans.handle_st_terminated_escape_code
-	ans.w.parser.HandleDCS = ans.handle_st_terminated_escape_code
 	ans.w.parser.HandlePM = ans.handle_st_terminated_escape_code
 	ans.w.parser.HandleSOS = ans.handle_st_terminated_escape_code
 	return &ans

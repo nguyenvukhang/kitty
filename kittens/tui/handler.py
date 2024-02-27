@@ -45,7 +45,6 @@ class Handler:
     use_alternate_screen = True
     mouse_tracking = MouseTracking.none
     terminal_io_ended = False
-    overlay_ready_report_needed = False
 
     def _initialize(
         self,
@@ -53,7 +52,6 @@ class Handler:
         term_manager: TermManagerType,
         schedule_write: Callable[[bytes], None],
         tui_loop: LoopType,
-        debug: Debug,
         image_manager: Optional[ImageManagerType] = None
     ) -> None:
         from .operations import commander
@@ -61,7 +59,6 @@ class Handler:
         self._term_manager = term_manager
         self._tui_loop = tui_loop
         self._schedule_write = schedule_write
-        self.debug = debug
         self.cmd = commander(self)
         self._image_manager = image_manager
         self._button_events: Dict[MouseButton, Deque[ButtonEvent]] = {}
@@ -92,11 +89,9 @@ class Handler:
     def __enter__(self) -> None:
         if self._image_manager is not None:
             self._image_manager.__enter__()
-        self.debug.fobj = self
         self.initialize()
 
     def __exit__(self, etype: type, value: Exception, tb: TracebackType) -> None:
-        del self.debug.fobj
         with suppress(Exception):
             self.finalize()
             if self._image_manager is not None:
@@ -229,7 +224,7 @@ class HandleResult:
 def result_handler(
     type_of_input: Optional[str] = None,
     no_ui: bool = False,
-    has_ready_notification: bool = Handler.overlay_ready_report_needed
+    has_ready_notification: bool = False
 ) -> Callable[[Callable[..., Any]], HandleResult]:
 
     def wrapper(impl: Callable[..., Any]) -> HandleResult:

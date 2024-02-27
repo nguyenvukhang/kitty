@@ -524,7 +524,6 @@ class Window:
         self.actions_on_focus_change: List[Callable[['Window', bool], None]] = []
         self.actions_on_removal: List[Callable[['Window'], None]] = []
         self.current_marker_spec: Optional[Tuple[str, Union[str, Tuple[Tuple[int, str], ...]]]] = None
-        self.kitten_result_processors: List[Callable[['Window', Any], None]] = []
         self.pty_resized_once = False
         self.last_reported_pty_size = (-1, -1, -1, -1)
         self.needs_attention = False
@@ -1086,21 +1085,6 @@ class Window:
     def handle_kitten_result(self, msg: str) -> None:
         import base64
         self.kitten_result = json.loads(base64.b85decode(msg))
-        for processor in self.kitten_result_processors:
-            try:
-                processor(self, self.kitten_result)
-            except Exception:
-                import traceback
-                traceback.print_exc()
-
-    def add_kitten_result_processor(self, callback: Callable[['Window', Any], None]) -> None:
-        self.kitten_result_processors.append(callback)
-
-    def handle_overlay_ready(self, msg: str) -> None:
-        boss = get_boss()
-        tab = boss.tab_for_window(self)
-        if tab is not None:
-            tab.move_window_to_top_of_group(self)
 
     def append_remote_data(self, msg: str) -> str:
         if not msg:
@@ -1113,9 +1097,6 @@ class Window:
             self.current_remote_data = []
         self.current_remote_data.append(rest)
         return ''
-
-    def send_cmd_response(self, response: Any) -> None:
-        self.screen.send_escape_code_to_child(DCS, '@kitty-cmd' + json.dumps(response))
 
     def clipboard_control(self, data: str, is_partial: Optional[bool] = False) -> None:
         if is_partial is None:
@@ -1239,7 +1220,6 @@ class Window:
         self.call_watchers(self.watchers.on_close, {})
         self.destroyed = True
         self.clipboard_request_manager.close()
-        del self.kitten_result_processors
         if hasattr(self, 'screen'):
             if self.is_active and self.os_window_id == current_focused_os_window_id():
                 # Cancel IME composition when window is destroyed

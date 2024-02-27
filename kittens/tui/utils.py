@@ -83,8 +83,6 @@ def set_alatty_opts(paths: Sequence[str], overrides: Sequence[str] = ()) -> 'Opt
 
 def report_error(msg: str = '', return_code: int = 1, print_exc: bool = False) -> None:
     ' Report an error also sending the overlay ready message to ensure kitten is visible '
-    from .operations import overlay_ready
-    print(end=overlay_ready())
     if msg:
         print(msg, file=sys.stderr)
     if print_exc:
