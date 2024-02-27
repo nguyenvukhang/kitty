@@ -9,7 +9,6 @@ import (
 	"strings"
 	"unicode"
 
-	"alatty"
 	"alatty/tools/utils"
 	"alatty/tools/utils/style"
 )
@@ -138,16 +137,6 @@ func (self *Context) Prettify(text string) string {
 			return val
 		case "env", "envvar":
 			return self.ref_hyperlink(val, "envvar-")
-		case "doc":
-			text, target := Text_and_target(val)
-			no_title := text == target
-			target = strings.Trim(target, "/")
-			if title, ok := alatty.DocTitleMap[target]; ok && no_title {
-				val = title + " <" + target + ">"
-			} else {
-				val = text + " <" + target + ">"
-			}
-			return self.ref_hyperlink(val, "doc-")
 		case "iss":
 			return self.ref_hyperlink(val, "issues-")
 		case "pull":

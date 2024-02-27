@@ -234,18 +234,6 @@ def file(x: str) -> str:
     return x
 
 
-@role
-def doc(x: str) -> str:
-    t, q = text_and_target(x)
-    if t == q:
-        from .conf.types import ref_map
-        m = ref_map()['doc']
-        q = q.strip('/')
-        if q in m:
-            x = f'{m[q]} <{t}>'
-    return ref_hyperlink(x, 'doc-')
-
-
 def ref_hyperlink(x: str, prefix: str = '') -> str:
     t, q = text_and_target(x)
     url = f'alatty+doc://{hostname()}/#ref={prefix}{q}'

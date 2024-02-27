@@ -14,12 +14,11 @@ import subprocess
 import sys
 import sysconfig
 import tempfile
-import textwrap
 import time
 from contextlib import suppress
 from functools import lru_cache, partial
 from pathlib import Path
-from typing import Callable, Dict, FrozenSet, Iterable, Iterator, List, Optional, Sequence, Set, Tuple, Union, cast
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union
 
 from glfw import glfw
 from glfw.glfw import Command, CompileKey
@@ -805,20 +804,6 @@ def init_env_from_args(args: Options, native_optimizations: bool = False) -> Non
     )
 
 
-def build_ref_map(skip_generation: bool = False) -> str:
-    dest = 'alatty/docs_ref_map_generated.h'
-    if not skip_generation:
-        d = {'ref': {}, 'doc': {}}
-        h = 'static const char docs_ref_map[] = {\n' + textwrap.fill(', '.join(map(str, bytearray(json.dumps(d, sort_keys=True).encode('utf-8'))))) + '\n};\n'
-        q = ''
-        with suppress(FileNotFoundError), open(dest) as f:
-            q = f.read()
-        if q != h:
-            with open(dest, 'w') as f:
-                f.write(h)
-    return dest
-
-
 def build_uniforms_header(skip_generation: bool = False) -> str:
     dest = 'alatty/uniforms_generated.h'
     if skip_generation:
@@ -877,7 +862,6 @@ def build(args: Options, native_optimizations: bool = True, call_init: bool = Tr
     if call_init:
         init_env_from_args(args, native_optimizations)
     sources, headers = find_c_files()
-    headers.append(build_ref_map(args.skip_code_generation))
     headers.append(build_uniforms_header(args.skip_code_generation))
     compile_c_extension(
         alatty_env(args), 'alatty/fast_data_types', args.compilation_database, sources, headers

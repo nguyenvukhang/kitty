@@ -235,13 +235,6 @@ py_getpeereid(PyObject *self UNUSED, PyObject *args) {
     return Py_BuildValue("ii", u, g);
 }
 
-#include "docs_ref_map_generated.h"
-
-static PyObject*
-get_docs_ref_map(PyObject *self UNUSED, PyObject *args UNUSED) {
-    return PyBytes_FromStringAndSize(docs_ref_map, sizeof(docs_ref_map));
-}
-
 static PyObject*
 wrapped_kittens(PyObject *self UNUSED, PyObject *args UNUSED) {
     const char *wrapped_kitten_names = WRAPPED_KITTENS;
@@ -323,7 +316,6 @@ expand_ansi_c_escapes(PyObject *self UNUSED, PyObject *src) {
 static PyMethodDef module_methods[] = {
     {"wcwidth", (PyCFunction)wcwidth_wrap, METH_O, ""},
     {"expand_ansi_c_escapes", (PyCFunction)expand_ansi_c_escapes, METH_O, ""},
-    {"get_docs_ref_map", (PyCFunction)get_docs_ref_map, METH_NOARGS, ""},
     {"getpeereid", (PyCFunction)py_getpeereid, METH_VARARGS, ""},
     {"wcswidth", (PyCFunction)wcswidth_std, METH_O, ""},
     {"unicode_database_version", (PyCFunction)unicode_database_version, METH_NOARGS, ""},

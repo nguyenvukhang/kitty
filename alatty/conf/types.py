@@ -40,15 +40,6 @@ def expand_opt_references(conf_name: str, text: str) -> str:
     return re.sub(r':opt:`(.+?)`', expand, text)
 
 
-@run_once
-def ref_map() -> Dict[str, Dict[str, str]]:
-    import json
-
-    from ..fast_data_types import get_docs_ref_map
-    ans: Dict[str, Dict[str, str]] = json.loads(get_docs_ref_map())
-    return ans
-
-
 def remove_markup(text: str) -> str:
     def extract(m: 'Match[str]') -> Tuple[str, str]:
         parts = m.group(2).split('<')
