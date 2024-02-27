@@ -158,7 +158,6 @@ class Options:
     extra_include_dirs: List[str] = []
     extra_library_dirs: List[str] = []
     link_time_optimization: bool = 'ALATTY_NO_LTO' not in os.environ
-    shell_integration: str = 'enabled'
     egl_library: Optional[str] = os.getenv('ALATTY_EGL_LIBRARY')
     startup_notification_library: Optional[str] = os.getenv('ALATTY_STARTUP_NOTIFICATION_LIBRARY')
     canberra_library: Optional[str] = os.getenv('ALATTY_CANBERRA_LIBRARY')
@@ -1412,24 +1411,6 @@ def package(args: Options, bundle_type: str) -> None:
     if for_freeze:
         shutil.copytree('alatty_tests', os.path.join(libdir, 'alatty_tests'))
 
-    def repl(name: str, raw: str, defval: Union[str, float, FrozenSet[str]], val: Union[str, float, FrozenSet[str]]) -> str:
-        if defval == val:
-            return raw
-        tname = type(defval).__name__
-        if tname == 'frozenset':
-            tname = 'typing.FrozenSet[str]'
-        prefix = f'{name}: {tname} ='
-        nraw = raw.replace(f'{prefix} {defval!r}', f'{prefix} {val!r}', 1)
-        if nraw == raw:
-            raise SystemExit(f'Failed to change the value of {name}')
-        return nraw
-
-    with open(os.path.join(libdir, 'alatty/options/types.py'), 'r+', encoding='utf-8') as f:
-        oraw = raw = f.read()
-        raw = repl('shell_integration', raw, frozenset(Options.shell_integration.split()), frozenset(args.shell_integration.split()))
-        if raw != oraw:
-            f.seek(0), f.truncate(), f.write(raw)
-
     def should_be_executable(path: str) -> bool:
         if path.endswith('.so'):
             return True
@@ -1623,13 +1604,6 @@ def option_parser() -> argparse.ArgumentParser:  # {{{
         action='append',
         default=Options.extra_library_dirs,
         help='Extra library directories to use while linking'
-    )
-    p.add_argument(
-        '--shell-integration',
-        type=str,
-        default=Options.shell_integration,
-        help='When building a package, the default value for the shell_integration setting will'
-        ' be set to this. Use "enabled no-rc" if you intend to install the shell integration scripts system wide.'
     )
     p.add_argument(
         '--egl-library',

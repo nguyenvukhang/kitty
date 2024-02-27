@@ -894,17 +894,6 @@ def menu_map(val: str, current_val: Container[str]) -> Iterable[Tuple[Tuple[str,
     yield location, parts[1][idx+1:].lstrip()
 
 
-allowed_shell_integration_values = frozenset({'enabled', 'disabled', 'no-rc', 'no-cursor', 'no-title', 'no-prompt-mark', 'no-complete', 'no-cwd', 'no-sudo'})
-
-
-def shell_integration(x: str) -> FrozenSet[str]:
-    q = frozenset(x.lower().split())
-    if not q.issubset(allowed_shell_integration_values):
-        log_error(f'Invalid shell integration options: {q - allowed_shell_integration_values}, ignoring')
-        return q & allowed_shell_integration_values or frozenset({'invalid'})
-    return q
-
-
 def paste_actions(x: str) -> FrozenSet[str]:
     s = frozenset({'quote-urls-at-prompt', 'confirm', 'filter', 'confirm-if-large', 'replace-dangerous-control-codes', 'replace-newline', 'no-op'})
     q = frozenset(x.lower().split(','))

@@ -3462,31 +3462,6 @@ see :doc:`launch`.
 '''
     )
 
-map('Browse output of the last shell command in pager',
-    'show_last_command_output alatty_mod+g show_last_command_output',
-    long_text='''
-You can also define additional shortcuts to get the command output.
-For example, to get the first command output on screen::
-
-    map f1 show_first_command_output_on_screen
-
-To get the command output that was last accessed by a keyboard action or mouse
-action::
-
-    map f1 show_last_visited_command_output
-
-You can pipe the output of the last command run in the shell using the
-:ac:`launch` action. For example, the following opens the output in less in an
-:term:`overlay` window::
-
-    map f1 launch --stdin-source=@last_cmd_output --stdin-add-formatting --type=overlay less +G -R
-
-To get the output of the first command on the screen, use :code:`@first_cmd_output_on_screen`.
-To get the output of the last jumped to command, use :code:`@last_visited_cmd_output`.
-
-Requires :ref:`shell integration <shell_integration>` to work.
-'''
-    )
 egr()  # }}}
 
 

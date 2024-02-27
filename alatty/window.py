@@ -1442,39 +1442,6 @@ class Window:
         text = text.replace('\r\n', '\n').replace('\r', '\n')
         get_boss().display_scrollback(self, text, title=title, report_cursor=False)
 
-    @ac('cp', '''
-        Show output from the first shell command on screen in a pager like less
-
-        Requires :ref:`shell_integration` to work
-        ''')
-    def show_first_command_output_on_screen(self) -> None:
-        self.show_cmd_output(CommandOutput.first_on_screen, 'First command output on screen')
-
-    @ac('cp', '''
-        Show output from the last shell command in a pager like less
-
-        Requires :ref:`shell_integration` to work
-        ''')
-    def show_last_command_output(self) -> None:
-        self.show_cmd_output(CommandOutput.last_run, 'Last command output')
-
-    @ac('cp', '''
-        Show the first command output below the last scrolled position via scroll_to_prompt
-        or the last mouse clicked command output in a pager like less
-
-        Requires :ref:`shell_integration` to work
-        ''')
-    def show_last_visited_command_output(self) -> None:
-        self.show_cmd_output(CommandOutput.last_visited, 'Last visited command output')
-
-    @ac('cp', '''
-        Show the last non-empty output from a shell command in a pager like less
-
-        Requires :ref:`shell_integration` to work
-        ''')
-    def show_last_non_empty_command_output(self) -> None:
-        self.show_cmd_output(CommandOutput.last_non_empty, 'Last non-empty command output')
-
     @ac('cp', 'Paste the specified text into the current window. ANSI C escapes are decoded.')
     def paste(self, text: str) -> None:
         self.paste_with_actions(text)

@@ -331,7 +331,6 @@ def load_ref_map() -> Dict[str, Dict[str, str]]:
 
 
 def generate_constants() -> str:
-    from alatty.options.utils import allowed_shell_integration_values
     ref_map = load_ref_map()
     with open('alatty/data-types.h') as dt:
         m = re.search(r'^#define IMAGE_PLACEHOLDER_CHAR (\S+)', dt.read(), flags=re.M)
@@ -363,13 +362,12 @@ var CharacterKeyNameAliases = map[string]string{serialize_go_dict(character_key_
 var ConfigModMap = map[string]uint16{serialize_go_dict(config_mod_map)}
 var RefMap = map[string]string{serialize_go_dict(ref_map['ref'])}
 var DocTitleMap = map[string]string{serialize_go_dict(ref_map['doc'])}
-var AllowedShellIntegrationValues = []string{{ {str(sorted(allowed_shell_integration_values))[1:-1].replace("'", '"')} }}
 var AlattyConfigDefaults = struct {{
-Term, Shell_integration, Select_by_word_characters, Url_excluded_characters, Shell string
+Term, Select_by_word_characters, Url_excluded_characters, Shell string
 Wheel_scroll_multiplier int
 Url_prefixes []string
 }}{{
-Term: "{Options.term}", Shell_integration: "{' '.join(Options.shell_integration)}", Url_prefixes: []string{{ {url_prefixes} }},
+Term: "{Options.term}", Url_prefixes: []string{{ {url_prefixes} }},
 Select_by_word_characters: `{Options.select_by_word_characters}`, Wheel_scroll_multiplier: {Options.wheel_scroll_multiplier},
 Shell: "{Options.shell}", Url_excluded_characters: "{Options.url_excluded_characters}",
 }}

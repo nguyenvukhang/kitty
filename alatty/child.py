@@ -286,10 +286,7 @@ class Child:
             # xterm, urxvt, konsole and gnome-terminal do not do it in my
             # testing.
             import shlex
-            ksi = ' '.join(opts.shell_integration)
-            if ksi == 'invalid':
-                ksi = 'enabled'
-            argv = [kitten_exe(), 'run-shell', '--shell', shlex.join(argv), '--shell-integration', ksi]
+            argv = [kitten_exe(), 'run-shell', '--shell', shlex.join(argv)]
             if is_macos:
                 # In addition for getlogin() to work we need to run the shell
                 # via the /usr/bin/login wrapper, sigh.

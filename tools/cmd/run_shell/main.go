@@ -16,7 +16,6 @@ var _ = fmt.Print
 
 type Options struct {
 	Shell            string
-	ShellIntegration string
 	Env              []string
 	Cwd              string
 }
@@ -73,22 +72,15 @@ func EntryPoint(root *cli.Command) *cli.Command {
 		},
 	})
 	sc.Add(cli.OptionSpec{
-		Name: "--shell-integration",
-		Help: "Specify a value for the :opt:`shell_integration` option, overriding the one from :file:`alatty.conf`.",
-	})
-	sc.Add(cli.OptionSpec{
 		Name:    "--shell",
 		Default: ".",
-		Help:    "Specify the shell command to run. The default value of :code:`.` will use the parent shell if recognized, falling back to the value of the :opt:`shell` option from :file:`alatty.conf`.",
 	})
 	sc.Add(cli.OptionSpec{
 		Name: "--env",
-		Help: "Specify an env var to set before running the shell. Of the form KEY=VAL. Can be specified multiple times. If no = is present KEY is unset.",
 		Type: "list",
 	})
 	sc.Add(cli.OptionSpec{
 		Name: "--cwd",
-		Help: "The working directory to use when executing the shell.",
 	})
 
 	return sc

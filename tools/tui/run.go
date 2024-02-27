@@ -25,11 +25,11 @@ import (
 var _ = fmt.Print
 
 type AlattyOpts struct {
-	Shell, Shell_integration string
+	Shell string
 }
 
 func read_relevant_alatty_opts(path string) AlattyOpts {
-	ans := AlattyOpts{Shell: alatty.AlattyConfigDefaults.Shell, Shell_integration: alatty.AlattyConfigDefaults.Shell_integration}
+	ans := AlattyOpts{Shell: alatty.AlattyConfigDefaults.Shell}
 	handle_line := func(key, val string) error {
 		switch key {
 		case "shell":
@@ -43,19 +43,6 @@ func read_relevant_alatty_opts(path string) AlattyOpts {
 		ans.Shell = alatty.AlattyConfigDefaults.Shell
 	}
 	return ans
-}
-
-func get_effective_ksi_env_var(x string) string {
-	parts := strings.Split(strings.TrimSpace(strings.ToLower(x)), " ")
-	current := utils.NewSetWithItems(parts...)
-	if current.Has("disabled") {
-		return ""
-	}
-	allowed := utils.NewSetWithItems(alatty.AllowedShellIntegrationValues...)
-	if !current.IsSubsetOf(allowed) {
-		return relevant_alatty_opts().Shell_integration
-	}
-	return x
 }
 
 var relevant_alatty_opts = sync.OnceValue(func() AlattyOpts {
@@ -108,13 +95,6 @@ func ResolveShell(shell string) []string {
 		shell_cmd = []string{"/bin/sh"}
 	}
 	return shell_cmd
-}
-
-func ResolveShellIntegration(shell_integration string) string {
-	if shell_integration == "" {
-		shell_integration = relevant_alatty_opts().Shell_integration
-	}
-	return get_effective_ksi_env_var(shell_integration)
 }
 
 func rc_modification_allowed(ksi string) bool {
