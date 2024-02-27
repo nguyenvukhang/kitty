@@ -253,19 +253,6 @@ convert_from_opts_url_excluded_characters(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_show_hyperlink_targets(PyObject *val, Options *opts) {
-    opts->show_hyperlink_targets = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_show_hyperlink_targets(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "show_hyperlink_targets");
-    if (ret == NULL) return;
-    convert_from_python_show_hyperlink_targets(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_underline_hyperlinks(PyObject *val, Options *opts) {
     opts->underline_hyperlinks = underline_hyperlinks(val);
 }
@@ -1110,8 +1097,6 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     convert_from_opts_url_prefixes(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_url_excluded_characters(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_show_hyperlink_targets(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_underline_hyperlinks(py_opts, opts);
     if (PyErr_Occurred()) return false;

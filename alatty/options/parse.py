@@ -1094,9 +1094,6 @@ class Parser:
     def notify_on_cmd_finish(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['notify_on_cmd_finish'] = notify_on_cmd_finish(val)
 
-    def open_url_with(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['open_url_with'] = to_cmdline(val)
-
     def paste_actions(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['paste_actions'] = paste_actions(val)
 
@@ -1162,9 +1159,6 @@ class Parser:
 
     def shell(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['shell'] = str(val)
-
-    def show_hyperlink_targets(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['show_hyperlink_targets'] = to_bool(val)
 
     def single_window_margin_width(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['single_window_margin_width'] = optional_edge_width(val)

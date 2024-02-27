@@ -43,13 +43,6 @@ def complete(args: List[str]) -> None:
     os.execvp(kitten_exe(), args)
 
 
-def open_urls(args: List[str]) -> None:
-    setattr(sys, 'cmdline_args_for_open', True)
-    sys.argv = ['alatty'] + args[1:]
-    from alatty.main import main as alatty_main
-    alatty_main()
-
-
 def launch(args: List[str]) -> None:
     import runpy
     sys.argv = args[1:]
@@ -160,7 +153,6 @@ namespaced_entry_points['hold'] = hold
 namespaced_entry_points['complete'] = complete
 namespaced_entry_points['runpy'] = runpy
 namespaced_entry_points['launch'] = launch
-namespaced_entry_points['open'] = open_urls
 namespaced_entry_points['kitten'] = run_kitten
 namespaced_entry_points['edit-config'] = edit_config_file
 namespaced_entry_points['shebang'] = shebang

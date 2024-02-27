@@ -51,7 +51,6 @@ from .constants import (
     kitten_exe,
     alatty_exe,
     supports_primary_selection,
-    website_url,
 )
 from .fast_data_types import (
     CLOSE_BEING_CONFIRMED,
@@ -116,13 +115,10 @@ from .utils import (
     less_version,
     log_error,
     macos_version,
-    open_url,
     parse_os_window_state,
     parse_uri_list,
     platform_window_id,
     safe_print,
-    sanitize_url_for_dispay_to_user,
-    single_instance,
     startup_notification_handler,
     which,
 )
@@ -237,8 +233,7 @@ class Boss:
         self.cursor_blinking = True
         self.shutting_down = False
         self.misc_config_errors: List[str] = []
-        talk_fd = getattr(single_instance, 'socket', None)
-        talk_fd = -1 if talk_fd is None else talk_fd.fileno()
+        talk_fd = -1
         listen_fd = -1
         self.listening_on = ''
         self.child_monitor = ChildMonitor(
@@ -751,14 +746,7 @@ class Boss:
             self.io_thread_started = True
             for signum in self.child_monitor.handled_signals():
                 handled_signals.add(signum)
-            urls: List[str] = getattr(sys, 'cmdline_args_for_open', [])
-            if urls:
-                delattr(sys, 'cmdline_args_for_open')
-                sess = create_sessions(get_options(), self.args, special_window=SpecialWindow([alatty_exe(), '+runpy', 'input()']))
-                self.startup_first_child(first_os_window_id, startup_sessions=tuple(sess))
-                self.launch_urls(*urls)
-            else:
-                self.startup_first_child(first_os_window_id, startup_sessions=startup_sessions)
+            self.startup_first_child(first_os_window_id, startup_sessions=startup_sessions)
 
     def handle_click_on_tab(self, os_window_id: int, x: int, button: int, modifiers: int, action: int) -> None:
         tm = self.os_window_map.get(os_window_id)
@@ -1449,73 +1437,14 @@ class Boss:
         if w is not None and tab is not None:
             tab.new_special_window(self.create_special_window_for_show_error(title, msg, w.id), copy_colors_from=w)
 
-    @ac('mk', 'Create a new marker')
-    def create_marker(self) -> None:
-        w = self.active_window
-        if w:
-            spec = None
-
-            def done(data: Dict[str, Any], target_window_id: int, self: Boss) -> None:
-                nonlocal spec
-                spec = data['response']
-
-            def done2(target_window_id: int, self: Boss) -> None:
-                w = self.window_id_map.get(target_window_id)
-                if w is not None and spec:
-                    try:
-                        w.set_marker(spec)
-                    except Exception as err:
-                        self.show_error(_('Invalid marker specification'), str(err))
-
-            self.run_kitten_with_metadata('ask', [
-                '--name=create-marker', '--message',
-                _('Create marker, for example:\ntext 1 ERROR\nSee {}\n').format(website_url('marks'))
-                ],
-                custom_callback=done, action_on_removal=done2)
-
     def switch_focus_to(self, window_id: int) -> None:
         tab = self.active_tab
         if tab:
             tab.set_active_window(window_id)
 
-    def open_alatty_website(self) -> None:
-        self.open_url(website_url())
-
-    @ac('misc', 'Open the specified URL')
-    def open_url(self, url: str, program: Optional[Union[str, List[str]]] = None, cwd: Optional[str] = None) -> None:
-        if not url:
-            return
-        if isinstance(program, str):
-            program = to_cmdline(program)
-        found_action = False
-        if program is None:
-            from .open_actions import actions_for_url
-            actions = list(actions_for_url(url))
-            if actions:
-                found_action = True
-                self.dispatch_action(actions.pop(0))
-                if actions:
-                    self.drain_actions(actions)
-        if not found_action:
-            extra_env = {}
-
-            def doit(activation_token: str = '') -> None:
-                if activation_token:
-                    extra_env['XDG_ACTIVATION_TOKEN'] = activation_token
-                open_url(url, program or get_options().open_url_with, cwd=cwd, extra_env=extra_env)
-
-            if is_wayland():
-                run_with_activation_token(doit)
-            else:
-                doit()
-
     @ac('misc', 'Sleep for the specified time period. Suffix can be s for seconds, m, for minutes, h for hours and d for days. The time can be fractional.')
     def sleep(self, sleep_time: float = 1.0) -> None:
         sleep(sleep_time)
-
-    @ac('misc', 'Click a URL using the keyboard')
-    def open_url_with_hints(self) -> None:
-        self.run_kitten_with_metadata('hints')
 
     def drain_actions(self, actions: List[KeyAction], window_for_dispatch: Optional[Window] = None, dispatch_type: str = 'KeyPress') -> None:
 
@@ -1961,8 +1890,6 @@ class Boss:
         if bad_lines:
             self.show_bad_config_lines(bad_lines)
         self.apply_new_options(opts)
-        from .open_actions import clear_caches
-        clear_caches()
         from .guess_mime_type import clear_mime_cache
         clear_mime_cache()
 
@@ -2201,66 +2128,10 @@ class Boss:
     def close_shared_ssh_connections(self) -> None:
         cleanup_ssh_control_masters()
 
-    def launch_urls(self, *urls: str, no_replace_window: bool = False) -> None:
-        from .launch import force_window_launch
-        from .open_actions import actions_for_launch
-        actions: List[KeyAction] = []
-        failures = []
-        for url in urls:
-            uactions = tuple(actions_for_launch(url))
-            if uactions:
-                actions.extend(uactions)
-            else:
-                failures.append(url)
-        tab = self.active_tab
-        if tab is not None:
-            w = tab.active_window
-        else:
-            w = None
-        needs_window_replaced = False
-        if not no_replace_window and not get_options().startup_session:
-            if w is not None and w.id == 1 and monotonic() - w.started_at < 2 and len(tuple(self.all_windows)) == 1:
-                # first window, soon after startup replace it
-                needs_window_replaced = True
-
-        def clear_initial_window() -> None:
-            if needs_window_replaced and tab is not None and w is not None:
-                tab.remove_window(w)
-
-        if failures:
-            from kittens.tui.operations import styled
-            spec = '\n  '.join(styled(u, fg='yellow') for u in failures)
-            special_window = self.create_special_window_for_show_error('Open URL error', f"Unknown URL type, cannot open:\n  {spec}")
-            if needs_window_replaced and tab is not None:
-                tab.new_special_window(special_window)
-            else:
-                self._new_os_window(special_window)
-            clear_initial_window()
-            needs_window_replaced = False
-        if actions:
-            with force_window_launch(needs_window_replaced):
-                self.dispatch_action(actions.pop(0))
-            clear_initial_window()
-            if actions:
-                self.drain_actions(actions)
-
-    @ac('debug', 'Show the effective configuration alatty is running with')
-    def debug_config(self) -> None:
-        from .debug_config import debug_config
-        w = self.active_window
-        if w is not None:
-            output = debug_config(get_options())
-            set_clipboard_string(re.sub(r'\x1b.+?m', '', output))
-            output += '\n\x1b[35mThis debug output has been copied to the clipboard\x1b[m'
-            self.display_scrollback(w, output, title=_('Current alatty options'), report_cursor=False)
-
     @ac('misc', 'Discard this event completely ignoring it')
     def discard_event(self) -> None:
         pass
     mouse_discard_event = discard_event
-
-    def sanitize_url_for_dispay_to_user(self, url: str) -> str:
-        return sanitize_url_for_dispay_to_user(url)
 
     def on_system_color_scheme_change(self, appearance: int) -> None:
         log_error('system color theme changed:', appearance)

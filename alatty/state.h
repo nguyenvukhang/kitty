@@ -114,7 +114,6 @@ typedef struct {
     AdjustmentUnit unit;
   } underline_position, underline_thickness, strikethrough_position,
       strikethrough_thickness, cell_width, cell_height, baseline;
-  bool show_hyperlink_targets;
   UnderlineHyperlinks underline_hyperlinks;
   int background_blur;
   long macos_titlebar_color;
@@ -395,7 +394,6 @@ typedef enum {
   RELOAD_CONFIG,
   TOGGLE_MACOS_SECURE_KEYBOARD_ENTRY,
   TOGGLE_FULLSCREEN,
-  OPEN_ALATTY_WEBSITE,
   HIDE,
   HIDE_OTHERS,
   MINIMIZE,

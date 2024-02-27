@@ -13,7 +13,6 @@ from gettext import gettext as _
 from itertools import chain
 from time import monotonic
 from typing import (
-    TYPE_CHECKING,
     Any,
     Callable,
     Deque,
@@ -77,7 +76,6 @@ from .fast_data_types import (
     set_window_render_data,
     update_ime_position_for_window,
     update_pointer_shape,
-    update_window_title,
     update_window_visibility,
     wakeup_main_loop,
 )
@@ -95,19 +93,16 @@ from .terminfo import get_capabilities
 from .types import MouseEvent, OverlayType, WindowGeometry, ac, run_once
 from .typing import BossType, ChildType, EdgeLiteral, TabType, TypedDict
 from .utils import (
-    docs_url,
     key_val_matcher,
     alatty_ansi_sanitizer_pat,
     log_error,
     open_cmd,
-    open_url,
     parse_color_set,
     path_from_osc7_url,
     resolve_custom_file,
     sanitize_control_codes,
     sanitize_for_bracketed_paste,
     sanitize_title,
-    sanitize_url_for_dispay_to_user,
 )
 
 MatchPatternType = Union[Pattern[str], Tuple[Pattern[str], Optional[Pattern[str]]]]
@@ -932,36 +927,6 @@ class Window:
             return False
         return get_boss().combine(action, window_for_dispatch=self, dispatch_type='MouseEvent')
 
-    def open_url(self, url: str, hyperlink_id: int, cwd: Optional[str] = None) -> None:
-        opts = get_options()
-        if hyperlink_id:
-            if not opts.allow_hyperlinks:
-                return
-            from urllib.parse import urlparse, urlunparse
-            try:
-                purl = urlparse(url)
-            except Exception:
-                return
-            if (not purl.scheme or purl.scheme == 'file'):
-                if purl.netloc:
-                    url = urlunparse(purl._replace(netloc=''))
-            if opts.allow_hyperlinks & 0b10:
-                from kittens.tui.operations import styled
-                get_boss().choose(
-                    'What would you like to do with this URL:\n' + styled(sanitize_url_for_dispay_to_user(url), fg='yellow'),
-                    partial(self.hyperlink_open_confirmed, url, cwd),
-                    'o:Open', 'c:Copy to clipboard', 'n;red:Nothing', default='o',
-                    window=self, title=_('Hyperlink activated'),
-                )
-                return
-        get_boss().open_url(url, cwd=cwd)
-
-    def hyperlink_open_confirmed(self, url: str, cwd: Optional[str], q: str) -> None:
-        if q == 'o':
-            get_boss().open_url(url, cwd=cwd)
-        elif q == 'c':
-            set_clipboard_string(url)
-
     def send_signal_for_key(self, key_num: bytes) -> bool:
         try:
             return self.child.send_signal_for_key(key_num)
@@ -1487,8 +1452,6 @@ class Window:
         if text:
             if args:
                 open_cmd(args, text, cwd=cwd)
-            else:
-                open_url(text, cwd=cwd)
 
     @ac('cp', 'Clear the current selection')
     def clear_selection(self) -> None:
@@ -1615,22 +1578,6 @@ class Window:
         if pid is not None:
             for sig in signals:
                 os.kill(pid, sig)
-
-    @ac('misc', '''
-    Display the specified alatty documentation, preferring a local copy, if found.
-
-    For example::
-
-        # show the config docs
-        map f1 show_alatty_doc conf
-        # show the ssh kitten docs
-        map f1 show_alatty_doc kittens/ssh
-    ''')
-    def show_alatty_doc(self, which: str = '') -> None:
-        url = docs_url(which)
-        get_boss().open_url(url)
-    # }}}
-
 
 def set_pointer_shape(screen: Screen, value: str, os_window_id: int = 0) -> str:
     op, ret = '=', ''

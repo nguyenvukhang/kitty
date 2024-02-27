@@ -381,7 +381,6 @@ option_names = (  # {{{
  'mouse_map',
  'narrow_symbols',
  'notify_on_cmd_finish',
- 'open_url_with',
  'paste_actions',
  'placement_strategy',
  'pointer_shape_when_dragging',
@@ -399,7 +398,6 @@ option_names = (  # {{{
  'selection_background',
  'selection_foreground',
  'shell',
- 'show_hyperlink_targets',
  'single_window_margin_width',
  'single_window_padding_width',
  'startup_session',
@@ -530,7 +528,6 @@ class Options:
     mark3_foreground: Color = Color(0, 0, 0)
     mouse_hide_wait: float = 0.0 if is_macos else 3.0
     notify_on_cmd_finish: NotifyOnCmdFinish = NotifyOnCmdFinish(when='never', duration=5.0, action='notify', cmdline=())
-    open_url_with: typing.List[str] = ['default']
     paste_actions: typing.FrozenSet[str] = frozenset({'confirm', 'quote-urls-at-prompt'})
     placement_strategy: choices_for_placement_strategy = 'center'
     pointer_shape_when_dragging: choices_for_pointer_shape_when_dragging = 'beam'
@@ -548,7 +545,6 @@ class Options:
     selection_background: typing.Optional[alatty.fast_data_types.Color] = Color(255, 250, 205)
     selection_foreground: typing.Optional[alatty.fast_data_types.Color] = Color(0, 0, 0)
     shell: str = '.'
-    show_hyperlink_targets: bool = False
     single_window_margin_width: FloatEdges = FloatEdges(left=-1.0, top=-1.0, right=-1.0, bottom=-1.0)
     single_window_padding_width: FloatEdges = FloatEdges(left=-1.0, top=-1.0, right=-1.0, bottom=-1.0)
     startup_session: typing.Optional[str] = None
@@ -832,8 +828,6 @@ defaults.map = [
     KeyDefinition(trigger=SingleKey(mods=256, key=57412), definition='change_font_size all -2.0'), 
     # reset_font_size
     KeyDefinition(trigger=SingleKey(mods=256, key=57347), definition='change_font_size all 0'), 
-    # open_url
-    KeyDefinition(trigger=SingleKey(mods=256, key=101), definition='open_url_with_hints'), 
     # insert_selected_path
     KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=102),), definition='kitten hints --type path --program -'), 
     # open_selected_path
@@ -848,8 +842,6 @@ defaults.map = [
     KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=110),), definition='kitten hints --type linenum'), 
     # open_selected_hyperlink
     KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=121),), definition='kitten hints --type hyperlink'), 
-    # show_alatty_doc
-    KeyDefinition(trigger=SingleKey(mods=256, key=57364), definition='show_alatty_doc overview'), 
     # toggle_fullscreen
     KeyDefinition(trigger=SingleKey(mods=256, key=57374), definition='toggle_fullscreen'), 
     # toggle_maximized
@@ -872,8 +864,6 @@ defaults.map = [
     KeyDefinition(trigger=SingleKey(mods=256, key=57349), definition='clear_terminal reset active'), 
     # reload_config_file
     KeyDefinition(trigger=SingleKey(mods=256, key=57368), definition='load_config_file'), 
-    # debug_config
-    KeyDefinition(trigger=SingleKey(mods=256, key=57369), definition='debug_config'), 
 ]
 if is_macos:
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=99), definition='copy_to_clipboard'))
@@ -918,8 +908,6 @@ if is_macos:
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=114), definition='clear_terminal reset active'))
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=107), definition='clear_terminal to_cursor active'))
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=12, key=44), definition='load_config_file'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=44), definition='debug_config'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=47), definition='open_url https://sw.kovidgoyal.net/alatty/'))
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=104), definition='hide_macos_app'))
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=104), definition='hide_macos_other_apps'))
     defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=109), definition='minimize_macos_window'))

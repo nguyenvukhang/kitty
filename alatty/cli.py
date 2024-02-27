@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, FrozenSet, Iterator, List, Match, Option
 
 from .cli_stub import CLIOptions
 from .conf.utils import resolve_config
-from .constants import appname, clear_handled_signals, config_dir, default_pager_for_help, defconf, is_macos, str_version, website_url
+from .constants import appname, clear_handled_signals, config_dir, default_pager_for_help, defconf, is_macos, str_version
 from .fast_data_types import wcswidth
 from .options.types import Options as AlattyOpts
 from .types import run_once
@@ -460,10 +460,8 @@ default_msg = ('''\
 Run the :italic:`{appname}` terminal emulator. You can also specify the
 :italic:`program` to run inside :italic:`{appname}` as normal arguments
 following the :italic:`options`.
-For example: {appname} --hold sh -c "echo hello, world"
-
-For comprehensive documentation for alatty, please see: {url}''').format(
-    appname=appname, url=website_url())
+For example: {appname} --hold sh -c "echo hello, world"''').format(
+    appname=appname)
 
 
 class PrintHelpForSeq:

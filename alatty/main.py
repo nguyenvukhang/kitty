@@ -27,7 +27,6 @@ from .constants import (
     alatty_exe,
     logo_png_file,
     running_in_alatty,
-    website_url,
 )
 from .fast_data_types import (
     GLFW_MOD_ALT,
@@ -50,7 +49,6 @@ from .options.utils import DELETE_ENV_VAR
 from .os_window_size import initial_window_size_func
 from .session import create_sessions, get_os_window_sizing_data
 from .shaders import CompileError, load_shader_programs
-from .types import SingleInstanceData
 from .utils import (
     cleanup_ssh_control_masters,
     detach,
@@ -60,70 +58,8 @@ from .utils import (
     parse_os_window_state,
     safe_mtime,
     shlex_split,
-    single_instance,
     startup_notification_handler,
-    unix_socket_paths,
 )
-
-
-def set_custom_ibeam_cursor() -> None:
-    with open(beam_cursor_data_file, 'rb') as f:
-        data = f.read()
-    rgba_data, width, height = load_png_data(data)
-    c2x = os.path.splitext(beam_cursor_data_file)
-    with open(f'{c2x[0]}@2x{c2x[1]}', 'rb') as f:
-        data = f.read()
-    rgba_data2, width2, height2 = load_png_data(data)
-    images = (rgba_data, width, height), (rgba_data2, width2, height2)
-    try:
-        set_custom_cursor("beam", images, 4, 8)
-    except Exception as e:
-        log_error(f'Failed to set custom beam cursor with error: {e}')
-
-
-def talk_to_instance(args: CLIOptions) -> None:
-    import json
-    import socket
-    session_data = ''
-    if args.session == '-':
-        session_data = sys.stdin.read()
-    elif args.session == 'none':
-        session_data = 'none'
-    elif args.session:
-        with open(args.session) as f:
-            session_data = f.read()
-
-    data: SingleInstanceData = {
-        'cmd': 'new_instance', 'args': tuple(sys.argv), 'cmdline_args_for_open': getattr(sys, 'cmdline_args_for_open', ()),
-        'cwd': os.getcwd(), 'session_data': session_data, 'environ': dict(os.environ), 'notify_on_os_window_death': None
-    }
-    notify_socket = None
-    if args.wait_for_single_instance_window_close:
-        address = f'\0{appname}-os-window-close-notify-{os.getpid()}-{os.geteuid()}'
-        notify_socket = socket.socket(family=socket.AF_UNIX)
-        try:
-            notify_socket.bind(address)
-        except FileNotFoundError:
-            for address in unix_socket_paths(address[1:], ext='.sock'):
-                notify_socket.bind(address)
-                break
-        data['notify_on_os_window_death'] = address
-        notify_socket.listen()
-
-    sdata = json.dumps(data, ensure_ascii=False).encode('utf-8')
-    assert single_instance.socket is not None
-    single_instance.socket.sendall(sdata)
-    with suppress(OSError):
-        single_instance.socket.shutdown(socket.SHUT_RDWR)
-    single_instance.socket.close()
-
-    if args.wait_for_single_instance_window_close:
-        assert notify_socket is not None
-        conn = notify_socket.accept()[0]
-        conn.recv(1)
-        with suppress(OSError):
-            conn.shutdown(socket.SHUT_RDWR)
-        conn.close()
 
 
 def load_all_shaders(semi_transparent: bool = False) -> None:
@@ -240,9 +176,6 @@ def set_cocoa_global_shortcuts(opts: Options) -> Dict[str, SingleKey]:
         val = get_macos_shortcut_for(func_map, 'load_config_file', lookup_name='reload_config')
         if val is not None:
             global_shortcuts['reload_config'] = val
-        val = get_macos_shortcut_for(func_map, f'open_url {website_url()}', lookup_name='open_alatty_website')
-        if val is not None:
-            global_shortcuts['open_alatty_website'] = val
     return global_shortcuts
 
 
@@ -469,21 +402,9 @@ def _main() -> None:
         cwd_ok = False
     if not cwd_ok:
         os.chdir(os.path.expanduser('~'))
-    if getattr(sys, 'cmdline_args_for_open', False):
-        usage: Optional[str] = 'file_or_url ...'
-        appname: Optional[str] = 'alatty +open'
-        msg: Optional[str] = (
-            'Run alatty and open the specified files or URLs in it, using launch-actions.conf. For details'
-            ' see https://sw.kovidgoyal.net/alatty/open_actions/#scripting-the-opening-of-files-with-alatty-on-macos'
-            '\n\nAll the normal alatty options can be used.')
-    else:
-        usage = msg = appname = None
+    usage = msg = appname = None
     cli_opts, rest = parse_args(args=args, result_class=CLIOptions, usage=usage, message=msg, appname=appname)
-    if getattr(sys, 'cmdline_args_for_open', False):
-        setattr(sys, 'cmdline_args_for_open', rest)
-        cli_opts.args = []
-    else:
-        cli_opts.args = rest
+    cli_opts.args = rest
     if cli_opts.detach:
         if cli_opts.session == '-':
             from .session import PreReadSession
@@ -493,11 +414,6 @@ def _main() -> None:
         from alatty.client import main as client_main
         client_main(cli_opts.replay_commands)
         return
-    if cli_opts.single_instance:
-        is_first = single_instance(cli_opts.instance_group)
-        if not is_first:
-            talk_to_instance(cli_opts)
-            return
     bad_lines: List[BadLine] = []
     opts = create_opts(cli_opts, accumulate_bad_lines=bad_lines)
     setup_environment(opts, cli_opts)

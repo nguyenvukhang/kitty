@@ -286,10 +286,6 @@ def open_cmd(cmd: Union[Iterable[str], List[str]], arg: Union[None, Iterable[str
         preexec_fn=clear_handled_signals, env=env)
 
 
-def open_url(url: str, program: Union[str, List[str]] = 'default', cwd: Optional[str] = None, extra_env: Optional[Dict[str, str]] = None) -> 'PopenType[bytes]':
-    return open_cmd(command_for_open(program), url, cwd=cwd, extra_env=extra_env)
-
-
 def detach(fork: bool = True, setsid: bool = True, redirect: bool = True) -> None:
     if fork:
         # Detach from the controlling process.
@@ -429,71 +425,6 @@ def random_unix_socket() -> 'Socket':
     ans.set_inheritable(False)
     ans.setblocking(False)
     return ans
-
-
-def single_instance_unix(name: str) -> bool:
-    import socket
-    for path in unix_socket_paths(name):
-        socket_path = path.rpartition('.')[0] + '.sock'
-        fd = os.open(path, os.O_CREAT | os.O_WRONLY | os.O_TRUNC | os.O_CLOEXEC)
-        try:
-            fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError as err:
-            if err.errno in (errno.EAGAIN, errno.EACCES):
-                # Client
-                s = socket.socket(family=socket.AF_UNIX)
-                s.connect(socket_path)
-                single_instance.socket = s
-                return False
-            raise
-        s = socket.socket(family=socket.AF_UNIX)
-        try:
-            s.bind(socket_path)
-        except OSError as err:
-            if err.errno in (errno.EADDRINUSE, errno.EEXIST):
-                os.unlink(socket_path)
-                s.bind(socket_path)
-            else:
-                raise
-        single_instance.socket = s  # prevent garbage collection from closing the socket
-        atexit.register(remove_socket_file, s, socket_path)
-        s.listen()
-        s.set_inheritable(False)
-        return True
-    return False
-
-
-class SingleInstance:
-
-    socket: Optional['Socket'] = None
-
-    def __call__(self, group_id: Optional[str] = None) -> bool:
-        import socket
-        name = f'{appname}-ipc-{os.geteuid()}'
-        if group_id:
-            name += f'-{group_id}'
-
-        s = socket.socket(family=socket.AF_UNIX)
-        # First try with abstract UDS
-        addr = '\0' + name
-        try:
-            s.bind(addr)
-        except OSError as err:
-            if err.errno == errno.ENOENT:
-                return single_instance_unix(name)
-            if err.errno == errno.EADDRINUSE:
-                s.connect(addr)
-                self.socket = s
-                return False
-            raise
-        s.listen()
-        self.socket = s  # prevent garbage collection from closing the socket
-        s.set_inheritable(False)
-        atexit.register(remove_socket_file, s)
-        return True
-
-
-single_instance = SingleInstance()
 
 
 def parse_os_window_state(state: str) -> int:
@@ -1079,34 +1010,6 @@ def safer_fork() -> int:
     return pid
 
 
-def docs_url(which: str = '', local_docs_root: Optional[str] = '') -> str:
-    from urllib.parse import quote
-
-    from .conf.types import resolve_ref
-    from .constants import local_docs, website_url
-    if local_docs_root is None:
-        ld = ''
-    else:
-        ld = local_docs_root or local_docs()
-    base, frag = which.partition('#')[::2]
-    base = base.strip('/')
-    if frag.startswith('ref='):
-        ref = frag[4:]
-        which = resolve_ref(ref, lambda x: x)
-        if which.startswith('https://') or which.startswith('http://'):
-            return which
-        base, frag = which.partition('#')[::2]
-        base = base.strip('/')
-    if ld:
-        base = base or 'index'
-        url = f'file://{ld}/' + quote(base) + '.html'
-    else:
-        url = website_url(base)
-    if frag:
-        url += '#' + frag
-    return url
-
-
 def sanitize_for_bracketed_paste(text: bytes) -> bytes:
     pat = re.compile(b'(?:(?:\033\\\x5b)|(?:\x9b))201~')
     while True:
@@ -1115,21 +1018,6 @@ def sanitize_for_bracketed_paste(text: bytes) -> bytes:
             break
         text = new_text
     return text
-
-
-@lru_cache(maxsize=64)
-def sanitize_url_for_dispay_to_user(url: str) -> str:
-    from urllib.parse import unquote, urlparse, urlunparse
-    try:
-        purl = urlparse(url)
-        if purl.netloc:
-            purl = purl._replace(netloc=purl.netloc.encode('idna').decode('ascii'))
-        if purl.path:
-            purl = purl._replace(path=unquote(purl.path))
-        url = urlunparse(purl)
-    except Exception:
-        url = 'Unparseable URL: ' + url
-    return url
 
 
 def extract_all_from_tarfile_safely(tf: 'tarfile.TarFile', dest: str) -> None:

@@ -6,7 +6,6 @@
 import string
 
 from alatty.conf.types import Action, Definition
-from alatty.constants import website_url
 
 definition = Definition(
     'alatty',
@@ -430,16 +429,6 @@ opt('url_style', 'curly',
     option_type='url_style', ctype='uint',
     )
 
-opt('open_url_with', 'default',
-    option_type='to_cmdline',
-    long_text='''
-The program to open clicked URLs. The special value :code:`default` will first
-look for any URL handlers defined via the :doc:`open_actions` facility and if
-non are found, it will use the Operating System's default URL handler
-(:program:`open` on macOS and :program:`xdg-open` on Linux).
-'''
-    )
-
 opt('url_prefixes', 'file ftp ftps gemini git gopher http https irc ircs alatty mailto news sftp ssh',
     option_type='url_prefixes', ctype='!url_prefixes',
     long_text='''
@@ -459,14 +448,6 @@ characters can be specified using backslash escapes, to specify a backslash use
 a double backslash.
 '''
     )
-
-opt('show_hyperlink_targets', 'no',
-    option_type='to_bool', ctype='bool',
-    long_text='''
-When the mouse hovers over a terminal hyperlink, show the actual URL that will
-be activated when the hyperlink is clicked.
-''')
-
 
 opt('underline_hyperlinks', 'hover', choices=('hover', 'always', 'never'),
     ctype='underline_hyperlinks', long_text='''
@@ -488,14 +469,6 @@ copied to clipboard. Useful on platforms such as macOS that do not have the
 concept of primary selection. You can instead specify a name such as :code:`a1`
 to copy to a private alatty buffer. Map a shortcut with the
 :code:`paste_from_buffer` action to paste from this private buffer.
-For example::
-
-    copy_on_select a1
-    map shift+cmd+v paste_from_buffer a1
-
-Note that copying to the clipboard is a security risk, as all programs,
-including websites open in your browser can read the contents of the system
-clipboard.
 '''
     )
 
@@ -3780,14 +3753,6 @@ Use the hints kitten to select text and either pass it to an external program or
 insert it into the terminal or copy it to the clipboard.
 ''')
 
-map('Open URL',
-    'open_url alatty_mod+e open_url_with_hints',
-    long_text='''
-Open a currently visible URL using the keyboard. The program used to open the
-URL is specified in :opt:`open_url_with`.
-'''
-    )
-
 map('Insert selected path',
     'insert_selected_path alatty_mod+p>f kitten hints --type path --program -',
     long_text='''
@@ -3846,9 +3811,6 @@ shortcuts. For a full description see :doc:`hints kitten </kittens/hints>`.
 
 # shortcuts.misc {{{
 agr('shortcuts.misc', 'Miscellaneous')
-
-map('Show documentation',
-    'show_alatty_doc alatty_mod+f1 show_alatty_doc overview')
 
 map('Toggle fullscreen',
     'toggle_fullscreen alatty_mod+f11 toggle_fullscreen',
@@ -3991,20 +3953,6 @@ map('Reload alatty.conf',
     only='macos'
     )
 
-map('Debug alatty configuration',
-    'debug_config alatty_mod+f6 debug_config',
-    long_text='''
-Show details about exactly what configuration alatty is running with and its host
-environment. Useful for debugging issues.
-'''
-    )
-
-map('Debug alatty configuration',
-    'debug_config opt+cmd+, debug_config',
-    only='macos'
-    )
-
-
 map('Send arbitrary text on key presses',
     'send_text ctrl+shift+alt+h send_text all Hello World',
     add_to_default=False,
@@ -4036,11 +3984,6 @@ Some more examples::
     # Run a command at a shell prompt (like typing the command and pressing Enter)
     map ctrl+alt+a send_text normal,application some command with arguments\\r
 '''
-    )
-
-map('Open alatty Website',
-    f'open_alatty_website shift+cmd+/ open_url {website_url()}',
-    only='macos',
     )
 
 map('Hide macOS alatty application',

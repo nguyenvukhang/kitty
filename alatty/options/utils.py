@@ -122,20 +122,6 @@ def kitten_parse(func: str, rest: str) -> FuncArgsType:
     return func, [args[0]] + (to_cmdline(args[1]) if len(args) > 1 else [])
 
 
-@func_with_args('open_url')
-def open_url_parse(func: str, rest: str) -> FuncArgsType:
-    from urllib.parse import urlparse
-    url = ''
-    try:
-        url = python_string(rest)
-        tokens = urlparse(url)
-        if not all((tokens.scheme, tokens.netloc,)):
-            raise ValueError('Invalid URL')
-    except Exception:
-        log_error('Ignoring invalid URL string: ' + rest)
-    return func, (url,)
-
-
 @func_with_args('goto_tab')
 def goto_tab_parse(func: str, rest: str) -> FuncArgsType:
     args = (max(0, int(rest)), )
@@ -164,7 +150,7 @@ def detach_tab_parse(func: str, rest: str) -> FuncArgsType:
     return func, (rest,)
 
 
-@func_with_args('set_background_opacity', 'goto_layout', 'toggle_layout', 'alatty_shell', 'show_alatty_doc', 'set_tab_title', 'push_keyboard_mode')
+@func_with_args('set_background_opacity', 'goto_layout', 'toggle_layout', 'alatty_shell', 'set_tab_title', 'push_keyboard_mode')
 def simple_parse(func: str, rest: str) -> FuncArgsType:
     return func, [rest]
 

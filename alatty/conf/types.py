@@ -10,7 +10,6 @@ from importlib import import_module
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Match, Optional, Set, Tuple, Union, cast
 
 import alatty.conf.utils as generic_parsers
-from alatty.constants import website_url
 from alatty.types import run_once
 
 if typing.TYPE_CHECKING:
@@ -50,37 +49,7 @@ def ref_map() -> Dict[str, Dict[str, str]]:
     return ans
 
 
-def resolve_ref(ref: str, website_url: Callable[[str], str] = website_url) -> str:
-    m = ref_map()
-    href = m['ref'].get(ref, '')
-    prefix, rest = ref.partition('-')[::2]
-    if href:
-        pass
-    elif ref.startswith('conf-alatty-'):
-        href = f'conf#{ref}'
-    elif ref.startswith('conf-kitten-'):
-        parts = ref.split('-')
-        href = "kittens/" + parts[2] + f'/#{ref}'
-    elif ref.startswith('action-group-'):
-        href = f'actions/#{ref}'
-    elif prefix == 'action':
-        href = f'actions/#{rest.replace("_", "-")}'
-    elif prefix in ('term', 'envvar'):
-        href = 'glossary/#' + ref
-    elif prefix == 'doc':
-        href = rest.lstrip('/')
-    elif prefix in ('issues', 'pull', 'discussions'):
-        t, num = ref.partition(':')[::2]
-        href = f'https://github.com/kovidgoyal/alatty/{prefix}/{rest}'
-    if not (href.startswith('https://') or href.startswith('http://')):
-        href = website_url(href)
-    return href
-
-
 def remove_markup(text: str) -> str:
-
-    imap = {'iss': 'issues-', 'pull': 'pull-', 'disc': 'discussions-'}
-
     def extract(m: 'Match[str]') -> Tuple[str, str]:
         parts = m.group(2).split('<')
         t = parts[0].strip()
@@ -89,16 +58,6 @@ def remove_markup(text: str) -> str:
 
     def sub(m: 'Match[str]') -> str:
         key = m.group(1)
-        if key in ('ref', 'iss', 'pull', 'disc'):
-            t, q = extract(m)
-            q = imap.get(key, '') + q
-            url = resolve_ref(q)
-            if not url:
-                raise KeyError(f'Failed to resolve :{m.group(1)}: {q}')
-            return f'{t} <{url}>'
-        if key == 'doc':
-            t, q = extract(m)
-            return f'{t} <{website_url(q)}>'
         if key in ('term', 'option'):
             t, _ = extract(m)
             return t
