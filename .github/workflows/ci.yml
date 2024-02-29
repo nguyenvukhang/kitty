@@ -1,11 +1,7 @@
 name: CI
-on: [push]
-env:
-  LC_ALL: en_US.UTF-8
-  LANG: en_US.UTF-8
 
-permissions:
-  contents: read # to fetch code (actions/checkout)
+on:
+  - push
 
 jobs:
   ancestry:
@@ -17,10 +13,19 @@ jobs:
         with:
           fetch-tags: true
           fetch-depth: 0
+      - uses: actions/checkout@v4
+        with:
+          path: "@"
+          repository: nguyenvukhang/alatty.wiki
       - id: ancestry
         run: |
-          OUTPUT=$(python .github/workflows/ancestry.py)
+          OUTPUT=$(python .github/workflows/ancestry.py get @/stable_commits)
+          echo "${OUTPUT}"
           echo "ancestry=${OUTPUT}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ancestry
+          path: .github/workflows/ancestry.py
 
   linux:
     needs: ancestry
@@ -45,8 +50,16 @@ jobs:
             libdbus-1-dev libxkbcommon-dev libharfbuzz-dev libx11-xcb-dev \
             libpng-dev liblcms2-dev libfontconfig-dev libxkbcommon-x11-dev \
             libcanberra-dev libxxhash-dev uuid-dev libsimde-dev
+
       - name: Build alatty
         run: python setup.py
+
+      # mark this run as ok
+      - run: touch linux-${{ matrix.commit }}.ok
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.commit }}.ok
+          path: linux-${{ matrix.commit }}.ok
 
   macos:
     needs: ancestry
@@ -68,5 +81,37 @@ jobs:
           HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
             brew install pkg-config zlib imagemagick harfbuzz xxhash \
             || echo "lol"
+
       - name: Build alatty
         run: python build.py
+
+      # mark this run as ok
+      - run: touch macos-${{ matrix.commit }}.ok
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.commit }}.ok
+          path: macos-${{ matrix.commit }}.ok
+
+  save_output:
+    needs: [linux, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: nguyenvukhang/alatty.wiki
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: "*.ok"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ancestry
+      - run: |
+          # set git user for git commits
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+          python ancestry.py set >> stable_commits
+          git add stable_commits
+          git commit --amend --no-edit
+          git push -f origin master
