@@ -703,7 +703,6 @@ prepare_to_render_os_window(OSWindow *os_window, monotonic_t now, unsigned int *
                 }
             }
             if (send_cell_data_to_gpu(WD.vao_idx, WD.xstart, WD.ystart, WD.dx, WD.dy, WD.screen, os_window)) needs_render = true;
-            if (WD.screen->start_visual_bell_at != 0) needs_render = true;
         }
     }
     return needs_render;
@@ -737,9 +736,6 @@ render_prepared_os_window(OSWindow *os_window, unsigned int active_window_id, co
         if (w->visible && WD.screen) {
             bool is_active_window = i == tab->active_window;
             draw_cells(WD.vao_idx, &WD, os_window, is_active_window, true, w);
-            if (WD.screen->start_visual_bell_at != 0) {
-                set_maximum_wait(OPT(repaint_delay));
-            }
             w->cursor_visible_at_last_render = WD.screen->cursor_render_info.is_visible; w->last_cursor_x = WD.screen->cursor_render_info.x; w->last_cursor_y = WD.screen->cursor_render_info.y; w->last_cursor_shape = WD.screen->cursor_render_info.shape;
         }
     }

@@ -201,32 +201,6 @@ convert_from_opts_mouse_hide_wait(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_url_color(PyObject *val, Options *opts) {
-    opts->url_color = color_as_int(val);
-}
-
-static void
-convert_from_opts_url_color(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "url_color");
-    if (ret == NULL) return;
-    convert_from_python_url_color(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_url_style(PyObject *val, Options *opts) {
-    opts->url_style = PyLong_AsUnsignedLong(val);
-}
-
-static void
-convert_from_opts_url_style(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "url_style");
-    if (ret == NULL) return;
-    convert_from_python_url_style(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_url_prefixes(PyObject *val, Options *opts) {
     url_prefixes(val, opts);
 }
@@ -249,19 +223,6 @@ convert_from_opts_url_excluded_characters(PyObject *py_opts, Options *opts) {
     PyObject *ret = PyObject_GetAttrString(py_opts, "url_excluded_characters");
     if (ret == NULL) return;
     convert_from_python_url_excluded_characters(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_underline_hyperlinks(PyObject *val, Options *opts) {
-    opts->underline_hyperlinks = underline_hyperlinks(val);
-}
-
-static void
-convert_from_opts_underline_hyperlinks(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "underline_hyperlinks");
-    if (ret == NULL) return;
-    convert_from_python_underline_hyperlinks(ret, opts);
     Py_DECREF(ret);
 }
 
@@ -301,19 +262,6 @@ convert_from_opts_click_interval(PyObject *py_opts, Options *opts) {
     PyObject *ret = PyObject_GetAttrString(py_opts, "click_interval");
     if (ret == NULL) return;
     convert_from_python_click_interval(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_focus_follows_mouse(PyObject *val, Options *opts) {
-    opts->focus_follows_mouse = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_focus_follows_mouse(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "focus_follows_mouse");
-    if (ret == NULL) return;
-    convert_from_python_focus_follows_mouse(ret, opts);
     Py_DECREF(ret);
 }
 
@@ -396,71 +344,6 @@ convert_from_opts_sync_to_monitor(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_enable_audio_bell(PyObject *val, Options *opts) {
-    opts->enable_audio_bell = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_enable_audio_bell(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "enable_audio_bell");
-    if (ret == NULL) return;
-    convert_from_python_enable_audio_bell(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_visual_bell_duration(PyObject *val, Options *opts) {
-    opts->visual_bell_duration = parse_s_double_to_monotonic_t(val);
-}
-
-static void
-convert_from_opts_visual_bell_duration(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "visual_bell_duration");
-    if (ret == NULL) return;
-    convert_from_python_visual_bell_duration(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_window_alert_on_bell(PyObject *val, Options *opts) {
-    opts->window_alert_on_bell = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_window_alert_on_bell(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "window_alert_on_bell");
-    if (ret == NULL) return;
-    convert_from_python_window_alert_on_bell(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_bell_path(PyObject *val, Options *opts) {
-    bell_path(val, opts);
-}
-
-static void
-convert_from_opts_bell_path(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "bell_path");
-    if (ret == NULL) return;
-    convert_from_python_bell_path(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_linux_bell_theme(PyObject *val, Options *opts) {
-    bell_theme(val, opts);
-}
-
-static void
-convert_from_opts_linux_bell_theme(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "linux_bell_theme");
-    if (ret == NULL) return;
-    convert_from_python_linux_bell_theme(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_active_border_color(PyObject *val, Options *opts) {
     opts->active_border_color = active_border_color(val);
 }
@@ -483,19 +366,6 @@ convert_from_opts_inactive_border_color(PyObject *py_opts, Options *opts) {
     PyObject *ret = PyObject_GetAttrString(py_opts, "inactive_border_color");
     if (ret == NULL) return;
     convert_from_python_inactive_border_color(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_bell_border_color(PyObject *val, Options *opts) {
-    opts->bell_border_color = color_as_int(val);
-}
-
-static void
-convert_from_opts_bell_border_color(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "bell_border_color");
-    if (ret == NULL) return;
-    convert_from_python_bell_border_color(ret, opts);
     Py_DECREF(ret);
 }
 
@@ -734,32 +604,6 @@ convert_from_opts_background_image(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_background_image_layout(PyObject *val, Options *opts) {
-    opts->background_image_layout = bglayout(val);
-}
-
-static void
-convert_from_opts_background_image_layout(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "background_image_layout");
-    if (ret == NULL) return;
-    convert_from_python_background_image_layout(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_background_image_linear(PyObject *val, Options *opts) {
-    opts->background_image_linear = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_background_image_linear(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "background_image_linear");
-    if (ret == NULL) return;
-    convert_from_python_background_image_linear(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_dynamic_background_opacity(PyObject *val, Options *opts) {
     opts->dynamic_background_opacity = PyObject_IsTrue(val);
 }
@@ -812,84 +656,6 @@ convert_from_opts_dim_opacity(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_mark1_foreground(PyObject *val, Options *opts) {
-    opts->mark1_foreground = color_as_int(val);
-}
-
-static void
-convert_from_opts_mark1_foreground(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "mark1_foreground");
-    if (ret == NULL) return;
-    convert_from_python_mark1_foreground(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_mark1_background(PyObject *val, Options *opts) {
-    opts->mark1_background = color_as_int(val);
-}
-
-static void
-convert_from_opts_mark1_background(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "mark1_background");
-    if (ret == NULL) return;
-    convert_from_python_mark1_background(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_mark2_foreground(PyObject *val, Options *opts) {
-    opts->mark2_foreground = color_as_int(val);
-}
-
-static void
-convert_from_opts_mark2_foreground(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "mark2_foreground");
-    if (ret == NULL) return;
-    convert_from_python_mark2_foreground(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_mark2_background(PyObject *val, Options *opts) {
-    opts->mark2_background = color_as_int(val);
-}
-
-static void
-convert_from_opts_mark2_background(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "mark2_background");
-    if (ret == NULL) return;
-    convert_from_python_mark2_background(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_mark3_foreground(PyObject *val, Options *opts) {
-    opts->mark3_foreground = color_as_int(val);
-}
-
-static void
-convert_from_opts_mark3_foreground(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "mark3_foreground");
-    if (ret == NULL) return;
-    convert_from_python_mark3_foreground(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_mark3_background(PyObject *val, Options *opts) {
-    opts->mark3_background = color_as_int(val);
-}
-
-static void
-convert_from_opts_mark3_background(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "mark3_background");
-    if (ret == NULL) return;
-    convert_from_python_mark3_background(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_close_on_child_death(PyObject *val, Options *opts) {
     opts->close_on_child_death = PyObject_IsTrue(val);
 }
@@ -899,19 +665,6 @@ convert_from_opts_close_on_child_death(PyObject *py_opts, Options *opts) {
     PyObject *ret = PyObject_GetAttrString(py_opts, "close_on_child_death");
     if (ret == NULL) return;
     convert_from_python_close_on_child_death(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_allow_hyperlinks(PyObject *val, Options *opts) {
-    opts->allow_hyperlinks = PyObject_IsTrue(val);
-}
-
-static void
-convert_from_opts_allow_hyperlinks(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "allow_hyperlinks");
-    if (ret == NULL) return;
-    convert_from_python_allow_hyperlinks(ret, opts);
     Py_DECREF(ret);
 }
 
@@ -1090,23 +843,15 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     if (PyErr_Occurred()) return false;
     convert_from_opts_mouse_hide_wait(py_opts, opts);
     if (PyErr_Occurred()) return false;
-    convert_from_opts_url_color(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_url_style(py_opts, opts);
-    if (PyErr_Occurred()) return false;
     convert_from_opts_url_prefixes(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_url_excluded_characters(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_underline_hyperlinks(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_select_by_word_characters(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_select_by_word_characters_forward(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_click_interval(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_focus_follows_mouse(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_pointer_shape_when_grabbed(py_opts, opts);
     if (PyErr_Occurred()) return false;
@@ -1120,21 +865,9 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     if (PyErr_Occurred()) return false;
     convert_from_opts_sync_to_monitor(py_opts, opts);
     if (PyErr_Occurred()) return false;
-    convert_from_opts_enable_audio_bell(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_visual_bell_duration(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_window_alert_on_bell(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_bell_path(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_linux_bell_theme(py_opts, opts);
-    if (PyErr_Occurred()) return false;
     convert_from_opts_active_border_color(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_inactive_border_color(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_bell_border_color(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_inactive_text_alpha(py_opts, opts);
     if (PyErr_Occurred()) return false;
@@ -1172,10 +905,6 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     if (PyErr_Occurred()) return false;
     convert_from_opts_background_image(py_opts, opts);
     if (PyErr_Occurred()) return false;
-    convert_from_opts_background_image_layout(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_background_image_linear(py_opts, opts);
-    if (PyErr_Occurred()) return false;
     convert_from_opts_dynamic_background_opacity(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_background_tint(py_opts, opts);
@@ -1184,21 +913,7 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     if (PyErr_Occurred()) return false;
     convert_from_opts_dim_opacity(py_opts, opts);
     if (PyErr_Occurred()) return false;
-    convert_from_opts_mark1_foreground(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_mark1_background(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_mark2_foreground(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_mark2_background(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_mark3_foreground(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_mark3_background(py_opts, opts);
-    if (PyErr_Occurred()) return false;
     convert_from_opts_close_on_child_death(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_allow_hyperlinks(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_menu_map(py_opts, opts);
     if (PyErr_Occurred()) return false;

@@ -309,7 +309,7 @@ typedef union DynamicColor {
 } DynamicColor;
 
 typedef struct {
-    DynamicColor default_fg, default_bg, cursor_color, cursor_text_color, highlight_fg, highlight_bg, visual_bell_color;
+    DynamicColor default_fg, default_bg, cursor_color, cursor_text_color, highlight_fg, highlight_bg;
 } DynamicColors;
 
 
@@ -406,15 +406,10 @@ bool colorprofile_pop_colors(ColorProfile*, unsigned int);
 void colorprofile_report_stack(ColorProfile*, unsigned int*, unsigned int*);
 
 void set_mouse_cursor(MouseShape);
-void enter_event(void);
 void mouse_event(const int, int, int);
 void focus_in_event(void);
 void scroll_event(double, double, int, int);
 void on_key_input(GLFWkeyevent *ev);
-void request_window_attention(id_type, bool);
-#ifndef __APPLE__
-void play_canberra_sound(const char *which_sound, const char *event_id, bool is_path, const char *role, const char *theme_name);
-#endif
 SPRITE_MAP_HANDLE alloc_sprite_map(unsigned int, unsigned int);
 SPRITE_MAP_HANDLE free_sprite_map(SPRITE_MAP_HANDLE);
 void log_event(const char *format, ...) __attribute__((format(printf, 1, 2)));

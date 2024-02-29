@@ -1011,11 +1011,9 @@ PYWRAP1(patch_global_colors) {
         else if (PyLong_Check(val)) OPT(name) = PyLong_AsLong(val); \
     } \
 }
-    P(active_border_color); P(inactive_border_color); P(bell_border_color); P(tab_bar_background); P(tab_bar_margin_color);
+    P(active_border_color); P(inactive_border_color); P(tab_bar_background); P(tab_bar_margin_color);
     if (configured) {
-        P(background); P(url_color);
-        P(mark1_background); P(mark1_foreground); P(mark2_background); P(mark2_foreground);
-        P(mark3_background); P(mark3_foreground);
+        P(background);
     }
     if (PyErr_Occurred()) return NULL;
     Py_RETURN_NONE;
@@ -1228,7 +1226,7 @@ finalize(void) {
     if (detached_windows.windows) free(detached_windows.windows);
     detached_windows.capacity = 0;
 #define F(x) free(OPT(x)); OPT(x) = NULL;
-    F(background_image); F(bell_path); F(bell_theme); F(default_window_logo);
+    F(background_image); F(default_window_logo);
 #undef F
     // we leak the texture here since it is not guaranteed
     // that freeing the texture will work during shutdown and

@@ -68,9 +68,6 @@ new_cp(PyTypeObject *type, PyObject UNUSED *args, PyObject UNUSED *kwds) {
         init_FG_BG_table();
         memcpy(self->color_table, FG_BG_256, sizeof(FG_BG_256));
         memcpy(self->orig_color_table, FG_BG_256, sizeof(FG_BG_256));
-#define S(which) self->mark_foregrounds[which] = OPT(mark##which##_foreground); self->mark_backgrounds[which] = OPT(mark##which##_background)
-        S(1); S(2); S(3);
-#undef S
         self->dirty = true;
     }
     return (PyObject*) self;
@@ -184,7 +181,7 @@ as_dict(ColorProfile *self, PyObject *args UNUSED) {
     }}
     D(default_fg, foreground); D(default_bg, background);
     D(cursor_color, cursor); D(cursor_text_color, cursor_text); D(highlight_fg, selection_foreground);
-    D(highlight_bg, selection_background); D(visual_bell_color, visual_bell_color);
+    D(highlight_bg, selection_background);
 
 #undef D
     return ans;
@@ -248,13 +245,13 @@ set_color(ColorProfile *self, PyObject *args) {
 static PyObject*
 set_configured_colors(ColorProfile *self, PyObject *args) {
 #define set_configured_colors_doc "Set the configured colors"
-    unsigned int default_fg, default_bg, cursor_color, cursor_text_color, highlight_fg, highlight_bg, visual_bell_color;
-    if (!PyArg_ParseTuple(args, "II|IIIII", &default_fg, &default_bg,
-        &cursor_color, &cursor_text_color, &highlight_fg, &highlight_bg, &visual_bell_color)) return NULL;
+    unsigned int default_fg, default_bg, cursor_color, cursor_text_color, highlight_fg, highlight_bg;
+    if (!PyArg_ParseTuple(args, "II|IIII", &default_fg, &default_bg,
+        &cursor_color, &cursor_text_color, &highlight_fg, &highlight_bg)) return NULL;
 #define S(which) \
     self->configured.which.rgb = which & 0xffffff; \
     self->configured.which.type = (which & 0xff000000) ? COLOR_IS_RGB : COLOR_IS_SPECIAL;
-    S(default_fg); S(default_bg); S(cursor_color); S(cursor_text_color); S(highlight_fg); S(highlight_bg); S(visual_bell_color);
+    S(default_fg); S(default_bg); S(cursor_color); S(cursor_text_color); S(highlight_fg); S(highlight_bg);
 #undef S
     self->dirty = true;
     Py_RETURN_NONE;
@@ -365,7 +362,6 @@ CGETSET(cursor_color)
 CGETSET(cursor_text_color)
 CGETSET(highlight_fg)
 CGETSET(highlight_bg)
-CGETSET(visual_bell_color)
 #undef CGETSET
 
 static PyGetSetDef cp_getsetters[] = {
@@ -375,7 +371,6 @@ static PyGetSetDef cp_getsetters[] = {
     GETSET(cursor_text_color)
     GETSET(highlight_fg)
     GETSET(highlight_bg)
-    GETSET(visual_bell_color)
     {NULL}  /* Sentinel */
 };
 

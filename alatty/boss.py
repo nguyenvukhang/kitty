@@ -794,12 +794,6 @@ class Boss:
         elif action == 'clear':
             for w in windows:
                 w.clear_screen()
-        elif action == 'scroll':
-            for w in windows:
-                w.scroll_prompt_to_top()
-        elif action == 'to_cursor':
-            for w in windows:
-                w.scroll_prompt_to_top(clear_scrollback=True)
 
     def increase_font_size(self) -> None:  # legacy
         cfs = global_font_size()
@@ -1094,42 +1088,6 @@ class Boss:
                     else:
                         text = '\n'.join(urls)
                 w.paste_text(text)
-
-    @ac('win', '''
-        Focus the nth OS window if positive or the previously active OS windows if negative. When the number is larger
-        than the number of OS windows focus the last OS window. A value of zero will refocus the currently focused OS window,
-        this is useful if focus is not on any alatty OS window at all, however, it will only work if the window manager
-        allows applications to grab focus. For example::
-
-            # focus the previously active alatty OS window
-            map ctrl+p nth_os_window -1
-            # focus the current alatty OS window (grab focus)
-            map ctrl+0 nth_os_window 0
-            # focus the first alatty OS window
-            map ctrl+1 nth_os_window 1
-            # focus the last alatty OS window
-            map ctrl+1 nth_os_window 999
-    ''')
-    def nth_os_window(self, num: int = 1) -> None:
-        if not self.os_window_map:
-            return
-        if num == 0:
-            os_window_id = current_focused_os_window_id() or last_focused_os_window_id()
-            focus_os_window(os_window_id, True)
-        elif num > 0:
-            ids = tuple(self.os_window_map.keys())
-            os_window_id = ids[min(num, len(ids)) - 1]
-            focus_os_window(os_window_id, True)
-        elif num < 0:
-            fc_map = os_window_focus_counters()
-            s = sorted(fc_map.keys(), key=fc_map.__getitem__)
-            if not s:
-                return
-            try:
-                os_window_id = s[num-1]
-            except IndexError:
-                os_window_id = s[0]
-            focus_os_window(os_window_id, True)
 
     @ac('win', 'Close the currently active OS Window')
     def close_os_window(self) -> None:

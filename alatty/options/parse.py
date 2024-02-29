@@ -7,9 +7,9 @@ from alatty.conf.utils import (
     to_color_or_none, unit_float
 )
 from alatty.options.utils import (
-    action_alias, active_tab_title_template, allow_hyperlinks, bell_on_tab, box_drawing_scale,
-    clear_all_mouse_actions, clear_all_shortcuts, clipboard_control, clone_source_strategies,
-    config_or_absolute_path, copy_on_select, cursor_text_color, deprecated_adjust_line_height,
+    action_alias, active_tab_title_template, box_drawing_scale,
+    clear_all_mouse_actions, clear_all_shortcuts, clipboard_control,
+    config_or_absolute_path, copy_on_select, cursor_text_color,
     deprecated_hide_window_decorations_aliases, deprecated_macos_show_window_title_in_menubar_alias,
     deprecated_send_text, edge_width, env, font_features, hide_window_decorations,
     macos_option_as_alt, macos_titlebar_color, menu_map, modify_font,
@@ -18,7 +18,7 @@ from alatty.options.utils import (
     store_multiple, tab_activity_symbol, tab_bar_edge,
     tab_bar_margin_height, tab_bar_min_tabs, tab_fade, tab_font_style, tab_separator,
     tab_title_template, titlebar_color, to_cursor_shape, to_font_size, to_layout_names, to_modifiers,
-    url_prefixes, url_style, visual_window_select_characters, window_border_width, window_size
+    url_prefixes, visual_window_select_characters, window_border_width, window_size
 )
 
 
@@ -43,17 +43,6 @@ class Parser:
     def active_tab_title_template(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['active_tab_title_template'] = active_tab_title_template(val)
 
-    def allow_cloning(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_allow_cloning:
-            raise ValueError(f"The value {val} is not a valid choice for allow_cloning")
-        ans["allow_cloning"] = val
-
-    choices_for_allow_cloning = frozenset(('yes', 'y', 'true', 'no', 'n', 'false', 'ask'))
-
-    def allow_hyperlinks(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['allow_hyperlinks'] = allow_hyperlinks(val)
-
     def background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['background'] = to_color(val)
 
@@ -63,17 +52,6 @@ class Parser:
     def background_image(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['background_image'] = config_or_absolute_path(val)
 
-    def background_image_layout(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_background_image_layout:
-            raise ValueError(f"The value {val} is not a valid choice for background_image_layout")
-        ans["background_image_layout"] = val
-
-    choices_for_background_image_layout = frozenset(('mirror-tiled', 'scaled', 'tiled', 'clamped', 'centered', 'cscaled'))
-
-    def background_image_linear(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['background_image_linear'] = to_bool(val)
-
     def background_opacity(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['background_opacity'] = unit_float(val)
 
@@ -82,15 +60,6 @@ class Parser:
 
     def background_tint_gaps(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['background_tint_gaps'] = unit_float(val)
-
-    def bell_border_color(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['bell_border_color'] = to_color(val)
-
-    def bell_on_tab(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['bell_on_tab'] = bell_on_tab(val)
-
-    def bell_path(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['bell_path'] = config_or_absolute_path(val)
 
     def box_drawing_scale(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['box_drawing_scale'] = box_drawing_scale(val)
@@ -109,9 +78,6 @@ class Parser:
 
     def clipboard_max_size(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['clipboard_max_size'] = positive_float(val)
-
-    def clone_source_strategies(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['clone_source_strategies'] = clone_source_strategies(val)
 
     def close_on_child_death(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['close_on_child_death'] = to_bool(val)
@@ -884,9 +850,6 @@ class Parser:
     def color255(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['color255'] = to_color(val)
 
-    def command_on_bell(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['command_on_bell'] = to_cmdline(val)
-
     def confirm_os_window_close(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['confirm_os_window_close'] = int(val)
 
@@ -934,9 +897,6 @@ class Parser:
     def editor(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['editor'] = str(val)
 
-    def enable_audio_bell(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['enable_audio_bell'] = to_bool(val)
-
     def enabled_layouts(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['enabled_layouts'] = to_layout_names(val)
 
@@ -947,12 +907,6 @@ class Parser:
     def exe_search_path(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         for k, v in store_multiple(val, ans["exe_search_path"]):
             ans["exe_search_path"][k] = v
-
-    def file_transfer_confirmation_bypass(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['file_transfer_confirmation_bypass'] = str(val)
-
-    def focus_follows_mouse(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['focus_follows_mouse'] = to_bool(val)
 
     def font_family(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['font_family'] = str(val)
@@ -1007,9 +961,6 @@ class Parser:
     def alatty_mod(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['alatty_mod'] = to_modifiers(val)
 
-    def linux_bell_theme(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['linux_bell_theme'] = str(val)
-
     def linux_display_server(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         val = val.lower()
         if val not in self.choices_for_linux_display_server:
@@ -1054,24 +1005,6 @@ class Parser:
 
     def macos_window_resizable(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['macos_window_resizable'] = to_bool(val)
-
-    def mark1_background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['mark1_background'] = to_color(val)
-
-    def mark1_foreground(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['mark1_foreground'] = to_color(val)
-
-    def mark2_background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['mark2_background'] = to_color(val)
-
-    def mark2_foreground(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['mark2_foreground'] = to_color(val)
-
-    def mark3_background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['mark3_background'] = to_color(val)
-
-    def mark3_foreground(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['mark3_foreground'] = to_color(val)
 
     def menu_map(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         for k, v in menu_map(val, ans["menu_map"]):
@@ -1258,31 +1191,11 @@ class Parser:
 
     choices_for_undercurl_style = frozenset(('thin-sparse', 'thin-dense', 'thick-sparse', 'thick-dense'))
 
-    def underline_hyperlinks(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_underline_hyperlinks:
-            raise ValueError(f"The value {val} is not a valid choice for underline_hyperlinks")
-        ans["underline_hyperlinks"] = val
-
-    choices_for_underline_hyperlinks = frozenset(('hover', 'always', 'never'))
-
-    def url_color(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['url_color'] = to_color(val)
-
     def url_excluded_characters(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['url_excluded_characters'] = python_string(val)
 
     def url_prefixes(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['url_prefixes'] = url_prefixes(val)
-
-    def url_style(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['url_style'] = url_style(val)
-
-    def visual_bell_color(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['visual_bell_color'] = to_color_or_none(val)
-
-    def visual_bell_duration(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['visual_bell_duration'] = positive_float(val)
 
     def visual_window_select_characters(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['visual_window_select_characters'] = visual_window_select_characters(val)
@@ -1299,9 +1212,6 @@ class Parser:
 
     def wheel_scroll_multiplier(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['wheel_scroll_multiplier'] = float(val)
-
-    def window_alert_on_bell(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['window_alert_on_bell'] = to_bool(val)
 
     def window_border_width(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['window_border_width'] = window_border_width(val)
@@ -1343,15 +1253,6 @@ class Parser:
 
     def send_text(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         deprecated_send_text('send_text', val, ans)
-
-    def adjust_line_height(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        deprecated_adjust_line_height('adjust_line_height', val, ans)
-
-    def adjust_column_width(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        deprecated_adjust_line_height('adjust_column_width', val, ans)
-
-    def adjust_baseline(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        deprecated_adjust_line_height('adjust_baseline', val, ans)
 
     def map(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         for k in parse_map(val):

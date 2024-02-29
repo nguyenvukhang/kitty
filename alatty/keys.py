@@ -17,7 +17,6 @@ from .fast_data_types import (
     get_boss,
     get_options,
     is_modifier_key,
-    ring_bell,
     set_ignore_os_keyboard_processing,
 )
 from .options.types import Options
@@ -154,13 +153,10 @@ class Mappings:
                         w.send_key_sequence(*mode.sequence_keys)
                     return False
                 if mode.on_unknown in ('beep', 'ignore'):
-                    if mode.on_unknown == 'beep':
-                        self.ring_bell()
                     return True
                 if mode.on_unknown == 'passthrough':
                     return False
             if not self.pop_keyboard_mode():
-                self.ring_bell()
                 return True
         else:
             final_actions = self.matching_key_actions(key_action)
@@ -209,10 +205,6 @@ class Mappings:
 
     def show_error(self, title: str, msg: str) -> None:
         return get_boss().show_error(title, msg)
-
-    def ring_bell(self) -> None:
-        if self.get_options().enable_audio_bell:
-            ring_bell()
 
     def combine(self, action_definition: str) -> bool:
         return get_boss().combine(action_definition)

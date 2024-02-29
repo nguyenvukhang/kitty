@@ -6,7 +6,7 @@
 layout(std140) uniform CellRenderData {
     float xstart, ystart, dx, dy, sprite_dx, sprite_dy, background_opacity, use_cell_bg_for_selection_fg, use_cell_fg_for_selection_fg, use_cell_for_selection_bg;
 
-    uint default_fg, default_bg, highlight_fg, highlight_bg, cursor_fg, cursor_bg, url_color, url_style, inverted;
+    uint default_fg, default_bg, highlight_fg, highlight_bg, cursor_fg, cursor_bg, inverted;
 
     uint xnum, ynum, cursor_fg_sprite_idx;
     float cursor_x, cursor_y, cursor_w;
@@ -173,15 +173,14 @@ void main() {
     foreground = color_to_vec(fg_as_uint);
     float has_dim = float((text_attrs >> DIM_SHIFT) & ONE);
     effective_text_alpha = inactive_text_alpha * mix(1.0, dim_opacity, has_dim);
-    float in_url = float((is_selected & TWO) >> 1);
-    decoration_fg = choose_color(in_url, color_to_vec(url_color), to_color(colors[2], fg_as_uint));
+    decoration_fg = to_color(colors[2], fg_as_uint);
     // Selection
     vec3 selection_color = choose_color(use_cell_bg_for_selection_fg, bg, color_to_vec(highlight_fg));
     selection_color = choose_color(use_cell_fg_for_selection_fg, foreground, selection_color);
     foreground = choose_color(float(is_selected & ONE), selection_color, foreground);
     decoration_fg = choose_color(float(is_selected & ONE), selection_color, decoration_fg);
     // Underline and strike through (rendered via sprites)
-    underline_pos = choose_color(in_url, to_sprite_pos(cell_data.pos, url_style, ZERO, ZERO), to_sprite_pos(cell_data.pos, (text_attrs >> DECORATION_SHIFT) & DECORATION_MASK, ZERO, ZERO));
+    underline_pos = to_sprite_pos(cell_data.pos, (text_attrs >> DECORATION_SHIFT) & DECORATION_MASK, ZERO, ZERO);
     strike_pos = to_sprite_pos(cell_data.pos, ((text_attrs >> STRIKE_SHIFT) & ONE) * STRIKE_SPRITE_INDEX, ZERO, ZERO);
 
     // Cursor

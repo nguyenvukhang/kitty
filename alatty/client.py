@@ -28,10 +28,6 @@ def set_icon(*args: Any) -> None:
     pass
 
 
-def screen_bell() -> None:
-    pass
-
-
 def screen_normal_keypad_mode() -> None:
     write('\x1b>')
 

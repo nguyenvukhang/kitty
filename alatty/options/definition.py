@@ -17,7 +17,6 @@ definition = Definition(
 definition.add_deprecation('deprecated_hide_window_decorations_aliases', 'x11_hide_window_decorations', 'macos_hide_titlebar')
 definition.add_deprecation('deprecated_macos_show_window_title_in_menubar_alias', 'macos_show_window_title_in_menubar')
 definition.add_deprecation('deprecated_send_text', 'send_text')
-definition.add_deprecation('deprecated_adjust_line_height', 'adjust_line_height', 'adjust_column_width', 'adjust_baseline')
 
 agr = definition.add_group
 egr = definition.end_group
@@ -254,10 +253,7 @@ opt('cursor_shape', 'block',
 The cursor shape can be one of :code:`block`, :code:`beam`, :code:`underline`.
 Note that when reloading the config this will be changed only if the cursor
 shape has not been set by the program running in the terminal. This sets the
-default cursor shape, applications running in the terminal can override it. In
-particular, :ref:`shell integration <shell_integration>` in alatty sets the
-cursor shape to :code:`beam` at shell prompts. You can avoid this by setting
-:opt:`shell_integration` to :code:`no-cursor`.
+default cursor shape, applications running in the terminal can override it.
 '''
     )
 
@@ -385,19 +381,6 @@ is too much effort.
 '''
     )
 
-opt('url_color', '#0087bd',
-    option_type='to_color', ctype='color_as_int',
-    long_text='''
-The color and style for highlighting URLs on mouse-over. :opt:`url_style` can
-be one of: :code:`none`, :code:`straight`, :code:`double`, :code:`curly`,
-:code:`dotted`, :code:`dashed`.
-'''
-    )
-
-opt('url_style', 'curly',
-    option_type='url_style', ctype='uint',
-    )
-
 opt('url_prefixes', 'file ftp ftps gemini git gopher http https irc ircs alatty mailto news sftp ssh',
     option_type='url_prefixes', ctype='!url_prefixes',
     long_text='''
@@ -418,17 +401,6 @@ a double backslash.
 '''
     )
 
-opt('underline_hyperlinks', 'hover', choices=('hover', 'always', 'never'),
-    ctype='underline_hyperlinks', long_text='''
-Control how hyperlinks are underlined. They can either be underlined on mouse
-:code:`hover`, :code:`always` (i.e. permanently underlined) or :code:`never` which means
-that alatty will not apply any underline styling to hyperlinks.
-Uses the :opt:`url_style` and :opt:`url_color` settings for the underline style. Note
-that reloading the config and changing this value to/from :code:`always` will only
-affect text subsequently received by alatty.
-''')
-
-
 opt('copy_on_select', 'no',
     option_type='copy_on_select',
     long_text='''
@@ -447,9 +419,6 @@ opt('paste_actions', 'quote-urls-at-prompt,confirm',
 A comma separated list of actions to take when pasting text into the terminal.
 The supported paste actions are:
 
-:code:`quote-urls-at-prompt`:
-    If the text being pasted is a URL and the cursor is at a shell prompt,
-    automatically quote the URL (needs :opt:`shell_integration`).
 :code:`replace-dangerous-control-codes`
     Replace dangerous control codes from pasted text, without confirmation.
 :code:`replace-newline`
@@ -506,15 +475,6 @@ opt('click_interval', '-1.0',
 The interval between successive clicks to detect double/triple clicks (in
 seconds). Negative numbers will use the system default instead, if available, or
 fallback to 0.5.
-'''
-    )
-
-opt('focus_follows_mouse', 'no',
-    option_type='to_bool', ctype='bool',
-    long_text='''
-Set the active window to the window under the mouse when moving the mouse around.
-On macOS, this will also cause the OS Window under the mouse to be focused automatically when the
-mouse enters it.
 '''
     )
 
@@ -622,25 +582,6 @@ opt('clear_all_mouse_actions', 'no',
     long_text='''
 Remove all mouse action definitions up to this point. Useful, for instance, to
 remove the default mouse actions.
-'''
-    )
-
-mma('Click the link under the mouse or move the cursor',
-    'click_url_or_select left click ungrabbed mouse_handle_click selection link prompt',
-    long_text='''
-First check for a selection and if one exists do nothing. Then check for a link
-under the mouse cursor and if one exists, click it. Finally check if the click
-happened at the current shell prompt and if so, move the cursor to the click
-location. Note that this requires :ref:`shell integration <shell_integration>`
-to work.
-'''
-    )
-
-mma('Click the link under the mouse or move the cursor even when grabbed',
-    'click_url_or_select_grabbed shift+left click grabbed,ungrabbed mouse_handle_click selection link prompt',
-    long_text='''
-Same as above, except that the action is performed even when the mouse is
-grabbed by the program running in the terminal.
 '''
     )
 
@@ -779,83 +720,6 @@ some slight input latency. If so, set this to :code:`no`.
 egr()  # }}}
 
 
-# bell {{{
-agr('bell', 'Terminal bell')
-
-opt('enable_audio_bell', 'yes',
-    option_type='to_bool', ctype='bool',
-    long_text='''
-The audio bell. Useful to disable it in environments that require silence.
-'''
-    )
-
-opt('visual_bell_duration', '0.0',
-    option_type='positive_float', ctype='time',
-    long_text='''
-The visual bell duration (in seconds). Flash the screen when a bell occurs for
-the specified number of seconds. Set to zero to disable.
-'''
-    )
-
-opt('visual_bell_color', 'none',
-    option_type='to_color_or_none',
-    long_text='''
-The color used by visual bell. Set to :code:`none` will fall back to selection
-background color. If you feel that the visual bell is too bright, you can
-set it to a darker color.
-'''
-    )
-
-opt('window_alert_on_bell', 'yes',
-    option_type='to_bool', ctype='bool',
-    long_text='''
-Request window attention on bell. Makes the dock icon bounce on macOS or the
-taskbar flash on linux.
-'''
-    )
-
-opt('bell_on_tab', '"🔔 "',
-    option_type='bell_on_tab',
-    long_text='''
-Some text or a Unicode symbol to show on the tab if a window in the tab that
-does not have focus has a bell. If you want to use leading or trailing
-spaces, surround the text with quotes. See :opt:`tab_title_template` for how
-this is rendered.
-
-For backwards compatibility, values of :code:`yes`, :code:`y` and :code:`true`
-are converted to the default bell symbol and :code:`no`, :code:`n`,
-:code:`false` and :code:`none` are converted to the empty string.
-'''
-    )
-
-opt('command_on_bell', 'none',
-    option_type='to_cmdline',
-    long_text='''
-Program to run when a bell occurs. The environment variable
-:envvar:`ALATTY_CHILD_CMDLINE` can be used to get the program running in the
-window in which the bell occurred.
-'''
-    )
-
-opt('bell_path', 'none',
-    option_type='config_or_absolute_path', ctype='!bell_path',
-    long_text='''
-Path to a sound file to play as the bell sound. If set to :code:`none`, the
-system default bell sound is used. Must be in a format supported by the
-operating systems sound API, such as WAV or OGA on Linux (libcanberra) or AIFF,
-MP3 or WAV on macOS (NSSound)
-'''
-    )
-
-opt('linux_bell_theme', '__custom', ctype='!bell_theme',
-    long_text='The XDG Sound Theme alatty will use to play the bell sound.'
-    ' Defaults to the custom theme name used by GNOME and Budgie, falling back to the default freedesktop theme if it does not exist.'
-    ' This option may be removed if Linux ever provides desktop-agnostic support for setting system sound themes.'
-    )
-
-egr()  # }}}
-
-
 # window {{{
 agr('window', 'Window layout')
 
@@ -987,11 +851,6 @@ draw borders around the active window.
 opt('inactive_border_color', '#cccccc',
     option_type='to_color', ctype='color_as_int',
     long_text='The color for the border of inactive windows.'
-    )
-
-opt('bell_border_color', '#ff5a00',
-    option_type='to_color', ctype='color_as_int',
-    long_text='The color for the border of inactive windows in which a bell has occurred.'
     )
 
 opt('inactive_text_alpha', '1.0',
@@ -1255,9 +1114,6 @@ use styling directives, for example:
 ``{fmt.fg.red}red{fmt.fg.tab}normal{fmt.bg._00FF00}greenbg{fmt.bg.tab}``.
 Similarly, for bold and italic:
 ``{fmt.bold}bold{fmt.nobold}normal{fmt.italic}italic{fmt.noitalic}``.
-Note that for backward compatibility, if :code:`{bell_symbol}` or
-:code:`{activity_symbol}` are not present in the template, they are prepended to
-it.
 '''
     )
 
@@ -1365,22 +1221,6 @@ on macOS and KDE under X11.
 opt('background_image', 'none',
     option_type='config_or_absolute_path', ctype='!background_image',
     long_text='Path to a background image. Must be in PNG format.'
-    )
-
-opt('background_image_layout', 'tiled',
-    choices=('mirror-tiled', 'scaled', 'tiled', 'clamped', 'centered', 'cscaled'),
-    ctype='bglayout',
-    long_text='''
-Whether to tile, scale or clamp the background image. The value can be one of
-:code:`tiled`, :code:`mirror-tiled`, :code:`scaled`, :code:`clamped`, :code:`centered`
-or :code:`cscaled`. The :code:`scaled` and :code:`cscaled` values scale the image to the
-window size, with :code:`cscaled` preserving the image aspect ratio.
-'''
-    )
-
-opt('background_image_linear', 'no',
-    option_type='to_bool', ctype='bool',
-    long_text='When background image is scaled, whether linear interpolation should be used.'
     )
 
 opt('dynamic_background_opacity', 'no',
@@ -1520,31 +1360,6 @@ opt('color15', '#ffffff',
 opt('mark1_foreground', 'black',
     option_type='to_color', ctype='color_as_int',
     long_text='Color for marks of type 1'
-    )
-
-opt('mark1_background', '#98d3cb',
-    option_type='to_color', ctype='color_as_int',
-    long_text='Color for marks of type 1 (light steel blue)'
-    )
-
-opt('mark2_foreground', 'black',
-    option_type='to_color', ctype='color_as_int',
-    long_text='Color for marks of type 2'
-    )
-
-opt('mark2_background', '#f2dcd3',
-    option_type='to_color', ctype='color_as_int',
-    long_text='Color for marks of type 1 (beige)'
-    )
-
-opt('mark3_foreground', 'black',
-    option_type='to_color', ctype='color_as_int',
-    long_text='Color for marks of type 3'
-    )
-
-opt('mark3_background', '#f274bc',
-    option_type='to_color', ctype='color_as_int',
-    long_text='Color for marks of type 3 (violet)'
     )
 
 opt('color16', '#000000',
@@ -2879,27 +2694,6 @@ is applied. See also :opt:`clipboard_control`.
 '''
     )
 
-opt('file_transfer_confirmation_bypass', '',
-    long_text='''
-The password that can be supplied to the :doc:`file transfer kitten
-</kittens/transfer>` to skip the transfer confirmation prompt. This should only
-be used when initiating transfers from trusted computers, over trusted networks
-or encrypted transports, as it allows any programs running on the remote machine
-to read/write to the local filesystem, without permission.
-'''
-    )
-
-opt('allow_hyperlinks', 'yes',
-    option_type='allow_hyperlinks', ctype='bool',
-    long_text='''
-Process :term:`hyperlink <hyperlinks>` escape sequences (OSC 8). If disabled OSC
-8 escape sequences are ignored. Otherwise they become clickable links, that you
-can click with the mouse or by using the :doc:`hints kitten </kittens/hints>`.
-The special value of :code:`ask` means that alatty will ask before opening the
-link when clicked.
-'''
-    )
-
 opt('shell_integration', 'enabled',
     option_type='shell_integration',
     long_text='''
@@ -2910,42 +2704,6 @@ integration, completely. It is also possible to disable individual features, set
 to a space separated list of these values: :code:`no-rc`, :code:`no-cursor`,
 :code:`no-title`, :code:`no-cwd`, :code:`no-prompt-mark`, :code:`no-complete`, :code:`no-sudo`.
 See :ref:`Shell integration <shell_integration>` for details.
-'''
-    )
-
-opt('allow_cloning', 'ask',
-    choices=('yes', 'y', 'true', 'no', 'n', 'false', 'ask'),
-    long_text='''
-Control whether programs running in the terminal can request new windows to be
-created. The canonical example is :ref:`clone-in-alatty <clone_shell>`. By
-default, alatty will ask for permission for each clone request. Allowing cloning
-unconditionally gives programs running in the terminal (including over SSH)
-permission to execute arbitrary code, as the user who is running the terminal,
-on the computer that the terminal is running on.
-'''
-    )
-
-opt('clone_source_strategies', 'venv,conda,env_var,path',
-    option_type='clone_source_strategies',
-    long_text='''
-Control what shell code is sourced when running :command:`clone-in-alatty`
-in the newly cloned window. The supported strategies are:
-
-:code:`venv`
-    Source the file :file:`$VIRTUAL_ENV/bin/activate`. This is used by the
-    Python stdlib venv module and allows cloning venvs automatically.
-:code:`conda`
-    Run :code:`conda activate $CONDA_DEFAULT_ENV`. This supports the virtual
-    environments created by :program:`conda`.
-:code:`env_var`
-    Execute the contents of the environment variable
-    :envvar:`ALATTY_CLONE_SOURCE_CODE` with :code:`eval`.
-:code:`path`
-    Source the file pointed to by the environment variable
-    :envvar:`ALATTY_CLONE_SOURCE_PATH`.
-
-This option must be a comma separated list of the above values. Only the
-first valid match, in the order specified, is sourced.
 '''
     )
 
@@ -3367,8 +3125,6 @@ jumped to or the last clicked position. Requires :ref:`shell integration
 '''
     )
 
-map('Scroll to next shell prompt', 'scroll_to_next_prompt alatty_mod+x scroll_to_prompt 1')
-
 map('Browse scrollback buffer in pager',
     'show_scrollback alatty_mod+h show_scrollback',
     long_text='''
@@ -3456,82 +3212,6 @@ map('Move window backward',
 
 map('Move window to top',
     'move_window_to_top alatty_mod+` move_window_to_top',
-    )
-
-map('First window',
-    'first_window alatty_mod+1 first_window',
-    )
-map('First window',
-    'first_window cmd+1 first_window',
-    only='macos',
-    )
-
-map('Second window',
-    'second_window alatty_mod+2 second_window',
-    )
-map('Second window',
-    'second_window cmd+2 second_window',
-    only='macos',
-    )
-
-map('Third window',
-    'third_window alatty_mod+3 third_window',
-    )
-map('Third window',
-    'third_window cmd+3 third_window',
-    only='macos',
-    )
-
-map('Fourth window',
-    'fourth_window alatty_mod+4 fourth_window',
-    )
-map('Fourth window',
-    'fourth_window cmd+4 fourth_window',
-    only='macos',
-    )
-
-map('Fifth window',
-    'fifth_window alatty_mod+5 fifth_window',
-    )
-map('Fifth window',
-    'fifth_window cmd+5 fifth_window',
-    only='macos',
-    )
-
-map('Sixth window',
-    'sixth_window alatty_mod+6 sixth_window',
-    )
-map('Sixth window',
-    'sixth_window cmd+6 sixth_window',
-    only='macos',
-    )
-
-map('Seventh window',
-    'seventh_window alatty_mod+7 seventh_window',
-    )
-map('Seventh window',
-    'seventh_window cmd+7 seventh_window',
-    only='macos',
-    )
-
-map('Eighth window',
-    'eighth_window alatty_mod+8 eighth_window',
-    )
-map('Eighth window',
-    'eighth_window cmd+8 eighth_window',
-    only='macos',
-    )
-
-map('Ninth window',
-    'ninth_window alatty_mod+9 ninth_window',
-    )
-map('Ninth window',
-    'ninth_window cmd+9 ninth_window',
-    only='macos',
-    )
-
-map('Tenth window',
-    'tenth_window alatty_mod+0 tenth_window',
     )
 
 map('Visually select and focus window', 'focus_visible_window alatty_mod+f7 focus_visible_window',

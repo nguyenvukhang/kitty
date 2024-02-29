@@ -5,19 +5,14 @@ import typing
 from array import array
 from alatty.constants import is_macos
 import alatty.constants
-from alatty.fast_data_types import Color, SingleKey
+from alatty.fast_data_types import Color
 import alatty.fast_data_types
 import alatty.fonts
-from alatty.options.utils import (
-    AliasMap, KeyDefinition, KeyboardModeMap, MouseMap, MouseMapping, NotifyOnCmdFinish,
-    TabBarMarginHeight
-)
+from alatty.options.utils import AliasMap, KeyboardModeMap, MouseMap, NotifyOnCmdFinish, TabBarMarginHeight
 import alatty.options.utils
 from alatty.types import FloatEdges
 import alatty.types
 
-choices_for_allow_cloning = typing.Literal['yes', 'y', 'true', 'no', 'n', 'false', 'ask']
-choices_for_background_image_layout = typing.Literal['mirror-tiled', 'scaled', 'tiled', 'clamped', 'centered', 'cscaled']
 choices_for_default_pointer_shape = typing.Literal['arrow', 'beam', 'text', 'pointer', 'hand', 'help', 'wait', 'progress', 'crosshair', 'cell', 'vertical-text', 'move', 'e-resize', 'ne-resize', 'nw-resize', 'n-resize', 'se-resize', 'sw-resize', 's-resize', 'w-resize', 'ew-resize', 'ns-resize', 'nesw-resize', 'nwse-resize', 'zoom-in', 'zoom-out', 'alias', 'copy', 'not-allowed', 'no-drop', 'grab', 'grabbing']
 choices_for_linux_display_server = typing.Literal['auto', 'wayland', 'x11']
 choices_for_macos_colorspace = typing.Literal['srgb', 'default', 'displayp3']
@@ -31,7 +26,6 @@ choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separ
 choices_for_tab_powerline_style = typing.Literal['angled', 'round', 'slanted']
 choices_for_tab_switch_strategy = typing.Literal['last', 'left', 'previous', 'right']
 choices_for_undercurl_style = typing.Literal['thin-sparse', 'thin-dense', 'thick-sparse', 'thick-dense']
-choices_for_underline_hyperlinks = typing.Literal['hover', 'always', 'never']
 choices_for_window_logo_position = typing.Literal['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right']
 
 option_names = (  # {{{
@@ -41,26 +35,18 @@ option_names = (  # {{{
  'active_tab_font_style',
  'active_tab_foreground',
  'active_tab_title_template',
- 'allow_cloning',
- 'allow_hyperlinks',
  'background',
  'background_blur',
  'background_image',
- 'background_image_layout',
- 'background_image_linear',
  'background_opacity',
  'background_tint',
  'background_tint_gaps',
- 'bell_border_color',
- 'bell_on_tab',
- 'bell_path',
  'box_drawing_scale',
  'clear_all_mouse_actions',
  'clear_all_shortcuts',
  'click_interval',
  'clipboard_control',
  'clipboard_max_size',
- 'clone_source_strategies',
  'close_on_child_death',
  'color0',
  'color1',
@@ -318,7 +304,6 @@ option_names = (  # {{{
  'color253',
  'color254',
  'color255',
- 'command_on_bell',
  'confirm_os_window_close',
  'copy_on_select',
  'cursor',
@@ -333,12 +318,9 @@ option_names = (  # {{{
  'draw_minimal_borders',
  'dynamic_background_opacity',
  'editor',
- 'enable_audio_bell',
  'enabled_layouts',
  'env',
  'exe_search_path',
- 'file_transfer_confirmation_bypass',
- 'focus_follows_mouse',
  'font_family',
  'font_features',
  'font_size',
@@ -356,7 +338,6 @@ option_names = (  # {{{
  'input_delay',
  'kitten_alias',
  'alatty_mod',
- 'linux_bell_theme',
  'linux_display_server',
  'macos_colorspace',
  'macos_hide_from_tasks',
@@ -368,12 +349,6 @@ option_names = (  # {{{
  'macos_traditional_fullscreen',
  'macos_window_resizable',
  'map',
- 'mark1_background',
- 'mark1_foreground',
- 'mark2_background',
- 'mark2_foreground',
- 'mark3_background',
- 'mark3_foreground',
  'menu_map',
  'modify_font',
  'mouse_hide_wait',
@@ -421,19 +396,13 @@ option_names = (  # {{{
  'text_fg_override_threshold',
  'touch_scroll_multiplier',
  'undercurl_style',
- 'underline_hyperlinks',
- 'url_color',
  'url_excluded_characters',
  'url_prefixes',
- 'url_style',
- 'visual_bell_color',
- 'visual_bell_duration',
  'visual_window_select_characters',
  'watcher',
  'wayland_titlebar_color',
  'wheel_scroll_min_lines',
  'wheel_scroll_multiplier',
- 'window_alert_on_bell',
  'window_border_width',
  'window_logo_alpha',
  'window_logo_path',
@@ -450,28 +419,19 @@ class Options:
     active_tab_font_style: typing.Tuple[bool, bool] = (True, True)
     active_tab_foreground: Color = Color(0, 0, 0)
     active_tab_title_template: typing.Optional[str] = None
-    allow_cloning: choices_for_allow_cloning = 'ask'
-    allow_hyperlinks: int = 1
     background: Color = Color(0, 0, 0)
     background_blur: int = 0
     background_image: typing.Optional[str] = None
-    background_image_layout: choices_for_background_image_layout = 'tiled'
-    background_image_linear: bool = False
     background_opacity: float = 1.0
     background_tint: float = 0
     background_tint_gaps: float = 1.0
-    bell_border_color: Color = Color(255, 90, 0)
-    bell_on_tab: str = '🔔 '
-    bell_path: typing.Optional[str] = None
     box_drawing_scale: typing.Tuple[float, float, float, float] = (0.001, 1.0, 1.5, 2.0)
     clear_all_mouse_actions: bool = False
     clear_all_shortcuts: bool = False
     click_interval: float = -1.0
     clipboard_control: typing.Tuple[str, ...] = ('write-clipboard', 'write-primary', 'read-clipboard-ask', 'read-primary-ask')
     clipboard_max_size: float = 512.0
-    clone_source_strategies: typing.FrozenSet[str] = frozenset({'conda', 'env_var', 'path', 'venv'})
     close_on_child_death: bool = False
-    command_on_bell: typing.List[str] = ['none']
     confirm_os_window_close: int = -1
     copy_on_select: str = ''
     cursor: typing.Optional[alatty.fast_data_types.Color] = Color(204, 204, 204)
@@ -486,10 +446,7 @@ class Options:
     draw_minimal_borders: bool = True
     dynamic_background_opacity: bool = False
     editor: str = '.'
-    enable_audio_bell: bool = True
     enabled_layouts: typing.List[str] = ['fat', 'grid', 'horizontal', 'splits', 'stack', 'tall', 'vertical']
-    file_transfer_confirmation_bypass: str = ''
-    focus_follows_mouse: bool = False
     font_family: str = 'monospace'
     font_size: float = 11.0
     force_ltr: bool = False
@@ -505,7 +462,6 @@ class Options:
     initial_window_width: typing.Tuple[int, str] = (640, 'px')
     input_delay: int = 3
     alatty_mod: int = 5
-    linux_bell_theme: str = '__custom'
     linux_display_server: choices_for_linux_display_server = 'auto'
     macos_colorspace: choices_for_macos_colorspace = 'srgb'
     macos_hide_from_tasks: bool = False
@@ -516,12 +472,6 @@ class Options:
     macos_titlebar_color: int = 0
     macos_traditional_fullscreen: bool = False
     macos_window_resizable: bool = True
-    mark1_background: Color = Color(152, 211, 203)
-    mark1_foreground: Color = Color(0, 0, 0)
-    mark2_background: Color = Color(242, 220, 211)
-    mark2_foreground: Color = Color(0, 0, 0)
-    mark3_background: Color = Color(242, 116, 188)
-    mark3_foreground: Color = Color(0, 0, 0)
     mouse_hide_wait: float = 0.0 if is_macos else 3.0
     notify_on_cmd_finish: NotifyOnCmdFinish = NotifyOnCmdFinish(when='never', duration=5.0, action='notify', cmdline=())
     paste_actions: typing.FrozenSet[str] = frozenset({'confirm', 'quote-urls-at-prompt'})
@@ -560,24 +510,18 @@ class Options:
     tab_separator: str = ' ┇'
     tab_switch_strategy: choices_for_tab_switch_strategy = 'previous'
     tab_title_max_length: int = 0
-    tab_title_template: str = '{fmt.fg.red}{bell_symbol}{activity_symbol}{fmt.fg.tab}{title}'
+    tab_title_template: str = '{fmt.fg.red}{activity_symbol}{fmt.fg.tab}{title}'
     term: str = 'xterm-alatty'
     text_composition_strategy: str = 'platform'
     text_fg_override_threshold: float = 0.0
     touch_scroll_multiplier: float = 1.0
     undercurl_style: choices_for_undercurl_style = 'thin-sparse'
-    underline_hyperlinks: choices_for_underline_hyperlinks = 'hover'
-    url_color: Color = Color(0, 135, 189)
     url_excluded_characters: str = ''
     url_prefixes: typing.Tuple[str, ...] = ('file', 'ftp', 'ftps', 'gemini', 'git', 'gopher', 'http', 'https', 'irc', 'ircs', 'alatty', 'mailto', 'news', 'sftp', 'ssh')
-    url_style: int = 3
-    visual_bell_color: typing.Optional[alatty.fast_data_types.Color] = None
-    visual_bell_duration: float = 0
     visual_window_select_characters: str = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     wayland_titlebar_color: int = 0
     wheel_scroll_min_lines: int = 1
     wheel_scroll_multiplier: float = 5.0
-    window_alert_on_bell: bool = True
     window_border_width: typing.Tuple[float, str] = (0.5, 'pt')
     window_logo_alpha: float = 0.5
     window_logo_path: typing.Optional[str] = None
@@ -713,254 +657,5 @@ defaults.kitten_alias = {}
 defaults.menu_map = {}
 defaults.modify_font = {}
 defaults.watcher = {}
-defaults.map = [
-    # copy_to_clipboard
-    KeyDefinition(trigger=SingleKey(mods=256, key=99), definition='copy_to_clipboard'), 
-    # paste_from_clipboard
-    KeyDefinition(trigger=SingleKey(mods=256, key=118), definition='paste_from_clipboard'), 
-    # paste_from_selection
-    KeyDefinition(trigger=SingleKey(mods=256, key=115), definition='paste_from_selection'), 
-    # paste_from_selection
-    KeyDefinition(trigger=SingleKey(mods=1, key=57348), definition='paste_from_selection'), 
-    # pass_selection_to_program
-    KeyDefinition(trigger=SingleKey(mods=256, key=111), definition='pass_selection_to_program'), 
-    # scroll_line_up
-    KeyDefinition(trigger=SingleKey(mods=256, key=57352), definition='scroll_line_up'), 
-    # scroll_line_up
-    KeyDefinition(trigger=SingleKey(mods=256, key=107), definition='scroll_line_up'), 
-    # scroll_line_down
-    KeyDefinition(trigger=SingleKey(mods=256, key=57353), definition='scroll_line_down'), 
-    # scroll_line_down
-    KeyDefinition(trigger=SingleKey(mods=256, key=106), definition='scroll_line_down'), 
-    # scroll_page_up
-    KeyDefinition(trigger=SingleKey(mods=256, key=57354), definition='scroll_page_up'), 
-    # scroll_page_down
-    KeyDefinition(trigger=SingleKey(mods=256, key=57355), definition='scroll_page_down'), 
-    # scroll_home
-    KeyDefinition(trigger=SingleKey(mods=256, key=57356), definition='scroll_home'), 
-    # scroll_end
-    KeyDefinition(trigger=SingleKey(mods=256, key=57357), definition='scroll_end'), 
-    # scroll_to_previous_prompt
-    KeyDefinition(trigger=SingleKey(mods=256, key=122), definition='scroll_to_prompt -1'), 
-    # scroll_to_next_prompt
-    KeyDefinition(trigger=SingleKey(mods=256, key=120), definition='scroll_to_prompt 1'), 
-    # show_scrollback
-    KeyDefinition(trigger=SingleKey(mods=256, key=104), definition='show_scrollback'), 
-    # new_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=57345), definition='new_window'), 
-    # new_os_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=110), definition='new_os_window'), 
-    # close_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=119), definition='close_window'), 
-    # next_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=93), definition='next_window'), 
-    # previous_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=91), definition='previous_window'), 
-    # move_window_forward
-    KeyDefinition(trigger=SingleKey(mods=256, key=102), definition='move_window_forward'), 
-    # move_window_backward
-    KeyDefinition(trigger=SingleKey(mods=256, key=98), definition='move_window_backward'), 
-    # move_window_to_top
-    KeyDefinition(trigger=SingleKey(mods=256, key=96), definition='move_window_to_top'), 
-    # start_resizing_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=114), definition='start_resizing_window'), 
-    # first_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=49), definition='first_window'), 
-    # second_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=50), definition='second_window'), 
-    # third_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=51), definition='third_window'), 
-    # fourth_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=52), definition='fourth_window'), 
-    # fifth_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=53), definition='fifth_window'), 
-    # sixth_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=54), definition='sixth_window'), 
-    # seventh_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=55), definition='seventh_window'), 
-    # eighth_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=56), definition='eighth_window'), 
-    # ninth_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=57), definition='ninth_window'), 
-    # tenth_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=48), definition='tenth_window'), 
-    # focus_visible_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=57370), definition='focus_visible_window'), 
-    # swap_with_window
-    KeyDefinition(trigger=SingleKey(mods=256, key=57371), definition='swap_with_window'), 
-    # next_tab
-    KeyDefinition(trigger=SingleKey(mods=256, key=57351), definition='next_tab'), 
-    # next_tab
-    KeyDefinition(trigger=SingleKey(mods=4, key=57346), definition='next_tab'), 
-    # previous_tab
-    KeyDefinition(trigger=SingleKey(mods=256, key=57350), definition='previous_tab'), 
-    # previous_tab
-    KeyDefinition(trigger=SingleKey(mods=5, key=57346), definition='previous_tab'), 
-    # new_tab
-    KeyDefinition(trigger=SingleKey(mods=256, key=116), definition='new_tab'), 
-    # close_tab
-    KeyDefinition(trigger=SingleKey(mods=256, key=113), definition='close_tab'), 
-    # move_tab_forward
-    KeyDefinition(trigger=SingleKey(mods=256, key=46), definition='move_tab_forward'), 
-    # move_tab_backward
-    KeyDefinition(trigger=SingleKey(mods=256, key=44), definition='move_tab_backward'), 
-    # set_tab_title
-    KeyDefinition(trigger=SingleKey(mods=258, key=116), definition='set_tab_title'), 
-    # next_layout
-    KeyDefinition(trigger=SingleKey(mods=256, key=108), definition='next_layout'), 
-    # increase_font_size
-    KeyDefinition(trigger=SingleKey(mods=256, key=61), definition='change_font_size all +2.0'), 
-    # increase_font_size
-    KeyDefinition(trigger=SingleKey(mods=256, key=43), definition='change_font_size all +2.0'), 
-    # increase_font_size
-    KeyDefinition(trigger=SingleKey(mods=256, key=57413), definition='change_font_size all +2.0'), 
-    # decrease_font_size
-    KeyDefinition(trigger=SingleKey(mods=256, key=45), definition='change_font_size all -2.0'), 
-    # decrease_font_size
-    KeyDefinition(trigger=SingleKey(mods=256, key=57412), definition='change_font_size all -2.0'), 
-    # reset_font_size
-    KeyDefinition(trigger=SingleKey(mods=256, key=57347), definition='change_font_size all 0'), 
-    # insert_selected_path
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=102),), definition='kitten hints --type path --program -'), 
-    # open_selected_path
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(mods=1, key=102),), definition='kitten hints --type path'), 
-    # insert_selected_line
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=108),), definition='kitten hints --type line --program -'), 
-    # insert_selected_word
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=119),), definition='kitten hints --type word --program -'), 
-    # insert_selected_hash
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=104),), definition='kitten hints --type hash --program -'), 
-    # goto_file_line
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=110),), definition='kitten hints --type linenum'), 
-    # open_selected_hyperlink
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=112), rest=(SingleKey(key=121),), definition='kitten hints --type hyperlink'), 
-    # toggle_fullscreen
-    KeyDefinition(trigger=SingleKey(mods=256, key=57374), definition='toggle_fullscreen'), 
-    # toggle_maximized
-    KeyDefinition(trigger=SingleKey(mods=256, key=57373), definition='toggle_maximized'), 
-    # input_unicode_character
-    KeyDefinition(trigger=SingleKey(mods=256, key=117), definition='kitten unicode_input'), 
-    # edit_config_file
-    KeyDefinition(trigger=SingleKey(mods=256, key=57365), definition='edit_config_file'), 
-    # alatty_shell
-    KeyDefinition(trigger=SingleKey(mods=256, key=57344), definition='alatty_shell window'), 
-    # increase_background_opacity
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=97), rest=(SingleKey(key=109),), definition='set_background_opacity +0.1'), 
-    # decrease_background_opacity
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=97), rest=(SingleKey(key=108),), definition='set_background_opacity -0.1'), 
-    # full_background_opacity
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=97), rest=(SingleKey(key=49),), definition='set_background_opacity 1'), 
-    # reset_background_opacity
-    KeyDefinition(is_sequence=True, trigger=SingleKey(mods=256, key=97), rest=(SingleKey(key=100),), definition='set_background_opacity default'), 
-    # reset_terminal
-    KeyDefinition(trigger=SingleKey(mods=256, key=57349), definition='clear_terminal reset active'), 
-    # reload_config_file
-    KeyDefinition(trigger=SingleKey(mods=256, key=57368), definition='load_config_file'), 
-]
-if is_macos:
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=99), definition='copy_to_clipboard'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=118), definition='paste_from_clipboard'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=57354), definition='scroll_line_up'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57352), definition='scroll_line_up'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=57355), definition='scroll_line_down'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57353), definition='scroll_line_down'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57354), definition='scroll_page_up'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57355), definition='scroll_page_down'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57356), definition='scroll_home'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57357), definition='scroll_end'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57345), definition='new_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=110), definition='new_os_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=100), definition='close_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=114), definition='start_resizing_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=49), definition='first_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=50), definition='second_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=51), definition='third_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=52), definition='fourth_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=53), definition='fifth_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=54), definition='sixth_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=55), definition='seventh_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=56), definition='eighth_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=57), definition='ninth_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=93), definition='next_tab'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=91), definition='previous_tab'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=116), definition='new_tab'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=119), definition='close_tab'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=119), definition='close_os_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=105), definition='set_tab_title'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=43), definition='change_font_size all +2.0'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=61), definition='change_font_size all +2.0'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=61), definition='change_font_size all +2.0'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=45), definition='change_font_size all -2.0'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=9, key=45), definition='change_font_size all -2.0'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=48), definition='change_font_size all 0'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=12, key=102), definition='toggle_fullscreen'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=115), definition='toggle_macos_secure_keyboard_entry'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=12, key=32), definition='kitten unicode_input'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=44), definition='edit_config_file'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=114), definition='clear_terminal reset active'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=107), definition='clear_terminal to_cursor active'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=12, key=44), definition='load_config_file'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=104), definition='hide_macos_app'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=10, key=104), definition='hide_macos_other_apps'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=109), definition='minimize_macos_window'))
-    defaults.map.append(KeyDefinition(trigger=SingleKey(mods=8, key=113), definition='quit'))
-defaults.mouse_map = [
-    # click_url_or_select
-    MouseMapping(repeat_count=-2, definition='mouse_handle_click selection link prompt'), 
-    # click_url_or_select_grabbed
-    MouseMapping(mods=1, repeat_count=-2, grabbed=True, definition='mouse_handle_click selection link prompt'), 
-    # click_url_or_select_grabbed
-    MouseMapping(mods=1, repeat_count=-2, definition='mouse_handle_click selection link prompt'), 
-    # click_url
-    MouseMapping(mods=5, repeat_count=-1, grabbed=True, definition='mouse_handle_click link'), 
-    # click_url
-    MouseMapping(mods=5, repeat_count=-1, definition='mouse_handle_click link'), 
-    # click_url_discard
-    MouseMapping(mods=5, grabbed=True, definition='discard_event'), 
-    # paste_selection
-    MouseMapping(button=2, repeat_count=-1, definition='paste_from_selection'), 
-    # start_simple_selection
-    MouseMapping(definition='mouse_selection normal'), 
-    # start_rectangle_selection
-    MouseMapping(mods=6, definition='mouse_selection rectangle'), 
-    # select_word
-    MouseMapping(repeat_count=2, definition='mouse_selection word'), 
-    # select_line
-    MouseMapping(repeat_count=3, definition='mouse_selection line'), 
-    # select_line_from_point
-    MouseMapping(mods=6, repeat_count=3, definition='mouse_selection line_from_point'), 
-    # extend_selection
-    MouseMapping(button=1, definition='mouse_selection extend'), 
-    # paste_selection_grabbed
-    MouseMapping(button=2, mods=1, repeat_count=-1, grabbed=True, definition='paste_selection'), 
-    # paste_selection_grabbed
-    MouseMapping(button=2, mods=1, repeat_count=-1, definition='paste_selection'), 
-    # paste_selection_grabbed
-    MouseMapping(button=2, mods=1, grabbed=True, definition='discard_event'), 
-    # start_simple_selection_grabbed
-    MouseMapping(mods=1, grabbed=True, definition='mouse_selection normal'), 
-    # start_simple_selection_grabbed
-    MouseMapping(mods=1, definition='mouse_selection normal'), 
-    # start_rectangle_selection_grabbed
-    MouseMapping(mods=7, grabbed=True, definition='mouse_selection rectangle'), 
-    # start_rectangle_selection_grabbed
-    MouseMapping(mods=7, definition='mouse_selection rectangle'), 
-    # select_word_grabbed
-    MouseMapping(mods=1, repeat_count=2, grabbed=True, definition='mouse_selection word'), 
-    # select_word_grabbed
-    MouseMapping(mods=1, repeat_count=2, definition='mouse_selection word'), 
-    # select_line_grabbed
-    MouseMapping(mods=1, repeat_count=3, grabbed=True, definition='mouse_selection line'), 
-    # select_line_grabbed
-    MouseMapping(mods=1, repeat_count=3, definition='mouse_selection line'), 
-    # select_line_from_point_grabbed
-    MouseMapping(mods=7, repeat_count=3, grabbed=True, definition='mouse_selection line_from_point'), 
-    # select_line_from_point_grabbed
-    MouseMapping(mods=7, repeat_count=3, definition='mouse_selection line_from_point'), 
-    # extend_selection_grabbed
-    MouseMapping(button=1, mods=1, grabbed=True, definition='mouse_selection extend'), 
-    # extend_selection_grabbed
-    MouseMapping(button=1, mods=1, definition='mouse_selection extend'), 
-    # show_clicked_cmd_output_ungrabbed
-    MouseMapping(button=1, mods=5, definition='mouse_show_command_output'), 
-]
+defaults.map = []
+defaults.mouse_map = []

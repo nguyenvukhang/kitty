@@ -394,13 +394,6 @@ class WindowList:
         if old_active_window is not new_active_window:
             self.notify_on_active_window_change(old_active_window, new_active_window)
 
-    def active_window_in_nth_group(self, n: int, clamp: bool = False) -> Optional[WindowType]:
-        if clamp:
-            n = max(0, min(n, self.num_groups - 1))
-        if 0 <= n < self.num_groups:
-            return self.id_map.get(self.groups[n].active_window_id)
-        return None
-
     def active_window_in_group_id(self, group_id: int) -> Optional[WindowType]:
         for g in self.groups:
             if g.id == group_id:

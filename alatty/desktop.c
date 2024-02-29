@@ -241,16 +241,6 @@ play_canberra_sound(const char *which_sound, const char *event_id, bool is_path,
     queue_canberra_sound(which_sound, event_id, is_path, media_role, theme_name);
 }
 
-static PyObject*
-play_desktop_sound(PyObject *self UNUSED, PyObject *args) {
-    const char *which, *event_id = "test sound";
-    const char *theme_name = "freedesktop";
-    int is_path = 0;
-    if (!PyArg_ParseTuple(args, "s|sps", &which, &event_id, &is_path, &theme_name)) return NULL;
-    play_canberra_sound(which, event_id, is_path, "event", theme_name);
-    Py_RETURN_NONE;
-}
-
 static void
 finalize(void) {
     if (libsn_handle) dlclose(libsn_handle);
@@ -269,7 +259,6 @@ finalize(void) {
 static PyMethodDef module_methods[] = {
     METHODB(init_x11_startup_notification, METH_VARARGS),
     METHODB(end_x11_startup_notification, METH_VARARGS),
-    METHODB(play_desktop_sound, METH_VARARGS),
 
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };

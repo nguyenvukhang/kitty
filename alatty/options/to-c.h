@@ -57,31 +57,6 @@ window_title_in(PyObject *title_in) {
     return ALL;
 }
 
-static UnderlineHyperlinks
-underline_hyperlinks(PyObject *x) {
-    const char *in = PyUnicode_AsUTF8(x);
-    switch(in[0]) {
-        case 'a': return UNDERLINE_ALWAYS;
-        case 'n': return UNDERLINE_NEVER;
-        default : return UNDERLINE_ON_HOVER;
-    }
-}
-
-static BackgroundImageLayout
-bglayout(PyObject *layout_name) {
-    const char *name = PyUnicode_AsUTF8(layout_name);
-    switch(name[0]) {
-        case 't': return TILING;
-        case 'm': return MIRRORED;
-        case 's': return SCALED;
-        case 'c': {
-            return name[1] == 'l' ? CLAMPED : (name[1] == 's' ? CENTER_SCALED : CENTER_CLAMPED);
-        }
-        default: break;
-    }
-    return TILING;
-}
-
 static ImageAnchorPosition
 bganchor(PyObject *anchor_name) {
     const char *name = PyUnicode_AsUTF8(anchor_name);
@@ -110,12 +85,6 @@ bganchor(PyObject *anchor_name) {
 
 static void
 background_image(PyObject *src, Options *opts) { STR_SETTER(background_image); }
-
-static void
-bell_path(PyObject *src, Options *opts) { STR_SETTER(bell_path); }
-
-static void
-bell_theme(PyObject *src, Options *opts) { STR_SETTER(bell_theme); }
 
 static void
 window_logo_path(PyObject *src, Options *opts) { STR_SETTER(default_window_logo); }
@@ -350,6 +319,6 @@ free_allocs_in_options(Options *opts) {
     free_url_prefixes(opts);
 #define F(x) free(opts->x); opts->x = NULL;
     F(select_by_word_characters); F(url_excluded_characters); F(select_by_word_characters_forward);
-    F(background_image); F(bell_path); F(bell_theme); F(default_window_logo);
+    F(background_image); F(default_window_logo);
 #undef F
 }

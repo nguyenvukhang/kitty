@@ -18,7 +18,6 @@ class LineEdit:
     def clear(self) -> None:
         self.current_input = ''
         self.cursor_pos = 0
-        self.pending_bell = False
 
     def split_at_cursor(self, delta: int = 0) -> Tuple[str, str]:
         pos = max(0, self.cursor_pos + delta)
@@ -27,9 +26,6 @@ class LineEdit:
         return before, after
 
     def write(self, write: Callable[[str], None], prompt: str = '', screen_cols: int = 0) -> None:
-        if self.pending_bell:
-            write('\a')
-            self.pending_bell = False
         ci = self.current_input
         if self.is_password:
             ci = '*' * wcswidth(ci)
@@ -71,7 +67,6 @@ class LineEdit:
             self.current_input = nbefore + after
             self.cursor_pos = wcswidth(nbefore)
             return True
-        self.pending_bell = True
         return False
 
     def delete(self, num: int = 1) -> bool:
@@ -81,7 +76,6 @@ class LineEdit:
             self.current_input = before + nafter
             self.cursor_pos = wcswidth(before)
             return True
-        self.pending_bell = True
         return False
 
     def _left(self) -> None:
@@ -112,8 +106,6 @@ class LineEdit:
             if not changed:
                 break
             num -= 1
-        if not changed:
-            self.pending_bell = True
         return changed
 
     def left(self, num: int = 1) -> bool:

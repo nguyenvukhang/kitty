@@ -354,8 +354,7 @@ def setup_colors(screen: Screen, opts: Options) -> None:
     screen.color_profile.set_configured_colors(
         s(opts.foreground), s(opts.background),
         s(opts.cursor), s(opts.cursor_text_color),
-        s(opts.selection_foreground), s(opts.selection_background),
-        s(opts.visual_bell_color)
+        s(opts.selection_foreground), s(opts.selection_background)
     )
 
 
@@ -708,17 +707,6 @@ class Window:
         return False
 
     def matches_query(self, field: str, query: str, active_tab: Optional[TabType] = None, self_window: Optional['Window'] = None) -> bool:
-        if field in ('num', 'recent'):
-            if active_tab is not None:
-                try:
-                    q = int(query)
-                except Exception:
-                    return False
-                with suppress(Exception):
-                    if field == 'num':
-                        return active_tab.get_nth_window(q) is self
-                    return active_tab.nth_active_window_id(q) == self.id
-            return False
         if field == 'state':
             if query == 'active':
                 tab = self.tabref()
@@ -976,23 +964,6 @@ class Window:
             return True
         return False
 
-    def on_bell(self) -> None:
-        cb = get_options().command_on_bell
-        if cb and cb != ['none']:
-            import shlex
-            import subprocess
-            env = self.child.foreground_environ
-            env['ALATTY_CHILD_CMDLINE'] = ' '.join(map(shlex.quote, self.child.cmdline))
-            subprocess.Popen(cb, env=env, cwd=self.child.foreground_cwd, preexec_fn=clear_handled_signals)
-        if not self.is_active:
-            changed = not self.needs_attention
-            self.needs_attention = True
-            tab = self.tabref()
-            if tab is not None:
-                if changed:
-                    tab.relayout_borders()
-                tab.on_bell(self)
-
     def change_colors(self, changes: Dict[DynamicColor, Optional[str]]) -> None:
         dirtied = default_bg_changed = False
 
@@ -1167,16 +1138,11 @@ class Window:
                 if monotonic() - self.last_focused_at < 1.5 * get_click_interval():
                     return
                 if move_cursor_to_mouse_if_in_prompt(self.os_window_id, self.tab_id, self.id):
-                    self.screen.ignore_bells_for(1)
                     break
 
     @ac('mouse', 'Click the URL under the mouse')
     def mouse_click_url(self) -> None:
         self.mouse_handle_click('link')
-
-    @ac('mouse', 'Click the URL under the mouse only if the screen has no selection')
-    def mouse_click_url_or_select(self) -> None:
-        self.mouse_handle_click('selection', 'link')
 
     @ac('mouse', '''
         Manipulate the selection based on the current mouse position
@@ -1478,46 +1444,6 @@ class Window:
             self.screen.scroll(SCROLL_FULL, False)
             return None
         return True
-
-    @ac('sc', '''
-        Scroll to the previous/next shell command prompt
-        Allows easy jumping from one command to the next. Requires working
-        :ref:`shell_integration`. Takes a single, optional, number as argument which is
-        the number of prompts to jump, negative values jump up and positive values jump down.
-        A value of zero will jump to the last prompt visited by this action.
-        For example::
-
-            map ctrl+p scroll_to_prompt -1  # jump to previous
-            map ctrl+n scroll_to_prompt 1   # jump to next
-            map ctrl+o scroll_to_prompt 0   # jump to last visited
-        ''')
-    def scroll_to_prompt(self, num_of_prompts: int = -1) -> Optional[bool]:
-        if self.screen.is_main_linebuf():
-            self.screen.scroll_to_prompt(num_of_prompts)
-            return None
-        return True
-
-    @ac('sc', 'Scroll prompt to the top of the screen, filling screen with empty lines, when in main screen')
-    def scroll_prompt_to_top(self, clear_scrollback: bool = False) -> Optional[bool]:
-        if self.screen.is_main_linebuf():
-            self.screen.scroll_until_cursor_prompt()
-            if clear_scrollback:
-                self.screen.clear_scrollback()
-            elif self.screen.scrolled_by > 0:
-                self.screen.scroll(SCROLL_FULL, False)
-            return None
-        return True
-
-    @ac('sc', 'Scroll prompt to the bottom of the screen, filling in extra lines from the scrollback buffer, when in main screen')
-    def scroll_prompt_to_bottom(self) -> Optional[bool]:
-        if self.screen.is_main_linebuf():
-            self.screen.scroll_prompt_to_bottom()
-            return None
-        return True
-
-    @ac('mk', 'Scroll to the next or previous mark of the specified type')
-    def scroll_to_mark(self, prev: bool = True, mark: int = 0) -> None:
-        self.screen.scroll_to_next_mark(mark, prev)
 
     @ac('misc', '''
         Send the specified SIGNAL to the foreground process in the active window

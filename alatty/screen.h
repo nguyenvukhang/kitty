@@ -39,7 +39,7 @@ typedef struct {
 typedef struct {
     SelectionBoundary start, end, input_start, input_current;
     unsigned int start_scrolled_by, end_scrolled_by;
-    bool rectangle_select, adjusting_start, is_hyperlink;
+    bool rectangle_select, adjusting_start;
     IterationData last_rendered;
     int sort_y, sort_x;
     struct {
@@ -95,7 +95,7 @@ typedef struct {
     uint32_t utf8_codepoint, *g0_charset, *g1_charset, *g_charset;
     UTF8State utf8_state;
     unsigned int current_charset;
-    Selections selections, url_ranges;
+    Selections selections;
     struct {
         unsigned int cursor_x, cursor_y, scrolled_by;
         index_type lines, columns;
@@ -111,7 +111,6 @@ typedef struct {
     bool *tabstops, *main_tabstops, *alt_tabstops;
     ScreenModes modes, saved_modes;
     ColorProfile *color_profile;
-    monotonic_t start_visual_bell_at;
 
     uint32_t parser_buf[PARSER_BUF_SZ];
     unsigned int parser_state, parser_text_start, parser_buf_pos;
@@ -136,9 +135,6 @@ typedef struct {
     ANSIBuf as_ansi_buf;
     char_type last_graphic_char;
     uint8_t main_key_encoding_flags[8], alt_key_encoding_flags[8], *key_encoding_flags;
-    struct {
-        monotonic_t start, duration;
-    } ignore_bells;
     union {
         struct {
             unsigned int redraws_prompts_at_all: 1;
@@ -256,8 +252,6 @@ bool screen_history_scroll(Screen *self, int amt, bool upwards);
 PyObject* as_text_history_buf(HistoryBuf *self, PyObject *args, ANSIBuf *output);
 Line* screen_visual_line(Screen *self, index_type y);
 unsigned long screen_current_char_width(Screen *self);
-void screen_mark_url(Screen *self, index_type start_x, index_type start_y, index_type end_x, index_type end_y);
-hyperlink_id_type screen_mark_hyperlink(Screen*, index_type, index_type);
 void screen_handle_graphics_command(Screen *self, const GraphicsCommand *cmd, const uint8_t *payload);
 bool screen_set_last_visited_prompt(Screen*, index_type);
 bool screen_select_cmd_output(Screen*, index_type);
@@ -276,7 +270,6 @@ bool screen_fake_move_cursor_to_position(Screen *, index_type x, index_type y);
 bool screen_send_signal_for_key(Screen *, char key);
 bool get_line_edge_colors(Screen *self, color_type *left, color_type *right);
 #define DECLARE_CH_SCREEN_HANDLER(name) void screen_##name(Screen *screen);
-DECLARE_CH_SCREEN_HANDLER(bell)
 DECLARE_CH_SCREEN_HANDLER(backspace)
 DECLARE_CH_SCREEN_HANDLER(tab)
 DECLARE_CH_SCREEN_HANDLER(linefeed)

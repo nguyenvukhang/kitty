@@ -178,10 +178,6 @@ Pass the screen contents as :file:`STDIN` to the child process.
 :code:`@last_cmd_output`
     is the output from the last command run in the shell.
 
-:code:`@last_visited_cmd_output`
-    is the first output below the last scrolled position via :ac:`scroll_to_prompt`,
-    this needs :ref:`shell integration <shell_integration>` to work.
-
 #placeholder_for_formatting#
 
 

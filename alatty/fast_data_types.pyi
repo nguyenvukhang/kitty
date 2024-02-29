@@ -694,7 +694,7 @@ class ColorProfile:
         pass
 
     def set_configured_colors(
-        self, fg: int, bg: int, cursor: int = 0, cursor_text: int = 0, highlight_fg: int = 0, highlight_bg: int = 0, visual_bell_color: int = 0
+        self, fg: int, bg: int, cursor: int = 0, cursor_text: int = 0, highlight_fg: int = 0, highlight_bg: int = 0
     ) -> None:
         pass
 
@@ -837,10 +837,6 @@ def set_active_tab(os_window_id: int, a: int) -> None:
 
 
 def set_active_window(os_window_id: int, tab_id: int, window_id: int) -> None:
-    pass
-
-
-def ring_bell() -> None:
     pass
 
 
@@ -1035,9 +1031,6 @@ class Screen:
     def cursor_at_prompt(self) -> bool:
         pass
 
-    def ignore_bells_for(self, duration: float = 1) -> None:
-        pass
-
     def set_window_char(self, ch: str = "") -> None:
         pass
 
@@ -1098,16 +1091,7 @@ class Screen:
     def scroll(self, amt: int, upwards: bool) -> bool:
         pass
 
-    def scroll_to_next_mark(self, mark: int = 0, backwards: bool = True) -> bool:
-        pass
-
-    def scroll_to_prompt(self, num_of_prompts: int = -1) -> bool:
-        pass
-
     def reverse_scroll(self, amt: int, fill_from_scrollback: bool = False) -> bool:
-        pass
-
-    def scroll_prompt_to_bottom(self) -> None:
         pass
 
     def clear_selection(self) -> None:

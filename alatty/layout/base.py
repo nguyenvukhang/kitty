@@ -255,12 +255,6 @@ class Layout:
                     data[k] = v
         return type(self.layout_opts)(data)
 
-    def nth_window(self, all_windows: WindowList, num: int) -> Optional[WindowType]:
-        return all_windows.active_window_in_nth_group(num, clamp=True)
-
-    def activate_nth_window(self, all_windows: WindowList, num: int) -> None:
-        all_windows.set_active_group_idx(num)
-
     def next_window(self, all_windows: WindowList, delta: int = 1) -> None:
         all_windows.activate_next_window_group(delta)
 

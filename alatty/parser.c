@@ -157,8 +157,6 @@ static void
 dispatch_normal_mode_char(Screen *screen, uint32_t ch, PyObject DUMP_UNUSED *dump_callback) {
 #define CALL_SCREEN_HANDLER(name) REPORT_COMMAND(name); name(screen); break;
     switch(ch) {
-        case BEL:
-            CALL_SCREEN_HANDLER(screen_bell);
         case BS:
             CALL_SCREEN_HANDLER(screen_backspace);
         case HT:
@@ -1207,7 +1205,6 @@ END_ALLOW_CASE_RANGE
         case '~':
             screen->parser_buf[screen->parser_buf_pos] = ch;
             return true;
-        case BEL:
         case BS:
         case HT:
         case LF:

@@ -47,7 +47,6 @@ from .fast_data_types import (
     next_window_id,
     remove_tab,
     remove_window,
-    ring_bell,
     set_active_tab,
     set_active_window,
     swap_tabs,
@@ -289,9 +288,6 @@ class Tab:  # {{{
             if tm is not None:
                 tm.title_changed()
 
-    def on_bell(self, window: Window) -> None:
-        self.mark_tab_bar_dirty()
-
     def relayout(self) -> None:
         if self.windows:
             self.current_layout(self.windows)
@@ -409,13 +405,7 @@ class Tab:  # {{{
             return
         if increment < 1:
             raise ValueError(increment)
-        is_horizontal = quality in ('wider', 'narrower')
         increment *= 1 if quality in ('wider', 'taller') else -1
-        w = self.active_window
-        if w is not None and self.resize_window_by(
-                w.id, increment, is_horizontal) is not None:
-            if get_options().enable_audio_bell:
-                ring_bell()
 
     @ac('win', 'Reset window sizes undoing any dynamic resizing of windows')
     def reset_window_sizes(self) -> None:
@@ -426,8 +416,6 @@ class Tab:  # {{{
     def layout_action(self, action_name: str, args: Sequence[str]) -> None:
         ret = self.current_layout.layout_action(action_name, args, self.windows)
         if ret is None:
-            if get_options().enable_audio_bell:
-                ring_bell()
             return
         self.relayout()
 
@@ -589,68 +577,6 @@ class Tab:  # {{{
     def set_active_window(self, x: Union[Window, int], for_keep_focus: Optional[Window] = None) -> None:
         self.windows.set_active_window_group_for(x, for_keep_focus=for_keep_focus)
 
-    def get_nth_window(self, n: int) -> Optional[Window]:
-        if self.windows:
-            return self.current_layout.nth_window(self.windows, n)
-        return None
-
-    @ac('win', '''
-        Focus the nth window if positive or the previously active windows if negative. When the number is larger
-        than the number of windows focus the last window. For example::
-
-            # focus the previously active window
-            map ctrl+p nth_window -1
-            # focus the first window
-            map ctrl+1 nth_window 0
-        ''')
-    def nth_window(self, num: int = 0) -> None:
-        if self.windows:
-            if num < 0:
-                self.windows.make_previous_group_active(-num)
-            elif self.windows.num_groups:
-                self.current_layout.activate_nth_window(self.windows, min(num, self.windows.num_groups - 1))
-            self.relayout_borders()
-
-    @ac('win', 'Focus the first window')
-    def first_window(self) -> None:
-        self.nth_window(0)
-
-    @ac('win', 'Focus the second window')
-    def second_window(self) -> None:
-        self.nth_window(1)
-
-    @ac('win', 'Focus the third window')
-    def third_window(self) -> None:
-        self.nth_window(2)
-
-    @ac('win', 'Focus the fourth window')
-    def fourth_window(self) -> None:
-        self.nth_window(3)
-
-    @ac('win', 'Focus the fifth window')
-    def fifth_window(self) -> None:
-        self.nth_window(4)
-
-    @ac('win', 'Focus the sixth window')
-    def sixth_window(self) -> None:
-        self.nth_window(5)
-
-    @ac('win', 'Focus the seventh window')
-    def seventh_window(self) -> None:
-        self.nth_window(6)
-
-    @ac('win', 'Focus the eighth window')
-    def eighth_window(self) -> None:
-        self.nth_window(7)
-
-    @ac('win', 'Focus the ninth window')
-    def ninth_window(self) -> None:
-        self.nth_window(8)
-
-    @ac('win', 'Focus the tenth window')
-    def tenth_window(self) -> None:
-        self.nth_window(9)
-
     def _next_window(self, delta: int = 1) -> None:
         if len(self.windows) > 1:
             self.current_layout.next_window(self.windows, delta)
@@ -677,12 +603,6 @@ class Tab:  # {{{
         if groups:
             return groups[0]
         return None
-
-    def nth_active_window_id(self, n: int = 0) -> int:
-        if n <= 0:
-            return self.active_window.id if self.active_window else 0
-        ids = tuple(reversed(self.windows.active_window_history))
-        return ids[min(n - 1, len(ids) - 1)] if ids else 0
 
     def neighboring_group_id(self, which: EdgeLiteral) -> Optional[int]:
         neighbors = self.current_layout.neighbors(self.windows)
@@ -796,10 +716,6 @@ class Tab:  # {{{
             if active_tab_manager and len(active_tab_manager.tabs):
                 idx = (int(query) + len(active_tab_manager.tabs)) % len(active_tab_manager.tabs)
                 return active_tab_manager.tabs[idx] is self
-            return False
-        if field == 'recent':
-            if active_tab_manager and len(active_tab_manager.tabs):
-                return self is active_tab_manager.nth_active_tab(int(query))
             return False
         if field == 'state':
             if query == 'active':
@@ -1001,12 +917,6 @@ class TabManager:  # {{{
                 if tab.id == old_active_tab_id:
                     self.set_active_tab_idx(idx)
                     break
-
-    def nth_active_tab(self, n: int = 0) -> Optional[Tab]:
-        if n <= 0:
-            return self.active_tab
-        tab_ids = tuple(reversed(self.active_tab_history))
-        return self.tab_for_id(tab_ids[min(n - 1, len(tab_ids) - 1)]) if tab_ids else None
 
     def __iter__(self) -> Iterator[Tab]:
         return iter(self.tabs)

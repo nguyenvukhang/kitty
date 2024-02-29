@@ -57,7 +57,6 @@ class DrawData(NamedTuple):
     leading_spaces: int
     sep: str
     trailing_spaces: int
-    bell_on_tab: str
     alpha: Sequence[float]
     active_fg: Color
     active_bg: Color
@@ -246,7 +245,6 @@ def draw_title(draw_data: DrawData, screen: Screen, tab: TabBarData, index: int,
         'fmt': Formatter,
         'sup': SupSub(data),
         'sub': SupSub(data, True),
-        'bell_symbol': draw_data.bell_on_tab if tab.needs_attention else '',
         'activity_symbol': draw_data.tab_activity_symbol if tab.has_activity_since_last_focus else '',
         'max_title_length': max_title_length,
     }
@@ -254,8 +252,6 @@ def draw_title(draw_data: DrawData, screen: Screen, tab: TabBarData, index: int,
     if tab.is_active and draw_data.active_title_template is not None:
         template = draw_data.active_title_template
     prefix = ''
-    if eval_locals['bell_symbol'] and not template_has_field(template, 'bell_symbol'):
-        prefix = '{bell_symbol}'
     if eval_locals['activity_symbol'] and not template_has_field(template, 'activity_symbol'):
         prefix += '{activity_symbol}'
     if prefix:
@@ -508,7 +504,7 @@ class TabBar:
         self.active_bg = as_rgb(color_as_int(opts.active_tab_background))
         self.active_fg = as_rgb(color_as_int(opts.active_tab_foreground))
         self.draw_data = DrawData(
-            self.leading_spaces, self.sep, self.trailing_spaces, opts.bell_on_tab,
+            self.leading_spaces, self.sep, self.trailing_spaces,
             opts.tab_fade, opts.active_tab_foreground, opts.active_tab_background,
             opts.inactive_tab_foreground, opts.inactive_tab_background,
             opts.tab_bar_background or opts.background, opts.tab_title_template,

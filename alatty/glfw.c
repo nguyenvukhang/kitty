@@ -451,19 +451,6 @@ key_callback(GLFWwindow *w, GLFWkeyevent *ev) {
 }
 
 static void
-cursor_enter_callback(GLFWwindow *w, int entered) {
-    if (!set_callback_window(w)) return;
-    if (entered) {
-        show_mouse_cursor(w);
-        monotonic_t now = monotonic();
-        global_state.callback_os_window->last_mouse_activity_at = now;
-        if (is_window_ready_for_callbacks()) enter_event();
-        request_tick_callback();
-    }
-    global_state.callback_os_window = NULL;
-}
-
-static void
 mouse_button_callback(GLFWwindow *w, int button, int action, int mods) {
     if (!set_callback_window(w)) return;
     show_mouse_cursor(w);
@@ -1207,7 +1194,6 @@ create_os_window(PyObject UNUSED *self, PyObject *args, PyObject *kw) {
     glfwSetWindowContentScaleCallback(glfw_window, dpi_change_callback);
     glfwSetMouseButtonCallback(glfw_window, mouse_button_callback);
     glfwSetCursorPosCallback(glfw_window, cursor_pos_callback);
-    glfwSetCursorEnterCallback(glfw_window, cursor_enter_callback);
     glfwSetScrollCallback(glfw_window, scroll_callback);
     glfwSetKeyboardCallback(glfw_window, key_callback);
     glfwSetDropCallback(glfw_window, drop_callback);
@@ -1575,26 +1561,6 @@ cocoa_hide_other_apps(PYNOARG) {
     Py_RETURN_NONE;
 }
 
-static void
-ring_audio_bell(void) {
-    static monotonic_t last_bell_at = -1;
-    monotonic_t now = monotonic();
-    if (last_bell_at >= 0 && now - last_bell_at <= ms_to_monotonic_t(100ll)) return;
-    last_bell_at = now;
-#ifdef __APPLE__
-    cocoa_system_beep(OPT(bell_path));
-#else
-    if (OPT(bell_path)) play_canberra_sound(OPT(bell_path), "alatty bell", true, "event", OPT(bell_theme));
-    else play_canberra_sound("bell", "alatty bell", false, "event", OPT(bell_theme));
-#endif
-}
-
-static PyObject*
-ring_bell(PYNOARG) {
-    ring_audio_bell();
-    Py_RETURN_NONE;
-}
-
 static PyObject*
 get_content_scale_for_window(PYNOARG) {
     OSWindow *w = global_state.callback_os_window ? global_state.callback_os_window : global_state.os_windows;
@@ -1674,16 +1640,6 @@ change_os_window_state(PyObject *self UNUSED, PyObject *args) {
     }
     change_state_for_os_window(w, state);
     Py_RETURN_NONE;
-}
-
-void
-request_window_attention(id_type alatty_window_id, bool audio_bell) {
-    OSWindow *w = os_window_for_alatty_window(alatty_window_id);
-    if (w) {
-        if (audio_bell) ring_audio_bell();
-        if (OPT(window_alert_on_bell)) glfwRequestWindowAttention(w->handle);
-        glfwPostEmptyEvent();
-    }
 }
 
 void
@@ -2114,7 +2070,6 @@ static PyMethodDef module_methods[] = {
     METHODB(get_clipboard_mime, METH_VARARGS),
     METHODB(toggle_secure_input, METH_NOARGS),
     METHODB(get_content_scale_for_window, METH_NOARGS),
-    METHODB(ring_bell, METH_NOARGS),
     METHODB(toggle_fullscreen, METH_VARARGS),
     METHODB(toggle_maximized, METH_VARARGS),
     METHODB(change_os_window_state, METH_VARARGS),

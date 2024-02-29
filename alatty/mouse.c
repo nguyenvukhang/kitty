@@ -360,12 +360,6 @@ set_mouse_position(Window *w, bool *mouse_cell_changed, bool *cell_half_changed)
 
 HANDLER(handle_move_event) {
     modifiers &= ~GLFW_LOCK_MASK;
-    if (OPT(focus_follows_mouse)) {
-        Tab *t = global_state.callback_os_window->tabs + global_state.callback_os_window->active_tab;
-        if (window_idx != t->active_window) {
-            call_boss(switch_focus_to, "K", t->windows[window_idx].id);
-        }
-    }
     bool mouse_cell_changed = false;
     bool cell_half_changed = false;
     if (!set_mouse_position(w, &mouse_cell_changed, &cell_half_changed)) return;
@@ -640,7 +634,6 @@ focus_in_event(void) {
     mouse_cursor_shape = TEXT_POINTER;
     Window *w = window_for_event(&window_idx, &in_tab_bar);
     if (w && w->render_data.screen) {
-        screen_mark_url(w->render_data.screen, 0, 0, 0, 0);
         set_mouse_cursor_for_screen(w->render_data.screen);
     }
     set_mouse_cursor(mouse_cursor_shape);
@@ -654,21 +647,9 @@ update_mouse_pointer_shape(void) {
     Window *w = window_for_event(&window_idx, &in_tab_bar);
     if (in_tab_bar) { mouse_cursor_shape = POINTER_POINTER; }
     else if (w && w->render_data.screen) {
-        screen_mark_url(w->render_data.screen, 0, 0, 0, 0);
         set_mouse_cursor_for_screen(w->render_data.screen);
     }
     set_mouse_cursor(mouse_cursor_shape);
-}
-
-void
-enter_event(void) {
-#ifdef __APPLE__
-    // On cocoa there is no way to configure the window manager to
-    // focus windows on mouse enter, so we do it ourselves
-    if (OPT(focus_follows_mouse) && !global_state.callback_os_window->is_focused) {
-        focus_os_window(global_state.callback_os_window, false, NULL);
-    }
-#endif
 }
 
 static void

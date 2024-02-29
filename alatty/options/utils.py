@@ -286,14 +286,14 @@ def set_colors(func: str, rest: str) -> FuncArgsType:
     return func, r
 
 
-@func_with_args('nth_os_window', 'nth_window', 'scroll_to_prompt', 'visual_window_select_action_trigger', 'next_layout')
+@func_with_args('visual_window_select_action_trigger', 'next_layout')
 def single_integer_arg(func: str, rest: str) -> FuncArgsType:
     try:
         num = int(rest)
     except Exception:
         if rest:
             log_error(f'Invalid number for {func}: {rest}')
-        num = -1 if func == 'scroll_to_prompt' else 1
+        num = 1
     return func, [num]
 
 
@@ -349,22 +349,6 @@ def toggle_marker(func: str, rest: str) -> FuncArgsType:
     ftype, spec = parts
     parts = list(shlex_split(spec))
     return func, list(parse_marker_spec(ftype, parts))
-
-
-@func_with_args('scroll_to_mark')
-def scroll_to_mark(func: str, rest: str) -> FuncArgsType:
-    parts = rest.split()
-    if not parts or not rest:
-        return func, [True, 0]
-    if len(parts) == 1:
-        q = parts[0].lower()
-        if q in ('prev', 'previous', 'next'):
-            return func, [q != 'next', 0]
-        try:
-            return func, [True, max(0, min(int(q), 3))]
-        except Exception:
-            raise ValueError(f'{rest} is not a valid scroll_to_mark destination')
-    return func, [parts[0] != 'next', max(0, min(int(parts[1]), 3))]
 
 
 @func_with_args('mouse_selection')
@@ -493,14 +477,6 @@ def scrollback_lines(x: str) -> int:
 def scrollback_pager_history_size(x: str) -> int:
     ans = int(max(0, float(x)) * 1024 * 1024)
     return min(ans, 4096 * 1024 * 1024 - 1)
-
-
-# "single" for backwards compat
-url_style_map = {'none': 0, 'single': 1, 'straight': 1, 'double': 2, 'curly': 3, 'dotted': 4, 'dashed': 5}
-
-
-def url_style(x: str) -> int:
-    return url_style_map.get(x, url_style_map['curly'])
 
 
 def url_prefixes(x: str) -> Tuple[str, ...]:
@@ -645,15 +621,6 @@ def tab_activity_symbol(x: str) -> str:
     return tab_title_template(x)
 
 
-def bell_on_tab(x: str) -> str:
-    xl = x.lower()
-    if xl in ('yes', 'y', 'true'):
-        return '🔔 '
-    if xl in ('no', 'n', 'false', 'none'):
-        return ''
-    return tab_title_template(x)
-
-
 def tab_title_template(x: str) -> str:
     if x:
         for q in '\'"':
@@ -707,12 +674,6 @@ def clipboard_control(x: str) -> Tuple[str, ...]:
     return tuple(x.lower().split())
 
 
-def allow_hyperlinks(x: str) -> int:
-    if x == 'ask':
-        return 0b11
-    return 1 if to_bool(x) else 0
-
-
 def titlebar_color(x: str) -> int:
     x = x.strip('"')
     if x == 'system':
@@ -763,10 +724,6 @@ def tab_bar_margin_height(x: str) -> TabBarMarginHeight:
         return TabBarMarginHeight()
     ans = map(positive_float, parts)
     return TabBarMarginHeight(next(ans), next(ans))
-
-
-def clone_source_strategies(x: str) -> FrozenSet[str]:
-    return frozenset({'venv', 'conda', 'path', 'env_var'} & set(x.lower().split(',')))
 
 
 def clear_all_mouse_actions(val: str, dict_with_parse_results: Optional[Dict[str, Any]] = None) -> bool:
@@ -1293,16 +1250,3 @@ def deprecated_send_text(key: str, val: str, ans: Dict[str, Any]) -> None:
     key_str = f'{sc} send_text {mode} {text}'
     for k in parse_map(key_str):
         ans['map'].append(k)
-
-
-def deprecated_adjust_line_height(key: str, x: str, opts_dict: Dict[str, Any]) -> None:
-    fm = {'adjust_line_height': 'cell_height', 'adjust_baseline': 'baseline', 'adjust_column_width': 'cell_width'}[key]
-    mtype = getattr(ModificationType, fm)
-    if x.endswith('%'):
-        ans = float(x[:-1].strip())
-        if ans < 0:
-            log_error(f'Percentage adjustments of {key} must be positive numbers')
-            return
-        opts_dict['modify_font'][fm] = FontModification(mtype, ModificationValue(ans, ModificationUnit.percent))
-    else:
-        opts_dict['modify_font'][fm] = FontModification(mtype, ModificationValue(int(x), ModificationUnit.pixel))

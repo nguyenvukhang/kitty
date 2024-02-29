@@ -44,41 +44,33 @@ struct MenuItem {
 };
 
 typedef struct {
-  monotonic_t visual_bell_duration, cursor_blink_interval,
+  monotonic_t cursor_blink_interval,
       cursor_stop_blinking_after, mouse_hide_wait, click_interval;
   double wheel_scroll_multiplier, touch_scroll_multiplier;
   int wheel_scroll_min_lines;
-  bool enable_audio_bell;
   CursorShape cursor_shape;
   float cursor_beam_thickness;
   float cursor_underline_thickness;
-  unsigned int url_style;
   unsigned int scrollback_pager_history_size;
   bool scrollback_fill_enlarged_window;
   char_type *select_by_word_characters;
   char_type *select_by_word_characters_forward;
-  color_type url_color, background, foreground, active_border_color,
-      inactive_border_color, bell_border_color, tab_bar_background,
+  color_type background, foreground, active_border_color,
+      inactive_border_color, tab_bar_background,
       tab_bar_margin_color;
-  color_type mark1_foreground, mark1_background, mark2_foreground,
-      mark2_background, mark3_foreground, mark3_background;
   monotonic_t repaint_delay, input_delay;
-  bool focus_follows_mouse;
   unsigned int hide_window_decorations;
   bool macos_hide_from_tasks, macos_quit_when_last_window_closed,
       macos_window_resizable, macos_traditional_fullscreen;
   unsigned int macos_option_as_alt;
   float macos_thicken_font;
   WindowTitleIn macos_show_window_title_in;
-  char *bell_path, *bell_theme;
   float background_opacity, dim_opacity;
   float text_contrast, text_gamma_adjustment;
   bool text_old_gamma;
 
   char *background_image, *default_window_logo;
-  BackgroundImageLayout background_image_layout;
   ImageAnchorPosition window_logo_position;
-  bool background_image_linear;
   float background_tint, background_tint_gaps, window_logo_alpha;
 
   bool dynamic_background_opacity;
@@ -89,9 +81,7 @@ typedef struct {
   bool resize_in_steps;
   bool sync_to_monitor;
   bool close_on_child_death;
-  bool window_alert_on_bell;
   bool debug_keyboard;
-  bool allow_hyperlinks;
   struct {
     monotonic_t on_end, on_pause;
   } resize_debounce_time;
@@ -114,7 +104,6 @@ typedef struct {
     AdjustmentUnit unit;
   } underline_position, underline_thickness, strikethrough_position,
       strikethrough_thickness, cell_width, cell_height, baseline;
-  UnderlineHyperlinks underline_hyperlinks;
   int background_blur;
   long macos_titlebar_color;
   unsigned long wayland_titlebar_color;
