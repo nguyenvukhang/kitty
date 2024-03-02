@@ -50,121 +50,7 @@ cell_text(CPUCell *cell) {
 
 // URL detection {{{
 
-static index_type
-find_colon_slash(Line *self, index_type x, index_type limit) {
-    // Find :// at or before x
-    index_type pos = MIN(x, self->xnum - 1);
-    enum URL_PARSER_STATES {ANY, FIRST_SLASH, SECOND_SLASH};
-    enum URL_PARSER_STATES state = ANY;
-    limit = MAX(2u, limit);
-    if (pos < limit) return 0;
-    do {
-        char_type ch = self->cpu_cells[pos].ch;
-        if (!is_url_char(ch)) return false;
-        if (pos == x) {
-            if (ch == ':') {
-                if (pos + 2 < self->xnum && self->cpu_cells[pos+1].ch == '/' && self->cpu_cells[pos + 2].ch == '/') state = SECOND_SLASH;
-            } else if (ch == '/') {
-                if (pos + 1 < self->xnum && self->cpu_cells[pos+1].ch == '/') state = FIRST_SLASH;
-            }
-        }
-        switch(state) {
-            case ANY:
-                if (ch == '/') state = FIRST_SLASH;
-                break;
-            case FIRST_SLASH:
-                state = ch == '/' ? SECOND_SLASH : ANY;
-                break;
-            case SECOND_SLASH:
-                if (ch == ':') return pos;
-                state = ch == '/' ? SECOND_SLASH : ANY;
-                break;
-        }
-        pos--;
-    } while(pos >= limit);
-    return 0;
-}
-
-static bool
-prefix_matches(Line *self, index_type at, const char_type* prefix, index_type prefix_len) {
-    if (prefix_len > at) return false;
-    index_type p, i;
-    for (p = at - prefix_len, i = 0; i < prefix_len && p < self->xnum; i++, p++) {
-        if ((self->cpu_cells[p].ch) != prefix[i]) return false;
-    }
-    return i == prefix_len;
-}
-
-static bool
-has_url_prefix_at(Line *self, index_type at, index_type min_prefix_len, index_type *ans) {
-    for (size_t i = 0; i < OPT(url_prefixes.num); i++) {
-        index_type prefix_len = OPT(url_prefixes.values[i].len);
-        if (at < prefix_len || prefix_len < min_prefix_len) continue;
-        if (prefix_matches(self, at, OPT(url_prefixes.values[i].string), prefix_len)) { *ans = at - prefix_len; return true; }
-    }
-    return false;
-}
-
 #define MIN_URL_LEN 5
-
-static bool
-has_url_beyond(Line *self, index_type x) {
-    for (index_type i = x; i < MIN(x + MIN_URL_LEN + 3, self->xnum); i++) {
-        if (!is_url_char(self->cpu_cells[i].ch)) return false;
-    }
-    return true;
-}
-
-index_type
-line_url_start_at(Line *self, index_type x) {
-    // Find the starting cell for a URL that contains the position x. A URL is defined as
-    // known-prefix://url-chars. If no URL is found self->xnum is returned.
-    if (x >= self->xnum || self->xnum <= MIN_URL_LEN + 3) return self->xnum;
-    index_type ds_pos = 0, t;
-    // First look for :// ahead of x
-    ds_pos = find_colon_slash(self, x + OPT(url_prefixes).max_prefix_len + 3, x < 2 ? 0 : x - 2);
-    if (ds_pos != 0 && has_url_beyond(self, ds_pos)) {
-        if (has_url_prefix_at(self, ds_pos, ds_pos > x ? ds_pos - x: 0, &t)) return t;
-    }
-    ds_pos = find_colon_slash(self, x, 0);
-    if (ds_pos == 0 || self->xnum < ds_pos + MIN_URL_LEN + 3 || !has_url_beyond(self, ds_pos)) return self->xnum;
-    if (has_url_prefix_at(self, ds_pos, 0, &t)) return t;
-    return self->xnum;
-}
-
-index_type
-line_url_end_at(Line *self, index_type x, bool check_short, char_type sentinel, bool next_line_starts_with_url_chars) {
-    index_type ans = x;
-    if (x >= self->xnum || (check_short && self->xnum <= MIN_URL_LEN + 3)) return 0;
-    if (sentinel) { while (ans < self->xnum && self->cpu_cells[ans].ch != sentinel && is_url_char(self->cpu_cells[ans].ch)) ans++; }
-    else { while (ans < self->xnum && is_url_char(self->cpu_cells[ans].ch)) ans++; }
-    if (ans) ans--;
-    if (ans < self->xnum - 1 || !next_line_starts_with_url_chars) {
-        while (ans > x && can_strip_from_end_of_url(self->cpu_cells[ans].ch)) ans--;
-    }
-    return ans;
-}
-
-bool
-line_startswith_url_chars(Line *self) {
-    return is_url_char(self->cpu_cells[0].ch);
-}
-
-
-static PyObject*
-url_start_at(Line *self, PyObject *x) {
-#define url_start_at_doc "url_start_at(x) -> Return the start cell number for a URL containing x or self->xnum if not found"
-    return PyLong_FromUnsignedLong((unsigned long)line_url_start_at(self, PyLong_AsUnsignedLong(x)));
-}
-
-static PyObject*
-url_end_at(Line *self, PyObject *args) {
-#define url_end_at_doc "url_end_at(x) -> Return the end cell number for a URL containing x or 0 if not found"
-    unsigned int x, sentinel = 0;
-    int next_line_starts_with_url_chars = 0;
-    if (!PyArg_ParseTuple(args, "I|Ip", &x, &sentinel, &next_line_starts_with_url_chars)) return NULL;
-    return PyLong_FromUnsignedLong((unsigned long)line_url_end_at(self, x, true, sentinel, next_line_starts_with_url_chars));
-}
 
 // }}}
 
@@ -727,15 +613,6 @@ __eq__(Line *a, Line *b) {
     return a->xnum == b->xnum && memcmp(a->cpu_cells, b->cpu_cells, sizeof(CPUCell) * a->xnum) == 0 && memcmp(a->gpu_cells, b->gpu_cells, sizeof(GPUCell) * a->xnum) == 0;
 }
 
-bool
-line_has_mark(Line *line, uint16_t mark) {
-    for (index_type x = 0; x < line->xnum; x++) {
-        const uint16_t m = line->gpu_cells[x].attrs.mark;
-        if (m && (!mark || mark == m)) return true;
-    }
-    return false;
-}
-
 static void
 report_marker_error(PyObject *marker) {
     if (!PyObject_HasAttrString(marker, "error_reported")) {
@@ -894,8 +771,6 @@ static PyMethodDef methods[] = {
     METHOD(last_char_has_wrapped_flag, METH_NOARGS)
     METHOD(hyperlink_ids, METH_NOARGS)
     METHOD(width, METH_O)
-    METHOD(url_start_at, METH_O)
-    METHOD(url_end_at, METH_VARARGS)
     METHOD(sprite_at, METH_O)
 
     {NULL}  /* Sentinel */

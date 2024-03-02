@@ -703,9 +703,6 @@ draw_codepoint(Screen *self, char_type och, bool from_input_stream) {
         line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, 0);
         self->cursor->x++;
     }
-    if (UNLIKELY(ch == IMAGE_PLACEHOLDER_CHAR)) {
-        linebuf_set_line_has_image_placeholders(self->linebuf, self->cursor->y, true);
-    }
     self->is_dirty = true;
     if (selection_has_screen_line(&self->selections, self->cursor->y)) clear_selection(&self->selections);
     linebuf_mark_line_dirty(self->linebuf, self->cursor->y);
