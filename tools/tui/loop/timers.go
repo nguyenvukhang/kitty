@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"golang.org/x/exp/slices"
-
-	"alatty/tools/utils"
 )
 
 type timer struct {
@@ -21,10 +19,6 @@ type timer struct {
 
 func (self *timer) update_deadline(now time.Time) {
 	self.deadline = now.Add(self.interval)
-}
-
-func (self timer) String() string {
-	return fmt.Sprintf("Timer(id=%d, callback=%s, deadline=%s, repeats=%v)", self.id, utils.FunctionName(self.callback), time.Until(self.deadline), self.repeats)
 }
 
 func (self *Loop) add_timer(interval time.Duration, repeats bool, callback TimerCallback) (IdType, error) {

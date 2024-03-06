@@ -474,37 +474,11 @@ func (self *Readline) yank(repeat_count uint, pop bool) bool {
 	return true
 }
 
-func (self *Readline) history_first() bool {
-	self.create_history_matches()
-	return self.history_matches.first(self)
-}
-
-func (self *Readline) history_last() bool {
-	self.create_history_matches()
-	return self.history_matches.last(self)
-}
-
-func (self *Readline) history_prev(repeat_count uint) bool {
-	self.create_history_matches()
-	return self.history_matches.previous(repeat_count, self)
-}
-
-func (self *Readline) history_next(repeat_count uint) bool {
-	self.create_history_matches()
-	return self.history_matches.next(repeat_count, self)
-}
-
 func (self *Readline) _perform_action(ac Action, repeat_count uint) (err error, dont_set_last_action bool) {
 	switch ac {
 	case ActionBackspace:
-		if self.history_search != nil {
-			if self.remove_text_from_history_search(repeat_count) > 0 {
-				return
-			}
-		} else {
-			if self.erase_chars_before_cursor(repeat_count, true) > 0 {
-				return
-			}
+    if self.erase_chars_before_cursor(repeat_count, true) > 0 {
+      return
 		}
 	case ActionDelete:
 		if self.erase_chars_after_cursor(repeat_count, true) > 0 {
@@ -603,11 +577,7 @@ func (self *Readline) _perform_action(ac Action, repeat_count uint) (err error, 
 	case ActionAddText:
 		text := strings.Repeat(self.text_to_be_added, int(repeat_count))
 		self.text_to_be_added = ""
-		if self.history_search != nil {
-			self.add_text_to_history_search(text)
-		} else {
-			self.add_text(text)
-		}
+    self.add_text(text)
 		return
 	}
 	err = ErrCouldNotPerformAction

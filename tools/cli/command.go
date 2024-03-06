@@ -44,31 +44,6 @@ type Command struct {
 	IndexOfFirstArg int
 }
 
-func (self *Command) Clone(parent *Command) *Command {
-	ans := *self
-	ans.Args = make([]string, 0, 8)
-	ans.Parent = parent
-	ans.SubCommandGroups = make([]*CommandGroup, len(self.SubCommandGroups))
-	ans.OptionGroups = make([]*OptionGroup, len(self.OptionGroups))
-	ans.option_map = nil
-
-	for i, o := range self.OptionGroups {
-		ans.OptionGroups[i] = o.Clone(&ans)
-	}
-	for i, g := range self.SubCommandGroups {
-		ans.SubCommandGroups[i] = g.Clone(&ans)
-	}
-	return &ans
-}
-
-func (self *Command) AddClone(group string, src *Command) *Command {
-	c := src.Clone(self)
-	g := self.AddSubCommandGroup(group)
-	c.Group = g.Title
-	g.SubCommands = append(g.SubCommands, c)
-	return c
-}
-
 func init_cmd(c *Command) {
 	c.SubCommandGroups = make([]*CommandGroup, 0, 8)
 	c.OptionGroups = make([]*OptionGroup, 0, 8)
@@ -297,47 +272,6 @@ func (self *Command) GetVisibleOptions() ([]string, map[string][]*Option) {
 		depth++
 	}
 	return group_titles, gmap
-}
-
-func sort_levenshtein_matches(q string, matches []string) {
-	utils.StableSort(matches, func(a, b string) int {
-		la, lb := utils.LevenshteinDistance(a, q, true), utils.LevenshteinDistance(b, q, true)
-		if la != lb {
-			return la - lb
-		}
-		return strings.Compare(a, b)
-	})
-
-}
-
-func (self *Command) SuggestionsForCommand(name string, max_distance int /* good default is 2 */) []string {
-	ans := make([]string, 0, 8)
-	q := strings.ToLower(name)
-	for _, g := range self.SubCommandGroups {
-		for _, sc := range g.SubCommands {
-			if utils.LevenshteinDistance(sc.Name, q, true) <= max_distance {
-				ans = append(ans, sc.Name)
-			}
-		}
-	}
-	sort_levenshtein_matches(q, ans)
-	return ans
-}
-
-func (self *Command) SuggestionsForOption(name_with_hyphens string, max_distance int /* good default is 2 */) []string {
-	ans := make([]string, 0, 8)
-	q := strings.ToLower(name_with_hyphens)
-	_ = self.VisitAllOptions(func(opt *Option) error {
-		for _, a := range opt.Aliases {
-			as := a.String()
-			if utils.LevenshteinDistance(as, q, true) <= max_distance {
-				ans = append(ans, as)
-			}
-		}
-		return nil
-	})
-	sort_levenshtein_matches(q, ans)
-	return ans
 }
 
 func (self *Command) FindSubCommand(name string) *Command {

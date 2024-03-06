@@ -55,10 +55,6 @@ func (self *Readline) prompt_for_line_number(i int) Prompt {
 func (self *Readline) apply_syntax_highlighting() (lines []string, cursor Position) {
 	highlighter := self.syntax_highlighted.highlighter
 	highlighter_name := "default"
-	if self.history_search != nil {
-		highlighter = self.history_search_highlighter
-		highlighter_name = "## history ##"
-	}
 	if highlighter == nil {
 		return self.input_state.lines, self.input_state.cursor
 	}

@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"time"
 
 	"alatty/tools/tui/loop"
 	"alatty/tools/tui/readline"
@@ -21,11 +20,9 @@ func get_line(o *Options) (result string, err error) {
 	if err != nil {
 		return
 	}
-	cwd, _ := os.Getwd()
 	ropts := readline.RlInit{Prompt: o.Prompt}
 	if o.Name != "" {
 		base := filepath.Join(utils.CacheDir(), "ask")
-		ropts.HistoryPath = filepath.Join(base, o.Name+".history.json")
 		os.MkdirAll(base, 0o755)
 	}
 	rl := readline.New(lp, ropts)
@@ -56,8 +53,6 @@ func get_line(o *Options) (result string, err error) {
 				return nil
 			}
 			if err == readline.ErrAcceptInput {
-				hi := readline.HistoryItem{Timestamp: time.Now(), Cmd: rl.AllText(), ExitCode: 0, Cwd: cwd}
-				rl.AddHistoryItem(hi)
 				result = rl.AllText()
 				lp.Quit(0)
 				return nil
@@ -80,7 +75,6 @@ func get_line(o *Options) (result string, err error) {
 	}
 
 	err = lp.Run()
-	rl.Shutdown()
 	if err != nil {
 		return "", err
 	}

@@ -88,10 +88,6 @@ func munmap(s []byte) error {
 	return unix.Munmap(s)
 }
 
-func CreateTemp(pattern string, size uint64) (MMap, error) {
-	return create_temp(pattern, size)
-}
-
 func truncate_or_unlink(ans *os.File, size uint64, unlink func(string) error) (err error) {
 	fd := int(ans.Fd())
 	sz := int64(size)
@@ -110,80 +106,6 @@ func truncate_or_unlink(ans *os.File, size uint64, unlink func(string) error) (e
 		_ = unlink(ans.Name())
 		return fmt.Errorf("Failed to ftruncate() SHM file %s to size: %d with error: %w", ans.Name(), size, err)
 	}
-	return
-}
-
-const NUM_BYTES_FOR_SIZE = 4
-
-var ErrRegionTooSmall = errors.New("mmaped region too small")
-
-func WriteWithSize(self MMap, b []byte, at int) error {
-	if len(self.Slice()) < at+len(b)+NUM_BYTES_FOR_SIZE {
-		return ErrRegionTooSmall
-	}
-	binary.BigEndian.PutUint32(self.Slice()[at:], uint32(len(b)))
-	copy(self.Slice()[at+NUM_BYTES_FOR_SIZE:], b)
-	return nil
-}
-
-func ReadWithSize(self MMap, at int) ([]byte, error) {
-	s := self.Slice()[at:]
-	if len(s) < NUM_BYTES_FOR_SIZE {
-		return nil, ErrRegionTooSmall
-	}
-	size := int(binary.BigEndian.Uint32(self.Slice()[at : at+NUM_BYTES_FOR_SIZE]))
-	s = s[NUM_BYTES_FOR_SIZE:]
-	if len(s) < size {
-		return nil, ErrRegionTooSmall
-	}
-	return s[:size], nil
-}
-
-func ReadWithSizeAndUnlink(name string, file_callback ...func(fs.FileInfo) error) ([]byte, error) {
-	mmap, err := Open(name, 0)
-	if err != nil {
-		return nil, err
-	}
-	if len(file_callback) > 0 {
-		s, err := mmap.Stat()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to stat SHM file with error: %w", err)
-		}
-		for _, f := range file_callback {
-			err = f(s)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	defer func() {
-		mmap.Close()
-		_ = mmap.Unlink()
-	}()
-	slice, err := ReadWithSize(mmap, 0)
-	if err != nil {
-		return nil, err
-	}
-	ans := make([]byte, len(slice))
-	copy(ans, slice)
-	return ans, nil
-}
-
-func Read(self MMap, b []byte) (n int, err error) {
-	pos, err := self.Seek(0, io.SeekCurrent)
-	if err != nil {
-		return 0, err
-	}
-	if pos < 0 {
-		pos = 0
-	}
-	s := self.Slice()
-	sz := int64(len(s))
-	if pos >= sz {
-		return 0, io.EOF
-	}
-	n = copy(b, s[pos:])
-	_, err = self.Seek(int64(n), io.SeekCurrent)
 	return
 }
 
@@ -207,45 +129,4 @@ func Write(self MMap, b []byte) (n int, err error) {
 		return n, io.ErrShortWrite
 	}
 	return n, nil
-}
-
-func test_integration_with_python(args []string) (rc int, err error) {
-	switch args[0] {
-	default:
-		return 1, fmt.Errorf("Unknown test type: %s", args[0])
-	case "read":
-		data, err := ReadWithSizeAndUnlink(args[1])
-		if err != nil {
-			return 1, err
-		}
-		_, err = os.Stdout.Write(data)
-		if err != nil {
-			return 1, err
-		}
-	case "write":
-		data, err := io.ReadAll(os.Stdin)
-		if err != nil {
-			return 1, err
-		}
-		mmap, err := CreateTemp("shmtest-", uint64(len(data)+NUM_BYTES_FOR_SIZE))
-		if err != nil {
-			return 1, err
-		}
-		if err = WriteWithSize(mmap, data, 0); err != nil {
-			return 1, err
-		}
-		mmap.Close()
-		fmt.Println(mmap.Name())
-	}
-	return 0, nil
-}
-
-func TestEntryPoint(root *cli.Command) {
-	root.AddSubCommand(&cli.Command{
-		Name:            "shm",
-		Run: func(cmd *cli.Command, args []string) (rc int, err error) {
-			return test_integration_with_python(args)
-		},
-	})
-
 }

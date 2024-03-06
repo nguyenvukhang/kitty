@@ -138,9 +138,6 @@ func (self *Readline) handle_numeric_arg(ac Action) {
 func (self *Readline) dispatch_key_action(ac Action) error {
 	self.keyboard_state.current_pending_keys = nil
 	if ActionNumericArgumentDigit0 <= ac && ac <= ActionNumericArgumentDigitMinus {
-		if self.history_search != nil {
-			return ErrCouldNotPerformAction
-		}
 		self.handle_numeric_arg(ac)
 		return nil
 	}

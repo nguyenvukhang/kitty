@@ -17,10 +17,6 @@ type SubMatch struct {
 	Start, End int
 }
 
-func Compile(pat string) (*regexp.Regexp, error) {
-	return pat_cache.GetOrCreate(pat, regexp.Compile)
-}
-
 func MustCompile(pat string) *regexp.Regexp {
 	return pat_cache.MustGetOrCreate(pat, regexp.MustCompile)
 }

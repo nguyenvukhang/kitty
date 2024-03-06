@@ -23,14 +23,6 @@ func (self *CommandGroup) HasVisibleSubCommands() bool {
 	return false
 }
 
-func (self *CommandGroup) Clone(parent *Command) *CommandGroup {
-	ans := CommandGroup{Title: self.Title, SubCommands: make([]*Command, len(self.SubCommands))}
-	for i, o := range self.SubCommands {
-		ans.SubCommands[i] = o.Clone(parent)
-	}
-	return &ans
-}
-
 func (self *CommandGroup) AddSubCommand(parent *Command, name string) *Command {
 	ans := NewRootCommand()
 	ans.Parent = parent
@@ -60,17 +52,6 @@ func (self *CommandGroup) FindSubCommands(prefix string, matches []*Command) []*
 type OptionGroup struct {
 	Options []*Option
 	Title   string
-}
-
-func (self *OptionGroup) Clone(parent *Command) *OptionGroup {
-	ans := OptionGroup{Title: self.Title, Options: make([]*Option, len(self.Options))}
-	for i, o := range self.Options {
-		c := *o
-		c.init_option()
-		c.Parent = parent
-		ans.Options[i] = &c
-	}
-	return &ans
 }
 
 func (self *OptionGroup) AddOption(parent *Command, spec OptionSpec) (*Option, error) {

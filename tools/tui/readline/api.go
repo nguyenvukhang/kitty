@@ -21,8 +21,6 @@ type SyntaxHighlightFunction = func(text string, x, y int) string
 
 type RlInit struct {
 	Prompt                  string
-	HistoryPath             string
-	HistoryCount            int
 	ContinuationPrompt      string
 	EmptyContinuationPrompt bool
 	DontMarkPrompts         bool
@@ -109,7 +107,6 @@ type Readline struct {
 
 	mark_prompts bool
 	loop         *loop.Loop
-	history      *History
 	kill_ring    kill_ring
 
 	input_state InputState
@@ -121,8 +118,6 @@ type Readline struct {
 	}
 	bracketed_paste_buffer strings.Builder
 	last_action            Action
-	history_matches        *HistoryMatches
-	history_search         *HistorySearch
 	keyboard_state         KeyboardState
 	fmt_ctx                *markup.Context
 	text_to_be_added       string
@@ -141,13 +136,9 @@ func (self *Readline) make_prompt(text string, is_secondary bool) Prompt {
 }
 
 func New(loop *loop.Loop, r RlInit) *Readline {
-	hc := r.HistoryCount
-	if hc == 0 {
-		hc = 8192
-	}
 	ans := &Readline{
 		mark_prompts: !r.DontMarkPrompts, fmt_ctx: markup.New(true),
-		loop: loop, input_state: InputState{lines: []string{""}}, history: NewHistory(r.HistoryPath, hc),
+		loop: loop, input_state: InputState{lines: []string{""}},
 		syntax_highlighted: syntax_highlighted{highlighter: r.SyntaxHighlighter},
 		kill_ring:          kill_ring{items: list.New().Init()},
 	}
@@ -167,19 +158,10 @@ func (self *Readline) SetPrompt(prompt string) {
 	self.prompt = self.make_prompt(prompt, false)
 }
 
-func (self *Readline) Shutdown() {
-	self.history.Shutdown()
-}
-
-func (self *Readline) AddHistoryItem(hi HistoryItem) {
-	self.history.merge_items(hi)
-}
-
 func (self *Readline) ResetText() {
 	self.input_state = InputState{lines: []string{""}}
 	self.last_action = ActionNil
 	self.keyboard_state = KeyboardState{}
-	self.history_search = nil
 	self.cursor_y = 0
 }
 
