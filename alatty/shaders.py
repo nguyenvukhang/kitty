@@ -8,7 +8,6 @@ from typing import Any, Callable, Dict, Iterator, Optional, Set
 
 from .constants import read_alatty_resource
 from .fast_data_types import (
-    BGIMAGE_PROGRAM,
     CELL_BG_PROGRAM,
     CELL_FG_PROGRAM,
     CELL_PROGRAM,
@@ -25,7 +24,6 @@ from .fast_data_types import (
     NUM_UNDERLINE_STYLES,
     REVERSE,
     STRIKETHROUGH,
-    TINT_PROGRAM,
     compile_program,
     get_options,
     init_cell_program,
@@ -196,8 +194,6 @@ class LoadShaderPrograms:
             graphics.apply_to_sources(frag=partial(resolve_graphics_fragment_defines, which))
             graphics.compile(p, allow_recompile)
 
-        program_for('bgimage').compile(BGIMAGE_PROGRAM, allow_recompile)
-        program_for('tint').compile(TINT_PROGRAM, allow_recompile)
         init_cell_program()
 
 

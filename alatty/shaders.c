@@ -203,16 +203,6 @@ typedef struct {
 } GraphicsProgramLayout;
 static GraphicsProgramLayout graphics_program_layouts[NUM_PROGRAMS];
 
-typedef struct {
-    BgimageUniforms uniforms;
-} BGImageProgramLayout;
-static BGImageProgramLayout bgimage_program_layout;
-
-typedef struct {
-    TintUniforms uniforms;
-} TintProgramLayout;
-static TintProgramLayout tint_program_layout;
-
 static void
 init_cell_program(void) {
     for (int i = CELL_PROGRAM; i < BORDERS_PROGRAM; i++) {
@@ -235,8 +225,6 @@ init_cell_program(void) {
     for (int i = GRAPHICS_PROGRAM; i <= GRAPHICS_ALPHA_MASK_PROGRAM; i++) {
         get_uniform_locations_graphics(i, &graphics_program_layouts[i].uniforms);
     }
-    get_uniform_locations_bgimage(BGIMAGE_PROGRAM, &bgimage_program_layout.uniforms);
-    get_uniform_locations_tint(TINT_PROGRAM, &tint_program_layout.uniforms);
 }
 
 #define CELL_BUFFERS enum { cell_data_buffer, selection_buffer, uniform_buffer };
@@ -496,19 +484,6 @@ draw_cells_simple(ssize_t vao_idx, Screen *screen, const CellRenderData *crd, bo
     }
 }
 
-static void
-draw_tint(bool premult, Screen *screen, const CellRenderData *crd) {
-    if (premult) { BLEND_PREMULT } else { BLEND_ONTO_OPAQUE_WITH_OPAQUE_OUTPUT }
-    bind_program(TINT_PROGRAM);
-    color_type window_bg = colorprofile_to_color(screen->color_profile, screen->color_profile->overridden.default_bg, screen->color_profile->configured.default_bg).rgb;
-#define C(shift) srgb_color((window_bg >> shift) & 0xFF) * premult_factor
-    GLfloat premult_factor = premult ? OPT(background_tint) : 1.0f;
-    glUniform4f(tint_program_layout.uniforms.tint_color, C(16), C(8), C(0), OPT(background_tint));
-#undef C
-    glUniform4f(tint_program_layout.uniforms.edges, crd->gl.xstart, crd->gl.ystart - crd->gl.height, crd->gl.xstart + crd->gl.width, crd->gl.ystart);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-}
-
 static float prev_inactive_text_alpha = -1;
 
 static void
@@ -704,11 +679,6 @@ draw_cells_interleaved(ssize_t vao_idx, Screen *screen, OSWindow *w, const CellR
 
 static void
 draw_cells_interleaved_premult(ssize_t vao_idx, Screen *screen, OSWindow *os_window, const CellRenderData *crd, const WindowLogoRenderData *wl) {
-    if (OPT(background_tint) > 0.f) {
-        glEnable(GL_BLEND);
-        draw_tint(true, screen, crd);
-        glDisable(GL_BLEND);
-    }
     bind_program(CELL_BG_PROGRAM);
     // draw background for all cells
     glUniform1ui(cell_program_layouts[CELL_BG_PROGRAM].uniforms.draw_bg_bitfield, 3);
