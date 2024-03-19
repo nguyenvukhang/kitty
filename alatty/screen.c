@@ -173,7 +173,6 @@ screen_reset(Screen *self) {
     self->render_unfocused_cursor = false;
     memset(self->main_key_encoding_flags, 0, sizeof(self->main_key_encoding_flags));
     memset(self->alt_key_encoding_flags, 0, sizeof(self->alt_key_encoding_flags));
-    self->display_window_char = 0;
     self->prompt_settings.val = 0;
     self->last_graphic_char = 0;
     self->main_savepoint.is_valid = false;
@@ -3346,7 +3345,6 @@ static PyObject*
 set_window_char(Screen *self, PyObject *a) {
     const char *text = "";
     if (!PyArg_ParseTuple(a, "|s", &text)) return NULL;
-    self->display_window_char = text[0];
     self->is_dirty = true;
     Py_RETURN_NONE;
 }
