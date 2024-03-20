@@ -345,8 +345,7 @@ ssize_t create_graphics_vao(void);
 ssize_t create_border_vao(void);
 bool send_cell_data_to_gpu(ssize_t, float, float, float, float, Screen *,
                            OSWindow *);
-void draw_cells(ssize_t, const ScreenRenderData *, OSWindow *, bool, bool,
-                Window *);
+void draw_cells(ssize_t, const ScreenRenderData *, OSWindow *, bool, bool);
 void update_surface_size(int, int, uint32_t);
 void free_texture(uint32_t *);
 void free_framebuffer(uint32_t *);

@@ -79,7 +79,6 @@ from .fast_data_types import (
     global_font_size,
     last_focused_os_window_id,
     mark_os_window_for_close,
-    os_window_focus_counters,
     os_window_font_size,
     run_with_activation_token,
     safe_pipe,
@@ -103,7 +102,7 @@ from .os_window_size import initial_window_size_func
 from .session import Session, create_sessions, get_os_window_sizing_data
 from .shaders import load_shader_programs
 from .tabs import SpecialWindow, SpecialWindowInstance, Tab, TabDict, TabManager
-from .types import _T, AsyncResponse, WindowSystemMouseEvent, ac
+from .types import AsyncResponse, WindowSystemMouseEvent, ac
 from .typing import TypedDict
 from .utils import (
     cleanup_ssh_control_masters,

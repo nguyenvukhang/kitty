@@ -541,8 +541,6 @@ def _launch(
                     boss.set_active_window(active, switch_os_window_if_needed=True, for_keep_focus=True)
                 if not Window.initial_ignore_focus_changes_context_manager_in_operation:
                     new_window.ignore_focus_changes = False
-            if opts.logo:
-                new_window.set_logo(opts.logo, opts.logo_position or '', opts.logo_alpha)
             if opts.type == 'overlay-main':
                 new_window.overlay_type = OverlayType.main
             if opts.var:

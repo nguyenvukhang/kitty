@@ -377,7 +377,6 @@ extern bool init_shaders(PyObject *module);
 extern bool init_mouse(PyObject *module);
 extern bool init_kittens(PyObject *module);
 extern bool init_logging(PyObject *module);
-extern bool init_png_reader(PyObject *module);
 extern bool init_utmp(PyObject *module);
 extern bool init_loop_utils(PyObject *module);
 #ifdef __APPLE__
@@ -435,7 +434,6 @@ PyInit_fast_data_types(void) {
     if (!init_shaders(m)) return NULL;
     if (!init_mouse(m)) return NULL;
     if (!init_kittens(m)) return NULL;
-    if (!init_png_reader(m)) return NULL;
 #ifdef __APPLE__
     if (!init_macos_process_info(m)) return NULL;
     if (!init_CoreText(m)) return NULL;

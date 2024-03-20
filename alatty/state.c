@@ -202,40 +202,12 @@ release_gpu_resources_for_window(Window *w) {
     w->render_data.vao_idx = -1;
 }
 
-static bool
-set_window_logo(Window *w, const char *path, const ImageAnchorPosition pos, float alpha, bool is_default, char *png_data, size_t png_data_size) {
-    bool ok = false;
-    if (path && path[0]) {
-        window_logo_id_t wl = find_or_create_window_logo(global_state.all_window_logos, path, png_data, png_data_size);
-        if (wl) {
-            if (w->window_logo.id) decref_window_logo(global_state.all_window_logos, w->window_logo.id);
-            w->window_logo.id = wl;
-            w->window_logo.position = pos;
-            w->window_logo.alpha = alpha;
-            ok = true;
-        }
-    } else {
-        if (w->window_logo.id) {
-            decref_window_logo(global_state.all_window_logos, w->window_logo.id);
-            w->window_logo.id = 0;
-        }
-        ok = true;
-    }
-    w->window_logo.using_default = is_default;
-    if (ok && w->render_data.screen) w->render_data.screen->is_dirty = true;
-    return ok;
-}
-
 static void
 initialize_window(Window *w, PyObject *title, bool init_gpu_resources) {
     w->id = ++global_state.window_id_counter;
     w->visible = true;
     w->title = title;
     Py_XINCREF(title);
-    if (!set_window_logo(w, OPT(default_window_logo), OPT(window_logo_position), OPT(window_logo_alpha), true, NULL, 0)) {
-        log_error("Failed to load default window logo: %s", OPT(default_window_logo));
-        if (PyErr_Occurred()) PyErr_Print();
-    }
     if (init_gpu_resources) create_gpu_resources_for_window(w);
     else {
         w->render_data.vao_idx = -1;
@@ -271,10 +243,6 @@ destroy_window(Window *w) {
     Py_CLEAR(w->url_target_bar_data.last_drawn_title_object_id);
     free(w->url_target_bar_data.buf); w->url_target_bar_data.buf = NULL;
     release_gpu_resources_for_window(w);
-    if (w->window_logo.id) {
-        decref_window_logo(global_state.all_window_logos, w->window_logo.id);
-        w->window_logo.id = 0;
-    }
 }
 
 static void
@@ -987,15 +955,6 @@ PYWRAP0(apply_options_update) {
         get_platform_dependent_config_values(os_window->handle);
         os_window->background_opacity = OPT(background_opacity);
         os_window->is_damaged = true;
-        for (size_t t = 0; t < os_window->num_tabs; t++) {
-            Tab *tab = os_window->tabs + t;
-            for (size_t w = 0; w < tab->num_windows; w++) {
-                Window *window = tab->windows + w;
-                if (window->window_logo.using_default) {
-                    set_window_logo(window, OPT(default_window_logo), OPT(window_logo_position), OPT(window_logo_alpha), true, NULL, 0);
-                }
-            }
-        }
     }
     Py_RETURN_NONE;
 }
@@ -1099,21 +1058,6 @@ pymouse_selection(PyObject *self UNUSED, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-PYWRAP1(set_window_logo) {
-    id_type os_window_id, tab_id, window_id;
-    const char *path; PyObject *position;
-    float alpha = 0.5;
-    char *png_data = NULL; Py_ssize_t png_data_size = 0;
-    PA("KKKsUf|y#", &os_window_id, &tab_id, &window_id, &path, &position, &alpha, &png_data, &png_data_size);
-    bool ok = false;
-    WITH_WINDOW(os_window_id, tab_id, window_id);
-    ok = set_window_logo(window, path, PyObject_IsTrue(position) ? bganchor(position) : OPT(window_logo_position), (0 <= alpha && alpha <= 1) ? alpha : OPT(window_logo_alpha), false, png_data, png_data_size);
-    END_WITH_WINDOW;
-    if (ok) Py_RETURN_TRUE;
-    Py_RETURN_FALSE;
-}
-
-
 PYWRAP1(move_cursor_to_mouse_if_in_prompt) {
     id_type a, b, c; PA("KKK", &a, &b, &c);
     if (move_cursor_to_mouse_if_in_prompt(a, b, c)) Py_RETURN_TRUE;
@@ -1168,7 +1112,6 @@ static PyMethodDef module_methods[] = {
     MW(move_cursor_to_mouse_if_in_prompt, METH_VARARGS),
     MW(redirect_mouse_handling, METH_O),
     MW(mouse_selection, METH_VARARGS),
-    MW(set_window_logo, METH_VARARGS),
     MW(set_ignore_os_keyboard_processing, METH_O),
     MW(handle_for_window_id, METH_VARARGS),
     MW(update_ime_position_for_window, METH_VARARGS),

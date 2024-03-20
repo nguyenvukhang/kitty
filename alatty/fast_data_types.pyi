@@ -564,10 +564,6 @@ def is_css_pointer_name_valid(name: str) -> bool: ...
 def pointer_name_to_css_name(name: str) -> str: ...
 
 
-def load_png_data(data: bytes) -> Tuple[bytes, int, int]:
-    pass
-
-
 def glfw_terminate() -> None:
     pass
 
@@ -1286,10 +1282,6 @@ def send_mouse_event(
     screen: Screen, cell_x: int, cell_y: int, button: int, action: int, mods: int,
     pixel_x: int = 0, pixel_y: int = 0, in_left_half_of_cell: bool = False
 ) -> bool: ...
-
-
-def set_window_logo(os_window_id: int, tab_id: int, window_id: int, path: str, position: str, alpha: float, png_data: bytes = b'') -> None:
-    pass
 
 
 def apply_options_update() -> None:

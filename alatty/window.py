@@ -71,7 +71,6 @@ from .fast_data_types import (
     move_cursor_to_mouse_if_in_prompt,
     pointer_name_to_css_name,
     pt_to_px,
-    set_window_logo,
     set_window_padding,
     set_window_render_data,
     update_ime_position_for_window,
@@ -1251,10 +1250,6 @@ class Window:
             'columns': self.screen.columns,
             'text': text
         }
-
-    def set_logo(self, path: str, position: str = '', alpha: float = -1, png_data: bytes = b'') -> None:
-        path = resolve_custom_file(path) if path else ''
-        set_window_logo(self.os_window_id, self.tab_id, self.id, path, position or '', alpha, png_data)
 
     def paste_with_actions(self, text: str) -> None:
         if self.destroyed or not text:
