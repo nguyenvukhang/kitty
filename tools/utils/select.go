@@ -33,26 +33,6 @@ func (self *Selector) RegisterWrite(fd int) {
 	self.register(fd, &self.write_fds)
 }
 
-func (self *Selector) RegisterError(fd int) {
-	self.register(fd, &self.err_fds)
-}
-
-func (self *Selector) unregister(fd int, fdset *map[int]bool) {
-	(*fdset)[fd] = false
-}
-
-func (self *Selector) UnRegisterRead(fd int) {
-	self.unregister(fd, &self.read_fds)
-}
-
-func (self *Selector) UnRegisterWrite(fd int) {
-	self.unregister(fd, &self.write_fds)
-}
-
-func (self *Selector) UnRegisterError(fd int) {
-	self.unregister(fd, &self.err_fds)
-}
-
 func (self *Selector) Wait(timeout time.Duration) (num_ready int, err error) {
 	max_fd_num := 0
 
@@ -86,14 +66,6 @@ func (self *Selector) WaitForever() (num_ready int, err error) {
 
 func (self *Selector) IsReadyToRead(fd int) bool {
 	return fd > -1 && self.read_set.IsSet(fd)
-}
-
-func (self *Selector) IsReadyToWrite(fd int) bool {
-	return fd > -1 && self.write_set.IsSet(fd)
-}
-
-func (self *Selector) IsErrored(fd int) bool {
-	return fd > -1 && self.err_set.IsSet(fd)
 }
 
 func (self *Selector) UnregisterAll() {

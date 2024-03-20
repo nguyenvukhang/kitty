@@ -22,11 +22,6 @@ func Sort[T any](s []T, cmp func(a, b T) int) []T {
 	return s
 }
 
-func StableSort[T any](s []T, cmp func(a, b T) int) []T {
-	slices.SortStableFunc(s, cmp)
-	return s
-}
-
 func ShiftLeft[T any](s []T, amt int) []T {
 	leftover := len(s) - amt
 	if leftover > 0 {
