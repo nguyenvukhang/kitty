@@ -6,7 +6,7 @@ import os
 import re
 import weakref
 from collections import deque
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from enum import Enum, IntEnum, auto
 from functools import lru_cache, partial
 from gettext import gettext as _
@@ -23,7 +23,6 @@ from typing import (
     NamedTuple,
     Optional,
     Pattern,
-    Sequence,
     Tuple,
     Union,
 )
@@ -34,7 +33,6 @@ from .clipboard import ClipboardRequestManager, set_clipboard_string
 from .config import build_ansi_color_table
 from .constants import (
     appname,
-    clear_handled_signals,
     config_dir,
     wakeup_io_loop,
 )
@@ -98,7 +96,6 @@ from .utils import (
     open_cmd,
     parse_color_set,
     path_from_osc7_url,
-    resolve_custom_file,
     sanitize_control_codes,
     sanitize_for_bracketed_paste,
     sanitize_title,
