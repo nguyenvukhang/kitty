@@ -57,23 +57,6 @@ window_title_in(PyObject *title_in) {
     return ALL;
 }
 
-static ImageAnchorPosition
-bganchor(PyObject *anchor_name) {
-    const char *name = PyUnicode_AsUTF8(anchor_name);
-    ImageAnchorPosition anchor = {0.5f, 0.5f, 0.5f, 0.5f};
-    if (strstr(name, "top") != NULL) {
-        anchor.canvas_y = 0.f; anchor.image_y = 0.f;
-    } else if (strstr(name, "bottom") != NULL) {
-        anchor.canvas_y = 1.f; anchor.image_y = 1.f;
-    }
-    if (strstr(name, "left") != NULL) {
-        anchor.canvas_x = 0.f; anchor.image_x = 0.f;
-    } else if (strstr(name, "right") != NULL) {
-        anchor.canvas_x = 1.f; anchor.image_x = 1.f;
-    }
-    return anchor;
-}
-
 #define STR_SETTER(name) { \
     free(opts->name); opts->name = NULL; \
     if (src == Py_None || !PyUnicode_Check(src)) return; \

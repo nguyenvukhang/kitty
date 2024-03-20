@@ -1171,12 +1171,6 @@ finalize(void) {
 #define F(x) free(OPT(x)); OPT(x) = NULL;
     F(background_image); F(default_window_logo);
 #undef F
-    // we leak the texture here since it is not guaranteed
-    // that freeing the texture will work during shutdown and
-    // the GPU driver should take care of it when the OpenGL context is
-    // destroyed.
-    free_window_logo_table(&global_state.all_window_logos);
-
     free_allocs_in_options(&global_state.opts);
 }
 
@@ -1189,8 +1183,6 @@ init_state(PyObject *module) {
 #define DPI 96.0
 #endif
     global_state.default_dpi.x = DPI; global_state.default_dpi.y = DPI;
-    global_state.all_window_logos = alloc_window_logo_table();
-    if (!global_state.all_window_logos) { PyErr_NoMemory(); return false; }
     if (PyModule_AddFunctions(module, module_methods) != 0) return false;
     if (PyStructSequence_InitType2(&RegionType, &region_desc) != 0) return false;
     Py_INCREF((PyObject *) &RegionType);

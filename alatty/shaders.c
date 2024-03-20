@@ -9,7 +9,6 @@
 #include "gl.h"
 #include "colors.h"
 #include <stddef.h>
-#include "window_logo.h"
 #include "srgb_gamma.h"
 #include "uniforms_generated.h"
 

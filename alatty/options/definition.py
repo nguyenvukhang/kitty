@@ -883,25 +883,6 @@ every alatty window.
 '''
     )
 
-opt('window_logo_position', 'bottom-right',
-    choices=('top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'),
-    ctype='bganchor',
-    long_text='''
-Where to position the window logo in the window. The value can be one of:
-:code:`top-left`, :code:`top`, :code:`top-right`, :code:`left`, :code:`center`,
-:code:`right`, :code:`bottom-left`, :code:`bottom`, :code:`bottom-right`.
-'''
-    )
-
-opt('window_logo_alpha', '0.5',
-    option_type='unit_float', ctype='float',
-    long_text='''
-The amount the logo should be faded into the background. With zero being fully
-faded and one being fully opaque.
-'''
-    )
-
-
 opt('resize_debounce_time', '0.1 0.5',
     option_type='resize_debounce_time', ctype='!resize_debounce_time',
     long_text='''

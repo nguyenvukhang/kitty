@@ -219,18 +219,6 @@ Path to a PNG image to use as the logo for the newly created window. See
 :opt:`window_logo_path`. Relative paths are resolved from the alatty configuration directory.
 
 
---logo-position
-The position for the window logo. Only takes effect if :option:`--logo` is
-specified. See :opt:`window_logo_position`.
-
-
---logo-alpha
-type=float
-default=-1
-The amount the window logo should be faded into the background. Only takes
-effect if :option:`--logo` is specified. See :opt:`window_logo_alpha`.
-
-
 --color
 type=list
 Change colors in the newly launched window. You can either specify a path to a

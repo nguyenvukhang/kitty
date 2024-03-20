@@ -1216,19 +1216,8 @@ class Parser:
     def window_border_width(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['window_border_width'] = window_border_width(val)
 
-    def window_logo_alpha(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['window_logo_alpha'] = unit_float(val)
-
     def window_logo_path(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['window_logo_path'] = config_or_absolute_path(val)
-
-    def window_logo_position(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_window_logo_position:
-            raise ValueError(f"The value {val} is not a valid choice for window_logo_position")
-        ans["window_logo_position"] = val
-
-    choices_for_window_logo_position = frozenset(('top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right'))
 
     def window_margin_width(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['window_margin_width'] = edge_width(val)

@@ -26,7 +26,6 @@ choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separ
 choices_for_tab_powerline_style = typing.Literal['angled', 'round', 'slanted']
 choices_for_tab_switch_strategy = typing.Literal['last', 'left', 'previous', 'right']
 choices_for_undercurl_style = typing.Literal['thin-sparse', 'thin-dense', 'thick-sparse', 'thick-dense']
-choices_for_window_logo_position = typing.Literal['top-left', 'top', 'top-right', 'left', 'center', 'right', 'bottom-left', 'bottom', 'bottom-right']
 
 option_names = (  # {{{
  'action_alias',
@@ -404,9 +403,7 @@ option_names = (  # {{{
  'wheel_scroll_min_lines',
  'wheel_scroll_multiplier',
  'window_border_width',
- 'window_logo_alpha',
  'window_logo_path',
- 'window_logo_position',
  'window_margin_width',
  'window_padding_width',
  'window_resize_step_cells',
@@ -523,9 +520,7 @@ class Options:
     wheel_scroll_min_lines: int = 1
     wheel_scroll_multiplier: float = 5.0
     window_border_width: typing.Tuple[float, str] = (0.5, 'pt')
-    window_logo_alpha: float = 0.5
     window_logo_path: typing.Optional[str] = None
-    window_logo_position: choices_for_window_logo_position = 'bottom-right'
     window_margin_width: FloatEdges = FloatEdges(left=0, top=0, right=0, bottom=0)
     window_padding_width: FloatEdges = FloatEdges(left=0, top=0, right=0, bottom=0)
     window_resize_step_cells: int = 2
