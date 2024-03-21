@@ -245,32 +245,6 @@ def styled(
     return '\033[{}m{}\033[{}m'.format(';'.join(start), text, ';'.join(end))
 
 
-def serialize_gr_command(cmd: Dict[str, Union[int, str]], payload: Optional[bytes] = None) -> bytes:
-    from .images import GraphicsCommand
-    gc = GraphicsCommand()
-    for k, v in cmd.items():
-        setattr(gc, k, v)
-    return gc.serialize(payload or b'')
-
-
-@cmd
-def gr_command(cmd: Union[Dict[str, Union[int, str]], 'GraphicsCommandType'], payload: Optional[bytes] = None) -> str:
-    if isinstance(cmd, dict):
-        raw = serialize_gr_command(cmd, payload)
-    else:
-        raw = cmd.serialize(payload or b'')
-    return raw.decode('ascii')
-
-
-@cmd
-def clear_images_on_screen(delete_data: bool = False) -> str:
-    from .images import GraphicsCommand
-    gc = GraphicsCommand()
-    gc.a = 'd'
-    gc.d = 'A' if delete_data else 'a'
-    return gc.serialize().decode('ascii')
-
-
 class MouseTracking(Enum):
     none = auto()
     buttons_only = auto()

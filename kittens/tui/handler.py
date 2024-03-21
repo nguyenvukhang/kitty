@@ -6,13 +6,12 @@ from collections import deque
 from contextlib import suppress
 from time import monotonic
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, ContextManager, Deque, Dict, NamedTuple, Optional, Sequence, Type, Union, cast
+from typing import Any, Callable, ContextManager, Deque, Dict, NamedTuple, Optional, Sequence, Type, Union, cast
 
 from alatty.types import DecoratedFunc, ParsedShortcut
 from alatty.typing import (
     AbstractEventLoop,
     BossType,
-    Debug,
     ImageManagerType,
     KeyActionType,
     KeyEventType,
