@@ -3,7 +3,6 @@
 package ask
 
 import (
-	"errors"
 	"fmt"
 
 	"alatty/tools/cli"
@@ -35,17 +34,6 @@ func main(_ *cli.Command, o *Options, args []string) (rc int, err error) {
 		if err != nil {
 			return 1, err
 		}
-	case "password":
-		show_message(o.Message)
-		pw, err := tui.ReadPassword(o.Prompt, false)
-		if err != nil {
-			if errors.Is(err, tui.Canceled) {
-				pw = ""
-			} else {
-				return 1, err
-			}
-		}
-		result.Response = pw
 	case "line":
 		show_message(o.Message)
 		result.Response, err = get_line(o)
