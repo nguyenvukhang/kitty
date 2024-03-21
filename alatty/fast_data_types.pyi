@@ -804,10 +804,6 @@ def background_opacity_of(os_window_id: int) -> Optional[float]:
     pass
 
 
-def read_command_response(fd: int, timeout: float, list: List[bytes]) -> None:
-    pass
-
-
 def wcswidth(string: str) -> int:
     pass
 
