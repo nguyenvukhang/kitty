@@ -8,18 +8,6 @@ from typing import Optional
 from .fast_data_types import Color
 
 
-def alpha_blend_channel(top_color: int, bottom_color: int, alpha: float) -> int:
-    return int(alpha * top_color + (1 - alpha) * bottom_color)
-
-
-def alpha_blend(top_color: Color, bottom_color: Color, alpha: float) -> Color:
-    return Color(
-            alpha_blend_channel(top_color.red, bottom_color.red, alpha),
-            alpha_blend_channel(top_color.green, bottom_color.green, alpha),
-            alpha_blend_channel(top_color.blue, bottom_color.blue, alpha)
-    )
-
-
 def parse_single_color(c: str) -> int:
     if len(c) == 1:
         c += c

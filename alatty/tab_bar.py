@@ -32,7 +32,7 @@ from .fast_data_types import (
     update_tab_bar_edge_colors,
     viewport_for_window,
 )
-from .rgb import alpha_blend, color_as_sgr, color_from_int, to_color
+from .rgb import color_as_sgr, color_from_int, to_color
 from .types import WindowGeometry, run_once
 from .typing import EdgeLiteral, PowerlineStyle
 from .utils import color_as_int, log_error, sgr_sanitizer_pat
@@ -272,50 +272,6 @@ def draw_title(draw_data: DrawData, screen: Screen, tab: TabBarData, index: int,
 
 DrawTabFunc = Callable[[DrawData, Screen, TabBarData, int, int, int, bool, ExtraData], int]
 
-
-def draw_tab_with_slant(
-    draw_data: DrawData, screen: Screen, tab: TabBarData,
-    before: int, max_tab_length: int, index: int, is_last: bool,
-    extra_data: ExtraData
-) -> int:
-    orig_fg = screen.cursor.fg
-    left_sep, right_sep = ('', '') if draw_data.tab_bar_edge == 'top' else ('', '')
-    tab_bg = screen.cursor.bg
-    slant_fg = as_rgb(color_as_int(draw_data.default_bg))
-
-    def draw_sep(which: str) -> None:
-        screen.cursor.bg = tab_bg
-        screen.cursor.fg = slant_fg
-        screen.draw(which)
-        screen.cursor.bg = tab_bg
-        screen.cursor.fg = orig_fg
-
-    max_tab_length += 1
-    if max_tab_length <= 1:
-        screen.draw('…')
-    elif max_tab_length == 2:
-        screen.draw('…|')
-    elif max_tab_length < 6:
-        draw_sep(left_sep)
-        screen.draw((' ' if max_tab_length == 5 else '') + '…' + (' ' if max_tab_length >= 4 else ''))
-        draw_sep(right_sep)
-    else:
-        draw_sep(left_sep)
-        screen.draw(' ')
-        draw_title(draw_data, screen, tab, index, max_tab_length)
-        extra = screen.cursor.x - before - max_tab_length
-        if extra >= 0:
-            screen.cursor.x -= extra + 3
-            screen.draw('…')
-        elif extra == -1:
-            screen.cursor.x -= 2
-            screen.draw('…')
-        screen.draw(' ')
-        draw_sep(right_sep)
-
-    return screen.cursor.x
-
-
 def draw_tab_with_separator(
     draw_data: DrawData, screen: Screen, tab: TabBarData,
     before: int, max_tab_length: int, index: int, is_last: bool,
@@ -341,113 +297,16 @@ def draw_tab_with_separator(
     return end
 
 
-def draw_tab_with_fade(
-    draw_data: DrawData, screen: Screen, tab: TabBarData,
-    before: int, max_tab_length: int, index: int, is_last: bool,
-    extra_data: ExtraData
-) -> int:
-    orig_bg = screen.cursor.bg
-    tab_bg = color_from_int(orig_bg >> 8)
-    fade_colors = [as_rgb(color_as_int(alpha_blend(tab_bg, draw_data.default_bg, alpha))) for alpha in draw_data.alpha]
-    for bg in fade_colors:
-        screen.cursor.bg = bg
-        screen.draw(' ')
-    screen.cursor.bg = orig_bg
-    draw_title(draw_data, screen, tab, index, max(0, max_tab_length - 8))
-    extra = screen.cursor.x - before - max_tab_length
-    if extra > 0:
-        screen.cursor.x = before
-        draw_title(draw_data, screen, tab, index, max(0, max_tab_length - 4))
-        extra = screen.cursor.x - before - max_tab_length
-        if extra > 0:
-            screen.cursor.x -= extra + 1
-            screen.draw('…')
-    for bg in reversed(fade_colors):
-        if extra >= 0:
-            break
-        extra += 1
-        screen.cursor.bg = bg
-        screen.draw(' ')
-    end = screen.cursor.x
-    screen.cursor.bg = as_rgb(color_as_int(draw_data.default_bg))
-    screen.draw(' ')
-    return end
-
-
-powerline_symbols: Dict[PowerlineStyle, Tuple[str, str]] = {
-    'slanted': ('', '╱'),
-    'round': ('', '')
-}
-
-
-def draw_tab_with_powerline(
-    draw_data: DrawData, screen: Screen, tab: TabBarData,
-    before: int, max_tab_length: int, index: int, is_last: bool,
-    extra_data: ExtraData
-) -> int:
-    tab_bg = screen.cursor.bg
-    tab_fg = screen.cursor.fg
-    default_bg = as_rgb(int(draw_data.default_bg))
-    if extra_data.next_tab:
-        next_tab_bg = as_rgb(draw_data.tab_bg(extra_data.next_tab))
-        needs_soft_separator = next_tab_bg == tab_bg
-    else:
-        next_tab_bg = default_bg
-        needs_soft_separator = False
-
-    separator_symbol, soft_separator_symbol = powerline_symbols.get(draw_data.powerline_style, ('', ''))
-    min_title_length = 1 + 2
-    start_draw = 2
-
-    if screen.cursor.x == 0:
-        screen.cursor.bg = tab_bg
-        screen.draw(' ')
-        start_draw = 1
-
-    screen.cursor.bg = tab_bg
-    if min_title_length >= max_tab_length:
-        screen.draw('…')
-    else:
-        draw_title(draw_data, screen, tab, index, max_tab_length)
-        extra = screen.cursor.x + start_draw - before - max_tab_length
-        if extra > 0 and extra + 1 < screen.cursor.x:
-            screen.cursor.x -= extra + 1
-            screen.draw('…')
-
-    if not needs_soft_separator:
-        screen.draw(' ')
-        screen.cursor.fg = tab_bg
-        screen.cursor.bg = next_tab_bg
-        screen.draw(separator_symbol)
-    else:
-        prev_fg = screen.cursor.fg
-        if tab_bg == tab_fg:
-            screen.cursor.fg = default_bg
-        elif tab_bg != default_bg:
-            c1 = draw_data.inactive_bg.contrast(draw_data.default_bg)
-            c2 = draw_data.inactive_bg.contrast(draw_data.inactive_fg)
-            if c1 < c2:
-                screen.cursor.fg = default_bg
-        screen.draw(f' {soft_separator_symbol}')
-        screen.cursor.fg = prev_fg
-
-    end = screen.cursor.x
-    if end < screen.columns:
-        screen.draw(' ')
-    return end
-
-
 @run_once
 def load_custom_draw_tab() -> DrawTabFunc:
-    import runpy
-    import traceback
+    import runpy, traceback
     try:
         m = runpy.run_path(os.path.join(config_dir, 'tab_bar.py'))
         func: DrawTabFunc = m['draw_tab']
     except Exception as e:
         traceback.print_exc()
         log_error(f'Failed to load custom draw_tab function with error: {e}')
-        return draw_tab_with_fade
+        return draw_tab_with_separator
 
     @wraps(func)
     def draw_tab(
@@ -459,7 +318,7 @@ def load_custom_draw_tab() -> DrawTabFunc:
             return func(draw_data, screen, tab, before, max_tab_length, index, is_last, extra_data)
         except Exception as e:
             log_error(f'Custom draw tab function failed with error: {e}')
-            return draw_tab_with_fade(draw_data, screen, tab, before, max_tab_length, index, is_last, extra_data)
+            return draw_tab_with_separator(draw_data, screen, tab, before, max_tab_length, index, is_last, extra_data)
 
     return draw_tab
 
@@ -515,16 +374,10 @@ class TabBar:
             opts.tab_title_max_length,
         )
         ts = opts.tab_bar_style
-        if ts == 'separator':
-            self.draw_func: DrawTabFunc = draw_tab_with_separator
-        elif ts == 'powerline':
-            self.draw_func = draw_tab_with_powerline
-        elif ts == 'slant':
-            self.draw_func = draw_tab_with_slant
-        elif ts == 'custom':
+        if ts == 'custom':
             self.draw_func = load_custom_draw_tab()
         else:
-            self.draw_func = draw_tab_with_fade
+            self.draw_func: DrawTabFunc = draw_tab_with_separator
         if opts.tab_bar_align == 'center':
             self.align: Callable[[], None] = partial(self.align_with_factor, 2)
         elif opts.tab_bar_align == 'right':
