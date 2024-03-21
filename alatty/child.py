@@ -222,7 +222,6 @@ class Child:
         from alatty.options.utils import DELETE_ENV_VAR
         env = default_env().copy()
         opts = fast_data_types.get_options()
-        boss = fast_data_types.get_boss()
         if is_macos and env.get('LC_CTYPE') == 'UTF-8' and not getattr(sys, 'alatty_run_data').get(
                 'lc_ctype_before_python') and not getattr(default_env, 'lc_ctype_set_by_user', False):
             del env['LC_CTYPE']
@@ -230,7 +229,6 @@ class Child:
         env['TERM'] = opts.term
         env['COLORTERM'] = 'truecolor'
         env['ALATTY_PID'] = getpid()
-        env['ALATTY_PUBLIC_KEY'] = boss.encryption_public_key
         if self.cwd:
             # needed in case cwd is a symlink, in which case shells
             # can use it to display the current directory name rather

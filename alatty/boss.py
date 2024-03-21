@@ -40,7 +40,6 @@ from .clipboard import (
 from .conf.utils import BadLine, KeyAction
 from .config import common_opts_as_dict, prepare_config_file_for_editing
 from .constants import (
-    RC_ENCRYPTION_PROTOCOL_VERSION,
     appname,
     cache_dir,
     clear_handled_signals,
@@ -58,7 +57,6 @@ from .fast_data_types import (
     NO_CLOSE_REQUESTED,
     ChildMonitor,
     Color,
-    EllipticCurveKey,
     KeyEvent,
     SingleKey,
     add_timer,
@@ -219,8 +217,6 @@ class Boss:
         self.clipboard = Clipboard()
         self.primary_selection = Clipboard(ClipboardType.primary_selection)
         self.peer_data_map: Dict[int, Optional[Dict[str, Sequence[str]]]] = {}
-        self.encryption_key = EllipticCurveKey()
-        self.encryption_public_key = f'{RC_ENCRYPTION_PROTOCOL_VERSION}:{base64.b85encode(self.encryption_key.public).decode("ascii")}'
         self.clipboard_buffers: Dict[str, str] = {}
         self.window_id_map: WeakValueDictionary[int, Window] = WeakValueDictionary()
         self.startup_colors = {k: opts[k] for k in opts if isinstance(opts[k], Color)}
