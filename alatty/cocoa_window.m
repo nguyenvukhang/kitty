@@ -795,33 +795,6 @@ cocoa_set_activation_policy(bool hide_from_tasks) {
 }
 
 static PyObject*
-cocoa_set_url_handler(PyObject UNUSED *self, PyObject *args) {
-    @autoreleasepool {
-
-    const char *url_scheme = NULL, *bundle_id = NULL;
-    if (!PyArg_ParseTuple(args, "s|z", &url_scheme, &bundle_id)) return NULL;
-    if (!url_scheme || url_scheme[0] == '\0') {
-        PyErr_SetString(PyExc_TypeError, "Empty url scheme");
-        return NULL;
-    }
-
-    NSString *scheme = [NSString stringWithUTF8String:url_scheme];
-    NSString *identifier = @"";
-    if (!bundle_id) {
-        identifier = [[NSBundle mainBundle] bundleIdentifier];
-        if (!identifier || identifier.length == 0) identifier = @"net.kovidgoyal.alatty";
-    } else if (bundle_id[0] != '\0') {
-        identifier = [NSString stringWithUTF8String:bundle_id];
-    }
-    // This API has been marked as deprecated. It will need to be replaced when a new approach is available.
-    OSStatus err = LSSetDefaultHandlerForURLScheme((CFStringRef)scheme, (CFStringRef)identifier);
-    if (err == noErr) Py_RETURN_NONE;
-    PyErr_Format(PyExc_OSError, "Failed to set default handler with error code: %d", err);
-    return NULL;
-    } // autoreleasepool
-}
-
-static PyObject*
 cocoa_set_app_icon(PyObject UNUSED *self, PyObject *args) {
     @autoreleasepool {
 
@@ -938,7 +911,6 @@ static PyMethodDef module_methods[] = {
     {"cocoa_set_global_shortcut", (PyCFunction)cocoa_set_global_shortcut, METH_VARARGS, ""},
     {"cocoa_send_notification", (PyCFunction)cocoa_send_notification, METH_VARARGS, ""},
     {"cocoa_set_notification_activated_callback", (PyCFunction)set_notification_activated_callback, METH_O, ""},
-    {"cocoa_set_url_handler", (PyCFunction)cocoa_set_url_handler, METH_VARARGS, ""},
     {"cocoa_set_app_icon", (PyCFunction)cocoa_set_app_icon, METH_VARARGS, ""},
     {"cocoa_set_dock_icon", (PyCFunction)cocoa_set_dock_icon, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL}        /* Sentinel */

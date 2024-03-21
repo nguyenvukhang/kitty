@@ -716,10 +716,6 @@ def cocoa_get_lang() -> Tuple[str, str, str]:
     pass
 
 
-def cocoa_set_url_handler(url_scheme: str, bundle_id: Optional[str] = None) -> None:
-    pass
-
-
 def cocoa_set_app_icon(icon_path: str, app_path: Optional[str] = None) -> None:
     pass
 
