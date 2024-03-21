@@ -376,7 +376,6 @@ extern bool init_shaders(PyObject *module);
 extern bool init_mouse(PyObject *module);
 extern bool init_kittens(PyObject *module);
 extern bool init_logging(PyObject *module);
-extern bool init_utmp(PyObject *module);
 extern bool init_loop_utils(PyObject *module);
 #ifdef __APPLE__
 extern int init_CoreText(PyObject *);
@@ -444,7 +443,6 @@ PyInit_fast_data_types(void) {
     if (!init_freetype_render_ui_text(m)) return NULL;
 #endif
     if (!init_fonts(m)) return NULL;
-    if (!init_utmp(m)) return NULL;
     if (!init_loop_utils(m)) return NULL;
 
     CellAttrs a;
