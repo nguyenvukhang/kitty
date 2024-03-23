@@ -14,7 +14,6 @@ from typing import (
 )
 
 from alatty.boss import Boss
-from alatty.fonts import FontFeature
 from alatty.fonts.render import FontObject
 from alatty.options.types import Options
 from alatty.types import SignalInfo

@@ -4,7 +4,6 @@
 
 import enum
 import re
-import sys
 from collections import defaultdict
 from dataclasses import dataclass, fields
 from functools import lru_cache
@@ -36,7 +35,6 @@ from alatty.conf.utils import (
     currently_parsing,
     positive_float,
     positive_int,
-    python_string,
     to_bool,
     to_cmdline,
     to_color,
@@ -45,7 +43,7 @@ from alatty.conf.utils import (
 )
 from alatty.constants import is_macos
 from alatty.fast_data_types import CURSOR_BEAM, CURSOR_BLOCK, CURSOR_UNDERLINE, Color, Shlex, SingleKey
-from alatty.fonts import FontFeature, FontModification, ModificationType, ModificationUnit, ModificationValue
+from alatty.fonts import FontModification, ModificationType, ModificationUnit, ModificationValue
 from alatty.key_names import character_key_name_aliases, functional_key_name_aliases, get_key_name_lookup
 from alatty.rgb import color_as_int
 from alatty.types import FloatEdges, MouseEvent

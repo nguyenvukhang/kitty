@@ -12,18 +12,6 @@ class ListedFont(TypedDict):
     is_monospace: bool
 
 
-class FontFeature:
-
-    __slots__ = 'name', 'parsed'
-
-    def __init__(self, name: str, parsed: bytes):
-        self.name = name
-        self.parsed = parsed
-
-    def __repr__(self) -> str:
-        return repr(self.name)
-
-
 class ModificationType(Enum):
     underline_position = auto()
     underline_thickness = auto()

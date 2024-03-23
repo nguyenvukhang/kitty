@@ -5,7 +5,6 @@ import re
 from typing import Dict, Generator, Iterable, List, Optional, Tuple
 
 from alatty.fast_data_types import coretext_all_fonts
-from alatty.fonts import FontFeature
 from alatty.options.types import Options
 from alatty.typing import CoreTextFont
 from alatty.utils import log_error
