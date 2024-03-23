@@ -683,15 +683,6 @@ clear(PyObject *self, PyObject *args UNUSED) {
 
 
 static PyObject*
-add(PyObject *self, PyObject *args) {
-    const char *key, *data;
-    Py_ssize_t keylen, datalen;
-    PA("y#y#", &key, &keylen, &data, &datalen);
-    if (!add_to_disk_cache(self, key, keylen, data, datalen)) return NULL;
-    Py_RETURN_NONE;
-}
-
-static PyObject*
 pyremove(PyObject *self, PyObject *args) {
     const char *key;
     Py_ssize_t keylen;
@@ -756,7 +747,6 @@ num_cached_in_ram(PyObject *self, PyObject *args UNUSED) {
 static PyMethodDef methods[] = {
     MW(ensure_state, METH_NOARGS),
     MW(read_from_cache_file, METH_VARARGS),
-    {"add", add, METH_VARARGS, NULL},
     {"remove", pyremove, METH_VARARGS, NULL},
     {"remove_from_ram", remove_from_ram, METH_O, NULL},
     {"num_cached_in_ram", num_cached_in_ram, METH_NOARGS, NULL},
