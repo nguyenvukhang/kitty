@@ -1035,25 +1035,6 @@ dispatch_dcs(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
 }
 // }}}
 
-// APC mode {{{
-
-#include "parse-graphics-command.h"
-
-static void
-dispatch_apc(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
-    if (screen->parser_buf_pos < 2) return;
-    switch(screen->parser_buf[0]) {
-        case 'G':
-            parse_graphics_code(screen, dump_callback);
-            break;
-        default:
-            REPORT_ERROR("Unrecognized APC code: 0x%x", screen->parser_buf[0]);
-            break;
-    }
-}
-
-// }}}
-
 // PM mode {{{
 static void
 dispatch_pm(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
@@ -1252,9 +1233,6 @@ END_ALLOW_CASE_RANGE
                 } \
             } \
             break; \
-        case APC: \
-            if (accumulate_oth(screen, codepoint, dump_callback)) { dispatch##_apc(screen, dump_callback); SET_STATE(0); } \
-            break; \
         case PM: \
             if (accumulate_oth(screen, codepoint, dump_callback)) { dispatch##_pm(screen, dump_callback); SET_STATE(0); } \
             break; \
@@ -1377,7 +1355,6 @@ pending_escape_code(Screen *screen, char_type start_ch, char_type end_ch) {
 }
 
 static void pending_pm(Screen *screen, PyObject *dump_callback UNUSED) { pending_escape_code(screen, PM, ST); }
-static void pending_apc(Screen *screen, PyObject *dump_callback UNUSED) { pending_escape_code(screen, APC, ST); }
 
 static void
 pending_osc(Screen *screen, PyObject *dump_callback UNUSED) {

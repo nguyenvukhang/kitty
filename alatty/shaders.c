@@ -388,46 +388,6 @@ cell_prepare_to_render(ssize_t vao_idx, Screen *screen, FONTS_DATA_HANDLE fonts_
     return changed;
 }
 
-static void
-draw_graphics(int program, ssize_t vao_idx, ImageRenderData *data, GLuint start, GLuint count, ImageRect viewport) {
-    bind_program(program);
-    glActiveTexture(GL_TEXTURE0 + GRAPHICS_UNIT);
-    GraphicsUniforms *u = &graphics_program_layouts[program].uniforms;
-    glUniform4f(u->viewport, viewport.left, viewport.top, viewport.right, viewport.bottom);
-    glEnable(GL_CLIP_DISTANCE0); glEnable(GL_CLIP_DISTANCE1); glEnable(GL_CLIP_DISTANCE2); glEnable(GL_CLIP_DISTANCE3);
-    for (GLuint i=0; i < count;) {
-        ImageRenderData *group = data + start + i;
-        glBindTexture(GL_TEXTURE_2D, group->texture_id);
-        if (group->group_count == 0) { i++; continue; }
-        for (GLuint k=0; k < group->group_count; k++, i++) {
-            ImageRenderData *rd = data + start + i;
-            glUniform4f(u->src_rect, rd->src_rect.left, rd->src_rect.top, rd->src_rect.right, rd->src_rect.bottom);
-            glUniform4f(u->dest_rect, rd->dest_rect.left, rd->dest_rect.top, rd->dest_rect.right, rd->dest_rect.bottom);
-            glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        }
-    }
-    glDisable(GL_CLIP_DISTANCE0); glDisable(GL_CLIP_DISTANCE1); glDisable(GL_CLIP_DISTANCE2); glDisable(GL_CLIP_DISTANCE3);
-    bind_vertex_array(vao_idx);
-}
-
-static ImageRect
-viewport_for_cells(const CellRenderData *crd) {
-    return (ImageRect){crd->gl.xstart, crd->gl.ystart, crd->gl.xstart + crd->gl.width, crd->gl.ystart - crd->gl.height};
-}
-
-static void
-draw_cells_simple(ssize_t vao_idx, Screen *screen, const CellRenderData *crd, bool is_semi_transparent) {
-    bind_program(CELL_PROGRAM);
-    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, screen->lines * screen->columns);
-    if (screen->grman->render_data.count) {
-        glEnable(GL_BLEND);
-        int program = GRAPHICS_PROGRAM;
-        if (is_semi_transparent) { BLEND_PREMULT; program = GRAPHICS_PREMULT_PROGRAM; } else { BLEND_ONTO_OPAQUE; }
-        draw_graphics(program, vao_idx, screen->grman->render_data.item, 0, screen->grman->render_data.count, viewport_for_cells(crd));
-        glDisable(GL_BLEND);
-    }
-}
-
 static float prev_inactive_text_alpha = -1;
 
 static void
@@ -505,21 +465,9 @@ draw_cells(ssize_t vao_idx, const ScreenRenderData *srd, OSWindow *os_window, bo
     float current_inactive_text_alpha = (!can_be_focused || screen->cursor_render_info.is_focused) && is_active_window ? 1.0f : (float)OPT(inactive_text_alpha);
     set_cell_uniforms(current_inactive_text_alpha, screen->reload_all_gpu_data);
     screen->reload_all_gpu_data = false;
-    ImageRenderData *previous_graphics_render_data = NULL;
-    if (os_window->live_resize.in_progress && screen->grman->render_data.count && (crd.x_ratio != 1 || crd.y_ratio != 1)) {
-        previous_graphics_render_data = malloc(sizeof(previous_graphics_render_data[0]) * screen->grman->render_data.capacity);
-        if (previous_graphics_render_data) {
-            memcpy(previous_graphics_render_data, screen->grman->render_data.item, sizeof(previous_graphics_render_data[0]) * screen->grman->render_data.count);
-            for (size_t i = 0; i < screen->grman->render_data.count; i++)
-                scale_rendered_graphic(screen->grman->render_data.item + i, srd->xstart, srd->ystart, crd.x_ratio, crd.y_ratio);
-        }
-    }
-    draw_cells_simple(vao_idx, screen, &crd, os_window->is_semi_transparent);
 
-    if (previous_graphics_render_data) {
-        free(screen->grman->render_data.item);
-        screen->grman->render_data.item = previous_graphics_render_data;
-    }
+    bind_program(CELL_PROGRAM);
+    glDrawArraysInstanced(GL_TRIANGLE_FAN, 0, 4, screen->lines * screen->columns);
 }
 // }}}
 

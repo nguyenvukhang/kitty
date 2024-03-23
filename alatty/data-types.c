@@ -370,7 +370,6 @@ extern bool init_glfw(PyObject *m);
 extern bool init_child(PyObject *m);
 extern bool init_state(PyObject *module);
 extern bool init_keys(PyObject *module);
-extern bool init_graphics(PyObject *module);
 extern bool init_shaders(PyObject *module);
 extern bool init_mouse(PyObject *module);
 extern bool init_kittens(PyObject *module);
@@ -426,7 +425,6 @@ PyInit_fast_data_types(void) {
     if (!init_child(m)) return NULL;
     if (!init_state(m)) return NULL;
     if (!init_keys(m)) return NULL;
-    if (!init_graphics(m)) return NULL;
     if (!init_shaders(m)) return NULL;
     if (!init_mouse(m)) return NULL;
     if (!init_kittens(m)) return NULL;

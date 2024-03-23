@@ -105,7 +105,6 @@ typedef struct {
     Savepoint main_savepoint, alt_savepoint;
     PyObject *callbacks, *test_child;
     LineBuf *linebuf, *main_linebuf, *alt_linebuf;
-    GraphicsManager *grman, *main_grman, *alt_grman;
     HistoryBuf *historybuf;
     unsigned int history_line_added_count;
     bool *tabstops, *main_tabstops, *alt_tabstops;
@@ -251,7 +250,6 @@ bool screen_history_scroll(Screen *self, int amt, bool upwards);
 PyObject* as_text_history_buf(HistoryBuf *self, PyObject *args, ANSIBuf *output);
 Line* screen_visual_line(Screen *self, index_type y);
 unsigned long screen_current_char_width(Screen *self);
-void screen_handle_graphics_command(Screen *self, const GraphicsCommand *cmd);
 bool screen_set_last_visited_prompt(Screen*, index_type);
 bool screen_select_cmd_output(Screen*, index_type);
 void screen_dirty_sprite_positions(Screen *self);

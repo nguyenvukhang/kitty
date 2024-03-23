@@ -10,6 +10,7 @@
 #include "state.h"
 #include "emoji.h"
 #include "unicode-data.h"
+#include "alatty-uthash.h"
 #include "glyph-cache.h"
 
 #define MISSING_GLYPH (NUM_UNDERLINE_STYLES + 2)
