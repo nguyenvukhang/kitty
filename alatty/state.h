@@ -412,8 +412,7 @@ bool update_ime_position_for_window(id_type window_id, bool force,
                                     int update_focus);
 void set_ignore_os_keyboard_processing(bool enabled);
 void change_live_resize_state(OSWindow *, bool);
-bool render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames,
-                      bool scan_for_animated_images);
+bool render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames);
 void update_mouse_pointer_shape(void);
 void adjust_window_size_for_csd(OSWindow *w, int width, int height,
                                 int *adjusted_width, int *adjusted_height);

@@ -643,7 +643,7 @@ collect_cursor_info(CursorRenderInfo *ans, Window *w, monotonic_t now, OSWindow 
 }
 
 static bool
-prepare_to_render_os_window(OSWindow *os_window, monotonic_t now, unsigned int *active_window_id, color_type *active_window_bg, unsigned int *num_visible_windows, bool *all_windows_have_same_bg, bool scan_for_animated_images) {
+prepare_to_render_os_window(OSWindow *os_window, monotonic_t now, unsigned int *active_window_id, color_type *active_window_bg, unsigned int *num_visible_windows, bool *all_windows_have_same_bg) {
 #define TD os_window->tab_bar_render_data
     bool needs_render = os_window->needs_render;
     os_window->needs_render = false;
@@ -694,14 +694,6 @@ prepare_to_render_os_window(OSWindow *os_window, monotonic_t now, unsigned int *
                     WD.screen->cursor_render_info.is_visible = false;
                 }
             }
-            if (scan_for_animated_images) {
-                monotonic_t min_gap;
-                if (scan_active_animations(WD.screen->grman, now, &min_gap, true)) needs_render = true;
-                if (min_gap < MONOTONIC_T_MAX) {
-                    global_state.check_for_active_animated_images = true;
-                    set_maximum_wait(min_gap);
-                }
-            }
             if (send_cell_data_to_gpu(WD.vao_idx, WD.screen, os_window)) needs_render = true;
         }
     }
@@ -748,7 +740,7 @@ no_render_frame_received_recently(OSWindow *w, monotonic_t now, monotonic_t max_
 }
 
 bool
-render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames, bool scan_for_animated_images) {
+render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames) {
     if (!w->num_tabs) return false;
     if (!should_os_window_be_rendered(w)) {
         return false;
@@ -775,7 +767,7 @@ render_os_window(OSWindow *w, monotonic_t now, bool ignore_render_frames, bool s
     bool all_windows_have_same_bg;
     color_type active_window_bg = 0;
     if (!w->fonts_data) { log_error("No fonts data found for window id: %llu", w->id); return false; }
-    if (prepare_to_render_os_window(w, now, &active_window_id, &active_window_bg, &num_visible_windows, &all_windows_have_same_bg, scan_for_animated_images)) needs_render = true;
+    if (prepare_to_render_os_window(w, now, &active_window_id, &active_window_bg, &num_visible_windows, &all_windows_have_same_bg)) needs_render = true;
     if (w->last_active_window_id != active_window_id || w->last_active_tab != w->active_tab || w->focused_at_last_render != w->is_focused) needs_render = true;
     if (w->render_calls < 3) needs_render = true;
     if (needs_render) render_prepared_os_window(w, active_window_id, active_window_bg, num_visible_windows, all_windows_have_same_bg);
@@ -801,7 +793,7 @@ render(monotonic_t now, bool input_read) {
         // rendering is done in cocoa_os_window_resized()
         if (w->live_resize.in_progress) continue;
 #endif
-        if (!render_os_window(w, now, false, scan_for_animated_images)) {
+        if (!render_os_window(w, now, false)) {
             // since we didn't scan the window for animations, force a rescan on next wakeup/render frame
             if (scan_for_animated_images) global_state.check_for_active_animated_images = true;
         }

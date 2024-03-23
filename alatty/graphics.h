@@ -133,7 +133,6 @@ typedef struct {
     size_t num_of_below_refs, num_of_negative_refs, num_of_positive_refs;
     unsigned int last_scrolled_by;
     size_t used_storage;
-    PyObject *disk_cache;
     bool has_images_needing_animation, context_made_current_for_this_command;
     id_type window_id;
 } GraphicsManager;
@@ -185,5 +184,4 @@ void gpu_data_for_image(ImageRenderData *ans, float left, float top, float right
 bool png_from_file_pointer(FILE* fp, const char *path, uint8_t** data, unsigned int* width, unsigned int* height, size_t* sz);
 bool png_path_to_bitmap(const char *path, uint8_t** data, unsigned int* width, unsigned int* height, size_t* sz);
 bool png_from_data(void *png_data, size_t png_data_sz, const char *path_for_error_messages, uint8_t** data, unsigned int* width, unsigned int* height, size_t* sz);
-bool scan_active_animations(GraphicsManager *self, const monotonic_t now, monotonic_t *minimum_gap, bool os_window_context_set);
 void scale_rendered_graphic(ImageRenderData*, float xstart, float ystart, float x_scale, float y_scale);
