@@ -227,15 +227,6 @@ add_window(id_type os_window_id, id_type tab_id, PyObject *title) {
 }
 
 static void
-update_window_title(id_type os_window_id, id_type tab_id, id_type window_id, PyObject *title) {
-    WITH_WINDOW(os_window_id, tab_id, window_id)
-        Py_CLEAR(window->title);
-        window->title = title;
-        Py_XINCREF(window->title);
-    END_WITH_WINDOW;
-}
-
-static void
 destroy_window(Window *w) {
     Py_CLEAR(w->render_data.screen); Py_CLEAR(w->title);
     Py_CLEAR(w->title_bar_data.last_drawn_title_object_id);
@@ -1068,7 +1059,6 @@ PYWRAP1(redirect_mouse_handling) {
     Py_RETURN_NONE;
 }
 
-THREE_ID_OBJ(update_window_title)
 THREE_ID(remove_window)
 THREE_ID(detach_window)
 THREE_ID(attach_window)
@@ -1117,7 +1107,6 @@ static PyMethodDef module_methods[] = {
     MW(pt_to_px, METH_VARARGS),
     MW(add_tab, METH_O),
     MW(add_window, METH_VARARGS),
-    MW(update_window_title, METH_VARARGS),
     MW(remove_tab, METH_VARARGS),
     MW(remove_window, METH_VARARGS),
     MW(detach_window, METH_VARARGS),
