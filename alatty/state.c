@@ -299,12 +299,11 @@ detach_window(id_type os_window_id, id_type tab_id, id_type id) {
 
 
 static void
-resize_screen(OSWindow *os_window, Screen *screen, bool has_graphics) {
+resize_screen(OSWindow *os_window, Screen *screen) {
     if (screen) {
         screen->cell_size.width = os_window->fonts_data->cell_width;
         screen->cell_size.height = os_window->fonts_data->cell_height;
         screen_dirty_sprite_positions(screen);
-        if (has_graphics) screen_rescale_images(screen);
     }
 }
 
@@ -323,7 +322,7 @@ attach_window(id_type os_window_id, id_type tab_id, id_type id) {
                 if (
                     w->render_data.screen->cell_size.width != osw->fonts_data->cell_width ||
                     w->render_data.screen->cell_size.height != osw->fonts_data->cell_height
-                ) resize_screen(osw, w->render_data.screen, true);
+                ) resize_screen(osw, w->render_data.screen);
                 else screen_dirty_sprite_positions(w->render_data.screen);
                 w->render_data.screen->reload_all_gpu_data = true;
                 break;
@@ -869,12 +868,12 @@ PYWRAP1(os_window_font_size) {
             os_window->fonts_data = NULL;
             os_window->fonts_data = load_fonts_data(os_window->font_sz_in_pts, os_window->logical_dpi_x, os_window->logical_dpi_y);
             send_prerendered_sprites_for_window(os_window);
-            resize_screen(os_window, os_window->tab_bar_render_data.screen, false);
+            resize_screen(os_window, os_window->tab_bar_render_data.screen);
             for (size_t ti = 0; ti < os_window->num_tabs; ti++) {
                 Tab *tab = os_window->tabs + ti;
                 for (size_t wi = 0; wi < tab->num_windows; wi++) {
                     Window *w = tab->windows + wi;
-                    resize_screen(os_window, w->render_data.screen, true);
+                    resize_screen(os_window, w->render_data.screen);
                 }
             }
             os_window_update_size_increments(os_window);

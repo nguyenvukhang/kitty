@@ -332,8 +332,7 @@ void draw_borders(ssize_t vao_idx, unsigned int num_border_rects,
 ssize_t create_cell_vao(void);
 ssize_t create_graphics_vao(void);
 ssize_t create_border_vao(void);
-bool send_cell_data_to_gpu(ssize_t, float, float, float, float, Screen *,
-                           OSWindow *);
+bool send_cell_data_to_gpu(ssize_t, Screen *, OSWindow *);
 void draw_cells(ssize_t, const ScreenRenderData *, OSWindow *, bool, bool);
 void update_surface_size(int, int, uint32_t);
 void free_texture(uint32_t *);

@@ -11,7 +11,6 @@
 }
 
 #include "state.h"
-#include "iqsort.h"
 #include "fonts.h"
 #include "lineops.h"
 #include <structmember.h>
@@ -379,7 +378,6 @@ screen_resize(Screen *self, unsigned int lines, unsigned int columns) {
     /* printf("old_cursor: (%u, %u) new_cursor: (%u, %u) beyond_content: %d\n", self->cursor->x, self->cursor->y, cursor.after.x, cursor.after.y, cursor.is_beyond_content); */
     setup_cursor(main_saved_cursor);
     grman_remove_all_cell_images(self->main_grman);
-    grman_resize(self->main_grman, self->lines, lines, self->columns, columns, num_content_lines_before, num_content_lines_after);
 
     // Resize alt linebuf
     n = realloc_lb(self->alt_linebuf, lines, columns, &num_content_lines_before, &num_content_lines_after, NULL, &cursor, &alt_saved_cursor, &self->as_ansi_buf);
@@ -388,7 +386,6 @@ screen_resize(Screen *self, unsigned int lines, unsigned int columns) {
     if (!is_main) setup_cursor(cursor);
     setup_cursor(alt_saved_cursor);
     grman_remove_all_cell_images(self->alt_grman);
-    grman_resize(self->alt_grman, self->lines, lines, self->columns, columns, num_content_lines_before, num_content_lines_after);
 #undef setup_cursor
 
     self->linebuf = is_main ? self->main_linebuf : self->alt_linebuf;
@@ -433,15 +430,6 @@ screen_resize(Screen *self, unsigned int lines, unsigned int columns) {
     }
     return true;
 }
-
-void
-screen_rescale_images(Screen *self) {
-    grman_remove_all_cell_images(self->main_grman);
-    grman_remove_all_cell_images(self->alt_grman);
-    grman_rescale(self->main_grman, self->cell_size);
-    grman_rescale(self->alt_grman, self->cell_size);
-}
-
 
 static PyObject*
 reset_callbacks(Screen *self, PyObject *a UNUSED) {
@@ -881,10 +869,8 @@ screen_dirty_line_graphics(Screen *self, const unsigned int top, const unsigned 
 }
 
 void
-screen_handle_graphics_command(Screen *self, const GraphicsCommand *cmd, const uint8_t *payload) {
+screen_handle_graphics_command(Screen *self, const GraphicsCommand *cmd) {
     unsigned int x = self->cursor->x, y = self->cursor->y;
-    const char *response = grman_handle_command(self->grman, cmd, payload, self->cursor, &self->is_dirty, self->cell_size);
-    if (response != NULL) write_escape_code_to_child(self, APC, response);
     if (x != self->cursor->x || y != self->cursor->y) {
         bool in_margins = cursor_within_margins(self);
         if (self->cursor->x >= self->columns) { self->cursor->x = 0; self->cursor->y++; }
@@ -3413,7 +3399,6 @@ WRAP0(tab)
 WRAP0(linefeed)
 WRAP0(carriage_return)
 WRAP2(set_margins, 1, 1)
-WRAP0(rescale_images)
 
 static PyObject*
 current_key_encoding_flags(Screen *self, PyObject *args UNUSED) {
@@ -4046,7 +4031,6 @@ static PyMethodDef methods[] = {
     MND(reload_all_gpu_data, METH_NOARGS)
     MND(resize, METH_VARARGS)
     MND(set_margins, METH_VARARGS)
-    MND(rescale_images, METH_NOARGS)
     MND(current_key_encoding_flags, METH_NOARGS)
     MND(text_for_selection, METH_VARARGS)
     MND(is_rectangle_select, METH_NOARGS)

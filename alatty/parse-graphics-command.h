@@ -373,5 +373,5 @@ static inline void parse_graphics_code(Screen *screen,
       "offset_from_parent_y", (int)g.offset_from_parent_y, "payload_sz",
       g.payload_sz, payload, g.payload_sz);
 
-  screen_handle_graphics_command(screen, &g, payload);
+  screen_handle_graphics_command(screen, &g);
 }

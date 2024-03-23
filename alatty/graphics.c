@@ -8,16 +8,10 @@
 #include "graphics.h"
 #include "state.h"
 #include "disk-cache.h"
-#include "iqsort.h"
-#include "safe-wrappers.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <stdlib.h>
 
-#include <zlib.h>
 #include <structmember.h>
 #include "png-reader.h"
 PyTypeObject GraphicsManager_Type;
@@ -36,12 +30,6 @@ cache_key(const ImageAndFrame x, char *key) {
 #define CK(x) key, cache_key(x, key)
 
 static bool
-add_to_cache(GraphicsManager *self, const ImageAndFrame x, const void *data, const size_t sz) {
-    char key[CACHE_KEY_BUFFER_SIZE];
-    return add_to_disk_cache(self->disk_cache, CK(x), data, sz);
-}
-
-static bool
 remove_from_cache(GraphicsManager *self, const ImageAndFrame x) {
     char key[CACHE_KEY_BUFFER_SIZE];
     return remove_from_disk_cache(self->disk_cache, CK(x));
@@ -52,9 +40,6 @@ read_from_cache(const GraphicsManager *self, const ImageAndFrame x, void **data,
     char key[CACHE_KEY_BUFFER_SIZE];
     return read_from_disk_cache_simple(self->disk_cache, CK(x), data, sz, false);
 }
-
-static size_t
-cache_size(const GraphicsManager *self) { return disk_cache_total_size(self->disk_cache); }
 #undef CK
 // }}}
 
@@ -65,7 +50,6 @@ next_id(id_type *counter) {
     if (UNLIKELY(ans == 0)) ans = ++(*counter);
     return ans;
 }
-static const unsigned PARENT_DEPTH_LIMIT = 8;
 
 GraphicsManager*
 grman_alloc(void) {
@@ -92,14 +76,6 @@ free_refs_data(Image *img) {
         }
     }
     img->refs = NULL;
-}
-
-static void
-free_load_data(LoadData *ld) {
-    free(ld->buf); ld->buf_used = 0; ld->buf_capacity = 0; ld->buf = NULL;
-    if (ld->mapped_file) munmap(ld->mapped_file, ld->mapped_file_sz);
-    ld->mapped_file = NULL; ld->mapped_file_sz = 0;
-    ld->loading_for = (const ImageAndFrame){0};
 }
 
 static void
@@ -141,44 +117,9 @@ dealloc(GraphicsManager* self) {
 }
 
 static Image*
-img_by_internal_id(const GraphicsManager *self, id_type id) {
-    Image *ans;
-    HASH_FIND(hh, self->images, &id, sizeof(id), ans);
-    return ans;
-}
-
-static Image*
 img_by_client_id(const GraphicsManager *self, uint32_t id) {
     for (Image *img = self->images; img != NULL; img = img->hh.next) {
         if (img->client_id == id) return img;
-    }
-    return NULL;
-}
-
-static Image*
-img_by_client_number(const GraphicsManager *self, uint32_t number) {
-    // get the newest image with the specified number
-    Image *ans = NULL;
-    for (Image *img = self->images; img != NULL; img = img->hh.next) {
-        if (img->client_number == number && (!ans || img->internal_id > ans->internal_id)) ans = img;
-    }
-    return ans;
-}
-
-static ImageRef*
-ref_by_internal_id(const Image *img, id_type id) {
-    ImageRef *ans;
-    HASH_FIND(hh, img->refs, &id, sizeof(id), ans);
-    return ans;
-}
-
-
-static ImageRef*
-ref_by_client_id(const Image *img, uint32_t id) {
-    for (ImageRef *ref = img->refs; ref != NULL; ref = ref->hh.next) {
-        if (ref->client_id == id) {
-            return ref;
-        }
     }
     return NULL;
 }
@@ -189,149 +130,13 @@ remove_image(GraphicsManager *self, Image *img) {
     self->layers_dirty = true;
 }
 
-static void
-remove_images(GraphicsManager *self, bool(*predicate)(Image*), id_type skip_image_internal_id) {
-    Image *img, *tmp;
-    HASH_ITER(hh, self->images, img, tmp) {
-        if (img->internal_id != skip_image_internal_id && predicate(img)) {
-            remove_image(self, img);
-        }
-    }
-}
-
-
 // Loading image data {{{
-
-static bool
-trim_predicate(Image *img) {
-    return !img->root_frame_data_loaded || !img->refs;
-}
-
-static int
-oldest_img_first(const Image *a, const Image *b) {
-    return a->atime - b->atime;
-}
-
-static void
-apply_storage_quota(GraphicsManager *self, size_t storage_limit, id_type currently_added_image_internal_id) {
-    // First remove unreferenced images, even if they have an id
-    remove_images(self, trim_predicate, currently_added_image_internal_id);
-    if (self->used_storage < storage_limit) return;
-
-    HASH_SORT(self->images, oldest_img_first);
-    while (self->used_storage > storage_limit && self->images) {
-        remove_image(self, self->images);
-    }
-    if (!self->images) self->used_storage = 0;  // sanity check
-}
-
-static char command_response[512] = {0};
-
-static void
-set_command_failed_response(const char *code, const char *fmt, ...) {
-    va_list args;
-    va_start(args, fmt);
-    const size_t sz = sizeof(command_response)/sizeof(command_response[0]);
-    const int num = snprintf(command_response, sz, "%s:", code);
-    vsnprintf(command_response + num, sz - num, fmt, args);
-    va_end(args);
-}
 
 // Decode formats {{{
 #define ABRT(code, ...) { set_command_failed_response(#code, __VA_ARGS__); goto err; }
 
-static bool
-mmap_img_file(GraphicsManager *self, int fd, size_t sz, off_t offset) {
-    if (!sz) {
-        struct stat s;
-        if (fstat(fd, &s) != 0) ABRT(EBADF, "Failed to fstat() the fd: %d file with error: [%d] %s", fd, errno, strerror(errno));
-        sz = s.st_size;
-    }
-    void *addr = mmap(0, sz, PROT_READ, MAP_SHARED, fd, offset);
-    if (addr == MAP_FAILED) ABRT(EBADF, "Failed to map image file fd: %d at offset: %zd with size: %zu with error: [%d] %s", fd, offset, sz, errno, strerror(errno));
-    self->currently_loading.mapped_file = addr;
-    self->currently_loading.mapped_file_sz = sz;
-    return true;
-err:
-    return false;
-}
-
-
-static const char*
-zlib_strerror(int ret) {
-#define Z(x) case x: return #x;
-    static char buf[128];
-    switch(ret) {
-        case Z_ERRNO:
-            return strerror(errno);
-        default:
-            snprintf(buf, sizeof(buf)/sizeof(buf[0]), "Unknown error: %d", ret);
-            return buf;
-        Z(Z_STREAM_ERROR);
-        Z(Z_DATA_ERROR);
-        Z(Z_MEM_ERROR);
-        Z(Z_BUF_ERROR);
-        Z(Z_VERSION_ERROR);
-    }
-#undef Z
-}
-
-static bool
-inflate_zlib(LoadData *load_data, uint8_t *buf, size_t bufsz) {
-    bool ok = false;
-    z_stream z;
-    uint8_t *decompressed = malloc(load_data->data_sz);
-    if (decompressed == NULL) fatal("Out of memory allocating decompression buffer");
-    z.zalloc = Z_NULL;
-    z.zfree = Z_NULL;
-    z.opaque = Z_NULL;
-    z.avail_in = bufsz;
-    z.next_in = (Bytef*)buf;
-    z.avail_out = load_data->data_sz;
-    z.next_out = decompressed;
-    int ret;
-    if ((ret = inflateInit(&z)) != Z_OK) ABRT(ENOMEM, "Failed to initialize inflate with error: %s", zlib_strerror(ret));
-    if ((ret = inflate(&z, Z_FINISH)) != Z_STREAM_END) ABRT(EINVAL, "Failed to inflate image data with error: %s", zlib_strerror(ret));
-    if (z.avail_out) ABRT(EINVAL, "Image data size post inflation does not match expected size");
-    free_load_data(load_data);
-    load_data->buf_capacity = load_data->data_sz;
-    load_data->buf = decompressed;
-    load_data->buf_used = load_data->data_sz;
-    ok = true;
-err:
-    inflateEnd(&z);
-    if (!ok) free(decompressed);
-    return ok;
-}
-
-static void
-png_error_handler(png_read_data *d UNUSED, const char *code, const char *msg) {
-    set_command_failed_response(code, "%s", msg);
-}
-
-static bool
-inflate_png(LoadData *load_data, uint8_t *buf, size_t bufsz) {
-    png_read_data d = {.err_handler=png_error_handler};
-    inflate_png_inner(&d, buf, bufsz);
-    if (d.ok) {
-        free_load_data(load_data);
-        load_data->buf = d.decompressed;
-        load_data->buf_capacity = d.sz;
-        load_data->buf_used = d.sz;
-        load_data->data_sz = d.sz;
-        load_data->width = d.width; load_data->height = d.height;
-    }
-    else free(d.decompressed);
-    free(d.row_pointers);
-    return d.ok;
-}
 #undef ABRT
 // }}}
-
-static bool
-add_trim_predicate(Image *img) {
-    return !img->root_frame_data_loaded || (!img->client_id && !img->refs);
-}
 
 static void
 print_png_read_error(png_read_data *d, const char *code, const char* msg) {
@@ -401,192 +206,10 @@ png_path_to_bitmap(const char* path, uint8_t** data, unsigned int* width, unsign
 }
 
 
-static Image*
-find_or_create_image(GraphicsManager *self, uint32_t id, bool *existing) {
-    if (id) {
-        Image *img = img_by_client_id(self, id);
-        if (img) {
-            *existing = true;
-            return img;
-        }
-    }
-    *existing = false;
-    Image *ans = calloc(1, sizeof(Image));
-    ans->internal_id = next_id(&self->image_id_counter);
-    HASH_ADD(hh, self->images, internal_id, sizeof(ans->internal_id), ans);
-    return ans;
-}
-
-static uint32_t
-get_free_client_id(const GraphicsManager *self) {
-    if (!self->images) return 1;
-    uint32_t *client_ids = malloc(sizeof(uint32_t) * HASH_COUNT(self->images));
-    size_t count = 0;
-    for (Image *img = self->images; img != NULL; img = img->hh.next) {
-        if (img->client_id) client_ids[count++] = img->client_id;
-    }
-    if (!count) { free(client_ids); return 1; }
-#define int_lt(a, b) ((*a)<(*b))
-    QSORT(uint32_t, client_ids, count, int_lt)
-#undef int_lt
-    uint32_t prev_id = 0, ans = 1;
-    for (size_t i = 0; i < count; i++) {
-        if (client_ids[i] == prev_id) continue;
-        prev_id = client_ids[i];
-        if (client_ids[i] != ans) break;
-        ans = client_ids[i] + 1;
-    }
-    free(client_ids);
-    return ans;
-}
-
 #define ABRT(code, ...) { set_command_failed_response(code, __VA_ARGS__); self->currently_loading.loading_completed_successfully = false; free_load_data(&self->currently_loading); return NULL; }
 
 #define MAX_DATA_SZ (4u * 100000000u)
 enum FORMATS { RGB=24, RGBA=32, PNG=100 };
-
-static Image*
-load_image_data(GraphicsManager *self, Image *img, const GraphicsCommand *g, const unsigned char transmission_type, const uint32_t data_fmt, const uint8_t *payload) {
-    int fd;
-    static char fname[2056] = {0};
-    LoadData *load_data = &self->currently_loading;
-
-    switch(transmission_type) {
-        case 'd':  // direct
-            if (load_data->buf_capacity - load_data->buf_used < g->payload_sz) {
-                if (load_data->buf_used + g->payload_sz > MAX_DATA_SZ || data_fmt != PNG) ABRT("EFBIG", "Too much data");
-                load_data->buf_capacity = MIN(2 * load_data->buf_capacity, MAX_DATA_SZ);
-                load_data->buf = realloc(load_data->buf, load_data->buf_capacity);
-                if (load_data->buf == NULL) {
-                    load_data->buf_capacity = 0; load_data->buf_used = 0;
-                    ABRT("ENOMEM", "Out of memory");
-                }
-            }
-            memcpy(load_data->buf + load_data->buf_used, payload, g->payload_sz);
-            load_data->buf_used += g->payload_sz;
-            if (!g->more) { load_data->loading_completed_successfully = true; load_data->loading_for = (const ImageAndFrame){0}; }
-            break;
-        case 'f': // file
-        case 't': // temporary file
-        case 's': // POSIX shared memory
-            if (g->payload_sz > 2048) ABRT("EINVAL", "Filename too long");
-            snprintf(fname, sizeof(fname)/sizeof(fname[0]), "%.*s", (int)g->payload_sz, payload);
-            if (transmission_type == 's') fd = safe_shm_open(fname, O_RDONLY, 0);
-            else fd = safe_open(fname, O_CLOEXEC | O_RDONLY | O_NONBLOCK, 0);  // O_NONBLOCK so that opening a FIFO pipe does not block
-            if (fd == -1) ABRT("EBADF", "Failed to open file for graphics transmission with error: [%d] %s", errno, strerror(errno));
-            if (global_state.boss && transmission_type != 's') {
-                RAII_PyObject(cret_, PyObject_CallMethod(global_state.boss, "is_ok_to_read_image_file", "si", fname, fd));
-                if (cret_ == NULL) {
-                    PyErr_Print();
-                    ABRT("EBADF", "Failed to check file for read permission");
-                }
-                if (cret_ != Py_True) {
-                    log_error("Refusing to read image file as permission was denied");
-                    ABRT("EPERM", "Permission denied to read image file");
-                }
-            }
-            load_data->loading_completed_successfully = mmap_img_file(self, fd, g->data_sz, g->data_offset);
-            safe_close(fd, __FILE__, __LINE__);
-            if (transmission_type == 't' && strstr(fname, "tty-graphics-protocol") != NULL) {
-                if (global_state.boss) { call_boss(safe_delete_temp_file, "s", fname); }
-                else unlink(fname);
-            }
-            else if (transmission_type == 's') shm_unlink(fname);
-            if (!load_data->loading_completed_successfully) return NULL;
-            break;
-        default:
-            ABRT("EINVAL", "Unknown transmission type: %c", g->transmission_type);
-    }
-    return img;
-}
-
-static Image*
-process_image_data(GraphicsManager *self, Image* img, const GraphicsCommand *g, const unsigned char transmission_type, const uint32_t data_fmt) {
-    bool needs_processing = g->compressed || data_fmt == PNG;
-    if (needs_processing) {
-        uint8_t *buf; size_t bufsz;
-#define IB { if (self->currently_loading.buf) { buf = self->currently_loading.buf; bufsz = self->currently_loading.buf_used; } else { buf = self->currently_loading.mapped_file; bufsz = self->currently_loading.mapped_file_sz; } }
-        switch(g->compressed) {
-            case 'z':
-                IB;
-                if (!inflate_zlib(&self->currently_loading, buf, bufsz)) {
-                    self->currently_loading.loading_completed_successfully = false; return NULL;
-                }
-                break;
-            case 0:
-                break;
-            default:
-                ABRT("EINVAL", "Unknown image compression: %c", g->compressed);
-        }
-        switch(data_fmt) {
-            case PNG:
-                IB;
-                if (!inflate_png(&self->currently_loading, buf, bufsz)) {
-                    self->currently_loading.loading_completed_successfully = false; return NULL;
-                }
-                break;
-            default: break;
-        }
-#undef IB
-        self->currently_loading.data = self->currently_loading.buf;
-        if (self->currently_loading.buf_used < self->currently_loading.data_sz) {
-            ABRT("ENODATA", "Insufficient image data: %zu < %zu", self->currently_loading.buf_used, self->currently_loading.data_sz);
-        }
-        if (self->currently_loading.mapped_file) {
-            munmap(self->currently_loading.mapped_file, self->currently_loading.mapped_file_sz);
-            self->currently_loading.mapped_file = NULL; self->currently_loading.mapped_file_sz = 0;
-        }
-    } else {
-        if (transmission_type == 'd') {
-            if (self->currently_loading.buf_used < self->currently_loading.data_sz) {
-                ABRT("ENODATA", "Insufficient image data: %zu < %zu",  self->currently_loading.buf_used, self->currently_loading.data_sz);
-            } else self->currently_loading.data = self->currently_loading.buf;
-        } else {
-            if (self->currently_loading.mapped_file_sz < self->currently_loading.data_sz) {
-                ABRT("ENODATA", "Insufficient image data: %zu < %zu",  self->currently_loading.mapped_file_sz, self->currently_loading.data_sz);
-            } else self->currently_loading.data = self->currently_loading.mapped_file;
-        }
-        self->currently_loading.loading_completed_successfully = true;
-    }
-    return img;
-}
-
-static Image*
-initialize_load_data(GraphicsManager *self, const GraphicsCommand *g, Image *img, const unsigned char transmission_type, const uint32_t data_fmt, const uint32_t frame_id) {
-    free_load_data(&self->currently_loading);
-    self->currently_loading = (const LoadData){0};
-    self->currently_loading.start_command = *g;
-    self->currently_loading.width = g->data_width; self->currently_loading.height = g->data_height;
-    switch(data_fmt) {
-        case PNG:
-            if (g->data_sz > MAX_DATA_SZ) ABRT("EINVAL", "PNG data size too large");
-            self->currently_loading.is_4byte_aligned = true;
-            self->currently_loading.is_opaque = false;
-            self->currently_loading.data_sz = g->data_sz ? g->data_sz : 1024 * 100;
-            break;
-        case RGB:
-        case RGBA:
-            self->currently_loading.data_sz = (size_t)g->data_width * g->data_height * (data_fmt / 8);
-            if (!self->currently_loading.data_sz) ABRT("EINVAL", "Zero width/height not allowed");
-            self->currently_loading.is_4byte_aligned = data_fmt == RGBA || (self->currently_loading.width % 4 == 0);
-            self->currently_loading.is_opaque = data_fmt == RGB;
-            break;
-        default:
-            ABRT("EINVAL", "Unknown image format: %u", data_fmt);
-    }
-    self->currently_loading.loading_for.image_id = img->internal_id;
-    self->currently_loading.loading_for.frame_id = frame_id;
-    if (transmission_type == 'd') {
-        self->currently_loading.buf_capacity = self->currently_loading.data_sz + (g->compressed ? 1024 : 10);  // compression header
-        self->currently_loading.buf = malloc(self->currently_loading.buf_capacity);
-        self->currently_loading.buf_used = 0;
-        if (self->currently_loading.buf == NULL) {
-            self->currently_loading.buf_capacity = 0; self->currently_loading.buf_used = 0;
-            ABRT("ENOMEM", "Out of memory");
-        }
-    }
-    return img;
-}
 
 #define INIT_CHUNKED_LOAD { \
     self->currently_loading.start_command.more = g->more; \
@@ -606,103 +229,6 @@ upload_to_gpu(GraphicsManager *self, Image *img, const bool is_opaque, const boo
     }
     // We use linear interpolation as the image may be resized on the GPU if r/c is specified or unicode placeholders are used.
     send_image_to_gpu(&img->texture_id, data, img->width, img->height, is_opaque, is_4byte_aligned, true, REPEAT_CLAMP);
-}
-
-static Image*
-handle_add_command(GraphicsManager *self, const GraphicsCommand *g, const uint8_t *payload, bool *is_dirty, uint32_t iid, bool is_query) {
-    bool existing, init_img = true;
-    Image *img = NULL;
-    unsigned char tt = g->transmission_type ? g->transmission_type : 'd';
-    uint32_t fmt = g->format ? g->format : RGBA;
-    if (tt == 'd' && self->currently_loading.loading_for.image_id) init_img = false;
-    if (init_img) {
-        self->currently_loading.loading_for = (const ImageAndFrame){0};
-        if (g->data_width > MAX_IMAGE_DIMENSION || g->data_height > MAX_IMAGE_DIMENSION) ABRT("EINVAL", "Image too large");
-        remove_images(self, add_trim_predicate, 0);
-        img = find_or_create_image(self, iid, &existing);
-        if (existing) {
-            free_image_resources(self, img);
-            img->root_frame_data_loaded = false;
-            img->is_drawn = false;
-            img->current_frame_shown_at = 0;
-            img->extra_framecnt = 0;
-            *is_dirty = true;
-            self->layers_dirty = true;
-        } else {
-            img->client_id = iid;
-            img->client_number = g->image_number;
-            if (!img->client_id && img->client_number) {
-                img->client_id = get_free_client_id(self);
-                iid = img->client_id;
-            }
-        }
-        img->atime = monotonic(); img->used_storage = 0;
-        if (!initialize_load_data(self, g, img, tt, fmt, 0)) return NULL;
-        self->currently_loading.start_command.id = iid;
-    } else {
-        INIT_CHUNKED_LOAD;
-        img = img_by_internal_id(self, self->currently_loading.loading_for.image_id);
-        if (img == NULL) {
-            self->currently_loading.loading_for = (const ImageAndFrame){0};
-            ABRT("EILSEQ", "More payload loading refers to non-existent image");
-        }
-    }
-    img = load_image_data(self, img, g, tt, fmt, payload);
-    if (!img || !self->currently_loading.loading_completed_successfully) return NULL;
-        self->currently_loading.loading_for = (const ImageAndFrame){0};
-    img = process_image_data(self, img, g, tt, fmt);
-    if (!img) return NULL;
-    size_t required_sz = (size_t)(self->currently_loading.is_opaque ? 3 : 4) * self->currently_loading.width * self->currently_loading.height;
-    if (self->currently_loading.data_sz != required_sz) ABRT("EINVAL", "Image dimensions: %ux%u do not match data size: %zu, expected size: %zu", self->currently_loading.width, self->currently_loading.height, self->currently_loading.data_sz, required_sz);
-    if (self->currently_loading.loading_completed_successfully) {
-        img->width = self->currently_loading.width;
-        img->height = self->currently_loading.height;
-        if (img->root_frame.id) remove_from_cache(self, (const ImageAndFrame){.image_id=img->internal_id, .frame_id=img->root_frame.id});
-        img->root_frame = (const Frame){
-            .id = ++img->frame_id_counter,
-            .is_opaque = self->currently_loading.is_opaque,
-            .is_4byte_aligned = self->currently_loading.is_4byte_aligned,
-            .width = img->width, .height = img->height,
-        };
-        if (!is_query) {
-            if (!add_to_cache(self, (const ImageAndFrame){.image_id = img->internal_id, .frame_id=img->root_frame.id}, self->currently_loading.data, self->currently_loading.data_sz)) {
-                if (PyErr_Occurred()) PyErr_Print();
-                ABRT("ENOSPC", "Failed to store image data in disk cache");
-            }
-            upload_to_gpu(self, img, img->root_frame.is_opaque, img->root_frame.is_4byte_aligned, self->currently_loading.data);
-            self->used_storage += required_sz;
-            img->used_storage = required_sz;
-        }
-        img->root_frame_data_loaded = true;
-    }
-    return img;
-#undef MAX_DATA_SZ
-}
-
-static const char*
-finish_command_response(const GraphicsCommand *g, bool data_loaded) {
-    static char rbuf[sizeof(command_response)/sizeof(command_response[0]) + 128];
-    bool is_ok_response = !command_response[0];
-    if (g->quiet) {
-        if (is_ok_response || g->quiet > 1) return NULL;
-    }
-    if (g->id || g->image_number) {
-        if (is_ok_response) {
-            if (!data_loaded) return NULL;
-            snprintf(command_response, 10, "OK");
-        }
-        size_t pos = 0;
-        rbuf[pos++] = 'G';
-#define print(fmt, ...) if (arraysz(rbuf) - 1 > pos) pos += snprintf(rbuf + pos, arraysz(rbuf) - 1 - pos, fmt, __VA_ARGS__)
-        if (g->id) print("i=%u", g->id);
-        if (g->image_number) print(",I=%u", g->image_number);
-        if (g->placement_id) print(",p=%u", g->placement_id);
-        if (g->num_lines && (g->action == 'f' || g->action == 'a')) print(",r=%u", g->num_lines);
-        print(";%s", command_response);
-        return rbuf;
-#undef print
-    }
-    return NULL;
 }
 
 // }}}
@@ -921,127 +447,6 @@ Image *grman_put_cell_image(GraphicsManager *self, uint32_t screen_row,
 
 static void remove_ref(Image *img, ImageRef *ref);
 
-static bool
-has_good_ancestry(GraphicsManager *self, ImageRef *ref) {
-    ImageRef *r = ref;
-    unsigned depth = 0;
-    while (r->parent.img) {
-        if (r == ref && depth) {
-            set_command_failed_response("ECYCLE", "This parent reference creates a cycle");
-            return false;
-        }
-        if (depth++ >= PARENT_DEPTH_LIMIT) {
-            set_command_failed_response("ETOODEEP", "Too many levels of parent references");
-            return false;
-        }
-        Image *parent = img_by_internal_id(self, r->parent.img);
-        if (!parent) {
-            set_command_failed_response("ENOENT", "One of the ancestors of this ref with image id: %llu not found", r->parent.img);
-            return false;
-        }
-        ImageRef *parent_ref = ref_by_internal_id(parent, r->parent.ref);
-        if (!parent_ref) {
-            set_command_failed_response("ENOENT", "One of the ancestors of this ref with image id: %llu and ref id: %llu not found", r->parent.img, r->parent.ref);
-            return false;
-        }
-        r = parent_ref;
-    }
-    return true;
-}
-
-static uint32_t
-handle_put_command(GraphicsManager *self, const GraphicsCommand *g, Cursor *c, bool *is_dirty, Image *img, CellPixelSize cell) {
-    if (g->unicode_placement && g->parent_id) {
-        set_command_failed_response("EINVAL", "Put command creating a virtual placement cannot refer to a parent"); return g->id;
-    }
-    if (img == NULL) {
-        if (g->id) img = img_by_client_id(self, g->id);
-        else if (g->image_number) img = img_by_client_number(self, g->image_number);
-        if (img == NULL) { set_command_failed_response("ENOENT", "Put command refers to non-existent image with id: %u and number: %u", g->id, g->image_number); return g->id; }
-    }
-    if (!img->root_frame_data_loaded) { set_command_failed_response("ENOENT", "Put command refers to image with id: %u that could not load its data", g->id); return img->client_id; }
-    id_type parent_id = 0, parent_placement_id = 0;
-    if (g->parent_id) {
-        Image *parent = img_by_client_id(self, g->parent_id);
-        if (!parent) {
-            set_command_failed_response("ENOPARENT", "Put command refers to a parent image with id: %u that does not exist", g->parent_id);
-            return g->id;
-        }
-        if (!parent->refs) {
-            set_command_failed_response("ENOPARENT", "Put command refers to a parent image with id: %u that has no placements", g->parent_id);
-            return g->id;
-        }
-        ImageRef *parent_ref = parent->refs;
-        if (g->parent_placement_id) {
-            parent_ref = ref_by_client_id(parent, g->parent_placement_id);
-            if (!parent_ref) {
-                set_command_failed_response("ENOPARENT", "Put command refers to a parent image placement with id: %u and placement id: %u that does not exist", g->parent_id, g->parent_placement_id);
-                return g->id;
-            }
-        }
-        parent_id = parent->internal_id;
-        parent_placement_id = parent_ref->internal_id;
-    }
-    ImageRef *ref = NULL;
-    if (g->placement_id && img->client_id) {
-        for (ImageRef *r = img->refs; r != NULL; r = r->hh.next) {
-            if (r->client_id == g->placement_id) {
-                ref = r;
-                if (parent_id && parent_id == img->internal_id && parent_placement_id && parent_placement_id == r->internal_id) {
-                    set_command_failed_response("EINVAL", "Put command refers to itself as its own parent");
-                    return g->id;
-                }
-                if (parent_id && parent_placement_id) {
-                    id_type rp = ref->parent.img, rpp = ref->parent.ref;
-                    ref->parent.img = parent_id; ref->parent.ref = parent_placement_id;
-                    bool ok = has_good_ancestry(self, ref);
-                    ref->parent.img = rp; ref->parent.ref = rpp;
-                    if (!ok) return g->id;
-                }
-                break;
-            }
-        }
-    }
-    if (ref == NULL) ref = create_ref(img, NULL);
-
-    *is_dirty = true;
-    self->layers_dirty = true;
-    img->atime = monotonic();
-    ref->src_x = g->x_offset; ref->src_y = g->y_offset; ref->src_width = g->width ? g->width : img->width; ref->src_height = g->height ? g->height : img->height;
-    ref->src_width = MIN(ref->src_width, img->width - ((float)img->width > ref->src_x ? ref->src_x : (float)img->width));
-    ref->src_height = MIN(ref->src_height, img->height - ((float)img->height > ref->src_y ? ref->src_y : (float)img->height));
-    ref->z_index = g->z_index;
-    ref->start_row = c->y; ref->start_column = c->x;
-    ref->cell_x_offset = MIN(g->cell_x_offset, cell.width - 1);
-    ref->cell_y_offset = MIN(g->cell_y_offset, cell.height - 1);
-    ref->num_cols = g->num_cells; ref->num_rows = g->num_lines;
-    if (img->client_id) ref->client_id = g->placement_id;
-    update_src_rect(ref, img);
-    update_dest_rect(ref, g->num_cells, g->num_lines, cell);
-    ref->parent.img = parent_id;
-    ref->parent.ref = parent_placement_id;
-    ref->parent.offset.x = g->offset_from_parent_x;
-    ref->parent.offset.y = g->offset_from_parent_y;
-    ref->is_virtual_ref = false;
-    if (g->unicode_placement) {
-        ref->is_virtual_ref = true;
-        ref->start_row = ref->start_column = 0;
-    }
-    if (ref->parent.img) {
-        if (!has_good_ancestry(self, ref)) {
-            remove_ref(img, ref);
-            return g->id;
-        }
-    } else {
-        // Move the cursor, the screen will take care of ensuring it is in bounds
-        if (g->cursor_movement != 1 && !g->unicode_placement) {
-            c->x += ref->effective_num_cols;
-            if (ref->effective_num_rows) c->y += ref->effective_num_rows - 1;
-        }
-    }
-    return img->client_id;
-}
-
 void
 scale_rendered_graphic(ImageRenderData *rd, float xstart, float ystart, float x_scale, float y_scale) {
     // Scale the graphic so that it appears at the same position and size during a live resize
@@ -1062,140 +467,6 @@ gpu_data_for_image(ImageRenderData *ans, float left, float top, float right, flo
     ans->group_count = 1;
 }
 
-static bool
-resolve_cell_ref(const Image *img, id_type virt_ref_id, int32_t *start_row, int32_t *start_column) {
-    *start_row = 0; *start_column = 0;
-    bool found = false;
-    for (ImageRef *ref = img->refs; ref != NULL; ref = ref->hh.next) {
-        if (ref->virtual_ref_id == virt_ref_id) {
-            if (!found || ref->start_row < *start_row) *start_row = ref->start_row;
-            if (!found || ref->start_column < *start_column) *start_column = ref->start_column;
-            found = true;
-
-        }
-    }
-    return found;
-}
-
-static bool
-resolve_parent_offset(const GraphicsManager *self, const ImageRef *ref, int32_t *start_row, int32_t *start_column, bool *is_virtual_ref) {
-    *start_row = 0; *start_column = 0;
-    int32_t x = 0, y = 0;
-    unsigned depth = 0;
-    ImageRef cell_ref = {0};
-    while (ref->parent.img) {
-        if (depth++ >= PARENT_DEPTH_LIMIT) return false;  // either a cycle or too many ancestors
-        Image *img = img_by_internal_id(self, ref->parent.img);
-        if (!img) return false;
-        ImageRef *parent = ref_by_internal_id(img, ref->parent.ref);
-        if (!parent) return false;
-        if (parent->is_virtual_ref) {
-            *is_virtual_ref = true;
-            if (!resolve_cell_ref(img, parent->internal_id, &cell_ref.start_row, &cell_ref.start_column)) return false;
-            parent = &cell_ref;
-        }
-        x += ref->parent.offset.x;
-        y += ref->parent.offset.y;
-        ref = parent;
-    }
-    *start_row = ref->start_row + y;
-    *start_column = ref->start_column + x;
-    return true;
-}
-
-
-bool
-grman_update_layers(GraphicsManager *self, unsigned int scrolled_by, float screen_left, float screen_top, float dx, float dy, unsigned int num_cols, unsigned int num_rows, CellPixelSize cell) {
-    if (self->last_scrolled_by != scrolled_by) self->layers_dirty = true;
-    self->last_scrolled_by = scrolled_by;
-    if (!self->layers_dirty) return false;
-    self->layers_dirty = false;
-    size_t i;
-    self->num_of_below_refs = 0;
-    self->num_of_negative_refs = 0;
-    self->num_of_positive_refs = 0;
-    Image *img, *tmpimg; ImageRef *ref, *tmpref;
-    ImageRect r;
-    float screen_width = dx * num_cols, screen_height = dy * num_rows;
-    float screen_bottom = screen_top - screen_height;
-    float screen_width_px = num_cols * cell.width;
-    float screen_height_px = num_rows * cell.height;
-    float y0 = screen_top - dy * scrolled_by;
-
-    // Iterate over all visible refs and create render data
-    self->render_data.count = 0;
-
-    HASH_ITER(hh, self->images, img, tmpimg) {
-        bool was_drawn = img->is_drawn;
-        bool ref_removed = false;
-        img->is_drawn = false;
-
-        HASH_ITER(hh, img->refs, ref, tmpref) {
-            if (ref->is_virtual_ref) continue;
-            int32_t start_row = ref->start_row, start_column = ref->start_column;
-            if (ref->parent.img) {
-                bool is_virtual_ref;
-                if (!resolve_parent_offset(self, ref, &start_row, &start_column, &is_virtual_ref)) {
-                    if (!is_virtual_ref) {
-                        remove_ref(img, ref);
-                        ref_removed = true;
-                    }
-                    continue;
-                }
-            }
-            r.top = y0 - start_row * dy - dy * (float)ref->cell_y_offset / (float)cell.height;
-            if (ref->num_rows > 0) r.bottom = y0 - (start_row + (int32_t)ref->num_rows) * dy;
-            else r.bottom = r.top - screen_height * (float)ref->src_height / screen_height_px;
-            if (r.top <= screen_bottom || r.bottom >= screen_top) continue;  // not visible
-
-            r.left = screen_left + start_column * dx + dx * (float)ref->cell_x_offset / (float) cell.width;
-            if (ref->num_cols > 0) r.right = screen_left + (start_column + (int32_t)ref->num_cols) * dx;
-            else r.right = r.left + screen_width * (float)ref->src_width / screen_width_px;
-
-            if (ref->z_index < ((int32_t)INT32_MIN/2))
-                self->num_of_below_refs++;
-            else if (ref->z_index < 0)
-                self->num_of_negative_refs++;
-            else
-                self->num_of_positive_refs++;
-            ensure_space_for(&(self->render_data), item, ImageRenderData, self->render_data.count + 1, capacity, 64, true);
-            ImageRenderData *rd = self->render_data.item + self->render_data.count;
-            zero_at_ptr(rd);
-            rd->dest_rect = r; rd->src_rect = ref->src_rect;
-            self->render_data.count++;
-            rd->z_index = ref->z_index; rd->image_id = img->internal_id; rd->ref_id = ref->internal_id;
-            rd->texture_id = img->texture_id;
-            img->is_drawn = true;
-        }
-        if (ref_removed && !img->refs) {
-            remove_image(self, img);
-            continue;
-        }
-        if (img->is_drawn && !was_drawn && img->animation_state != ANIMATION_STOPPED && img->extra_framecnt && img->animation_duration) {
-            self->has_images_needing_animation = true;
-            global_state.check_for_active_animated_images = true;
-        }
-    }
-    if (!self->render_data.count) return false;
-    // Sort visible refs in draw order (z-index, img)
-#define lt(a, b) ( (a)->z_index < (b)->z_index || ((a)->z_index == (b)->z_index && (a)->image_id < (b)->image_id) )
-    QSORT(ImageRenderData, self->render_data.item, self->render_data.count, lt);
-#undef lt
-    // Calculate the group counts
-    i = 0;
-    while (i < self->render_data.count) {
-        id_type num_identical = 1, image_id = self->render_data.item[i].image_id, start = i;
-        while (++i < self->render_data.count) {
-            if (self->render_data.item[i].image_id != image_id) break;
-            num_identical++;
-        }
-        while (num_identical > 0) {
-            self->render_data.item[start++].group_count = num_identical--;
-        }
-    }
-    return true;
-}
-
 // }}}
 
 // Animation {{{
@@ -1214,27 +485,6 @@ frame_for_id(Image *img, const uint32_t frame_id) {
         if (img->extra_frames[i].id == frame_id) return img->extra_frames + i;
     }
     return NULL;
-}
-
-static Frame*
-frame_for_number(Image *img, const uint32_t frame_number) {
-    switch(frame_number) {
-        case 1:
-            return &img->root_frame;
-        case 0:
-            return NULL;
-        default:
-            if (frame_number - 2 < img->extra_framecnt) return img->extra_frames + frame_number - 2;
-            return NULL;
-    }
-}
-
-static void
-change_gap(Image *img, Frame *f, int32_t gap) {
-    uint32_t prev_gap = f->gap;
-    f->gap = MAX(0, gap);
-    img->animation_duration = prev_gap < img->animation_duration ? img->animation_duration - prev_gap : 0;
-    img->animation_duration += f->gap;
 }
 
 typedef struct {
@@ -1287,27 +537,6 @@ typedef struct {
         } \
     } \
 
-
-static void
-compose_rectangles(const ComposeData d, uint8_t *under_data, const uint8_t *over_data) {
-    // compose two equal sized, non-overlapping rectangles at different offsets
-    // does not do bounds checking on the data arrays
-    const bool can_copy_rows = !d.needs_blending && d.over_px_sz == d.under_px_sz;
-    const unsigned min_width = MIN(d.under_width, d.over_width);
-#define ROW_ITER for (unsigned y = 0; y < d.under_height && y < d.over_height; y++) { \
-        uint8_t *under_row = under_data + (y + d.under_offset_y) * d.under_px_sz * d.stride + (d.under_offset_x * d.under_px_sz); \
-        const uint8_t *over_row = over_data + (y + d.over_offset_y) * d.over_px_sz * d.stride + (d.over_offset_x * d.over_px_sz);
-    if (can_copy_rows) {
-        ROW_ITER memcpy(under_row, over_row, (size_t)d.over_px_sz * min_width);}
-        return;
-    }
-#define PIX_ITER for (unsigned x = 0; x < min_width; x++) { \
-        uint8_t *under_px = under_row + (d.under_px_sz * x); \
-        const uint8_t *over_px = over_row + (d.over_px_sz * x);
-    COPY_PIXELS
-#undef PIX_ITER
-#undef ROW_ITER
-}
 
 static void
 compose(const ComposeData d, uint8_t *under_data, const uint8_t *over_data) {
@@ -1425,234 +654,7 @@ update_current_frame(GraphicsManager *self, Image *img, const CoalescedFrameData
     img->current_frame_shown_at = monotonic();
 }
 
-static bool
-reference_chain_too_large(Image *img, const Frame *frame) {
-    uint32_t limit = img->width * img->height * 2;
-    uint32_t drawn_area = frame->width * frame->height;
-    unsigned num = 1;
-    while (drawn_area < limit && num < 5) {
-        if (!frame->base_frame_id || !(frame = frame_for_id(img, frame->base_frame_id))) break;
-        drawn_area += frame->width * frame->height;
-        num++;
-    }
-    return num >= 5 || drawn_area >= limit;
-}
-
-static Image*
-handle_animation_frame_load_command(GraphicsManager *self, GraphicsCommand *g, Image *img, const uint8_t *payload, bool *is_dirty) {
-    uint32_t frame_number = g->frame_number, fmt = g->format ? g->format : RGBA;
-    if (!frame_number || frame_number > img->extra_framecnt + 2) frame_number = img->extra_framecnt + 2;
-    bool is_new_frame = frame_number == img->extra_framecnt + 2;
-    g->frame_number = frame_number;
-    unsigned char tt = g->transmission_type ? g->transmission_type : 'd';
-    if (tt == 'd' && self->currently_loading.loading_for.image_id == img->internal_id) {
-        INIT_CHUNKED_LOAD;
-    } else {
-        self->currently_loading.loading_for = (const ImageAndFrame){0};
-        if (g->data_width > MAX_IMAGE_DIMENSION || g->data_height > MAX_IMAGE_DIMENSION) ABRT("EINVAL", "Image too large");
-        if (!initialize_load_data(self, g, img, tt, fmt, frame_number - 1)) return NULL;
-    }
-    LoadData *load_data = &self->currently_loading;
-    img = load_image_data(self, img, g, tt, fmt, payload);
-    if (!img || !load_data->loading_completed_successfully) return NULL;
-    self->currently_loading.loading_for = (const ImageAndFrame){0};
-    img = process_image_data(self, img, g, tt, fmt);
-    if (!img || !load_data->loading_completed_successfully) return img;
-
-    const unsigned long bytes_per_pixel = load_data->is_opaque ? 3 : 4;
-    if (load_data->data_sz < bytes_per_pixel * load_data->width * load_data->height)
-        ABRT("ENODATA", "Insufficient image data %zu < %zu", load_data->data_sz, bytes_per_pixel * g->data_width, g->data_height);
-    if (load_data->width > img->width)
-        ABRT("EINVAL", "Frame width %u larger than image width: %u", load_data->width, img->width);
-    if (load_data->height > img->height)
-        ABRT("EINVAL", "Frame height %u larger than image height: %u", load_data->height, img->height);
-    if (is_new_frame && cache_size(self) + load_data->data_sz > self->storage_limit * 5) {
-        remove_images(self, trim_predicate, img->internal_id);
-        if (is_new_frame && cache_size(self) + load_data->data_sz > self->storage_limit * 5)
-            ABRT("ENOSPC", "Cache size exceeded cannot add new frames");
-    }
-
-    Frame transmitted_frame = {
-        .width = load_data->width, .height = load_data->height,
-        .x = g->x_offset, .y = g->y_offset,
-        .is_4byte_aligned = load_data->is_4byte_aligned,
-        .is_opaque = load_data->is_opaque,
-        .alpha_blend = g->blend_mode != 1 && !load_data->is_opaque,
-        .gap = g->gap > 0 ? g->gap : (g->gap < 0) ? 0 : DEFAULT_GAP,
-        .bgcolor = g->bgcolor,
-    };
-    Frame *frame;
-    if (is_new_frame) {
-        transmitted_frame.id = ++img->frame_id_counter;
-        Frame *frames = realloc(img->extra_frames, sizeof(img->extra_frames[0]) * (img->extra_framecnt + 1));
-        if (!frames) ABRT("ENOMEM", "Out of memory");
-        img->extra_frames = frames;
-        img->extra_framecnt++;
-        frame = img->extra_frames + frame_number - 2;
-        const ImageAndFrame key = { .image_id = img->internal_id, .frame_id = transmitted_frame.id };
-        if (g->other_frame_number) {
-            Frame *other_frame = frame_for_number(img, g->other_frame_number);
-            if (!other_frame) {
-                img->extra_framecnt--;
-                ABRT("EINVAL", "No frame with number: %u found", g->other_frame_number);
-            }
-            if (other_frame->base_frame_id && reference_chain_too_large(img, other_frame)) {
-                // since there is a long reference chain to render this frame, make
-                // it a fully coalesced key frame, for performance
-                CoalescedFrameData cfd = get_coalesced_frame_data(self, img, other_frame);
-                if (!cfd.buf) ABRT("EINVAL", "Failed to get data from frame referenced by frame: %u", frame_number);
-                ComposeData d = {
-                    .over_px_sz = transmitted_frame.is_opaque ? 3 : 4, .under_px_sz = cfd.is_opaque ? 3: 4,
-                    .over_width = transmitted_frame.width, .over_height = transmitted_frame.height,
-                    .over_offset_x = transmitted_frame.x, .over_offset_y = transmitted_frame.y,
-                    .under_width = img->width, .under_height = img->height,
-                    .needs_blending = transmitted_frame.alpha_blend && !transmitted_frame.is_opaque
-                };
-                compose(d, cfd.buf, load_data->data);
-                free_load_data(load_data);
-                load_data->data = cfd.buf; load_data->data_sz = (size_t)img->width * img->height * d.under_px_sz;
-                transmitted_frame.width = img->width; transmitted_frame.height = img->height;
-                transmitted_frame.x = 0; transmitted_frame.y = 0;
-                transmitted_frame.is_4byte_aligned = cfd.is_4byte_aligned;
-                transmitted_frame.is_opaque = cfd.is_opaque;
-            } else {
-                transmitted_frame.base_frame_id = other_frame->id;
-            }
-        }
-        *frame = transmitted_frame;
-        if (!add_to_cache(self, key, load_data->data, load_data->data_sz)) {
-            img->extra_framecnt--;
-            if (PyErr_Occurred()) PyErr_Print();
-            ABRT("ENOSPC", "Failed to cache data for image frame");
-        }
-        img->animation_duration += frame->gap;
-        if (img->animation_state == ANIMATION_LOADING) {
-            self->has_images_needing_animation = true;
-            global_state.check_for_active_animated_images = true;
-        }
-    } else {
-        frame = frame_for_number(img, frame_number);
-        if (!frame) ABRT("EINVAL", "No frame with number: %u found", frame_number);
-        if (g->gap != 0) change_gap(img, frame, transmitted_frame.gap);
-        CoalescedFrameData cfd = get_coalesced_frame_data(self, img, frame);
-        if (!cfd.buf) ABRT("EINVAL", "No data associated with frame number: %u", frame_number);
-        frame->alpha_blend = false; frame->base_frame_id = 0; frame->bgcolor = 0;
-        frame->is_opaque = cfd.is_opaque; frame->is_4byte_aligned = cfd.is_4byte_aligned;
-        frame->x = 0; frame->y = 0; frame->width = img->width; frame->height = img->height;
-        const unsigned bytes_per_pixel = frame->is_opaque ? 3: 4;
-        ComposeData d = {
-            .over_px_sz = transmitted_frame.is_opaque ? 3 : 4, .under_px_sz = bytes_per_pixel,
-            .over_width = transmitted_frame.width, .over_height = transmitted_frame.height,
-            .over_offset_x = transmitted_frame.x, .over_offset_y = transmitted_frame.y,
-            .under_width = frame->width, .under_height = frame->height,
-            .needs_blending = transmitted_frame.alpha_blend && !transmitted_frame.is_opaque
-        };
-        compose(d, cfd.buf, load_data->data);
-        const ImageAndFrame key = { .image_id = img->internal_id, .frame_id = frame->id };
-        bool added = add_to_cache(self, key, cfd.buf, (size_t)bytes_per_pixel * frame->width * frame->height);
-        if (added && frame == current_frame(img)) {
-            update_current_frame(self, img, &cfd);
-            *is_dirty = true;
-        }
-        free(cfd.buf);
-        if (!added) {
-            if (PyErr_Occurred()) PyErr_Print();
-            ABRT("ENOSPC", "Failed to cache data for image frame");
-        }
-    }
-    return img;
-}
-
 #undef ABRT
-
-static Image*
-handle_delete_frame_command(GraphicsManager *self, const GraphicsCommand *g, bool *is_dirty) {
-    if (!g->id && !g->image_number) {
-        REPORT_ERROR("Delete frame data command without image id or number");
-        return NULL;
-    }
-    Image *img = g->id ? img_by_client_id(self, g->id) : img_by_client_number(self, g->image_number);
-    if (!img) {
-        REPORT_ERROR("Animation command refers to non-existent image with id: %u and number: %u", g->id, g->image_number);
-        return NULL;
-    }
-    uint32_t frame_number = MIN(img->extra_framecnt + 1, g->frame_number);
-    if (!frame_number) frame_number = 1;
-    if (!img->extra_framecnt) return g->delete_action == 'F' ? img : NULL;
-    *is_dirty = true;
-    ImageAndFrame key = {.image_id=img->internal_id};
-    bool remove_root = frame_number == 1;
-    uint32_t removed_gap = 0;
-    if (remove_root) {
-        key.frame_id = img->root_frame.id;
-        remove_from_cache(self, key);
-        if (PyErr_Occurred()) PyErr_Print();
-        removed_gap = img->root_frame.gap;
-        img->root_frame = img->extra_frames[0];
-    }
-    unsigned removed_idx = remove_root ? 0 : frame_number - 2;
-    if (!remove_root) {
-        key.frame_id = img->extra_frames[removed_idx].id;
-        removed_gap = img->extra_frames[removed_idx].gap;
-        remove_from_cache(self, key);
-    }
-    img->animation_duration = removed_gap < img->animation_duration ? img->animation_duration - removed_gap : 0;
-    if (PyErr_Occurred()) PyErr_Print();
-    if (removed_idx < img->extra_framecnt - 1) memmove(img->extra_frames + removed_idx, img->extra_frames + removed_idx + 1, sizeof(img->extra_frames[0]) * (img->extra_framecnt - 1 - removed_idx));
-    img->extra_framecnt--;
-    if (img->current_frame_index > img->extra_framecnt) {
-        img->current_frame_index = img->extra_framecnt;
-        update_current_frame(self, img, NULL);
-        return NULL;
-    }
-    if (removed_idx == img->current_frame_index) update_current_frame(self, img, NULL);
-    else if (removed_idx < img->current_frame_index) img->current_frame_index--;
-    return NULL;
-}
-
-static void
-handle_animation_control_command(GraphicsManager *self, bool *is_dirty, const GraphicsCommand *g, Image *img) {
-    if (g->frame_number) {
-        uint32_t frame_idx = g->frame_number - 1;
-        if (frame_idx <= img->extra_framecnt) {
-            Frame *f = frame_idx ? img->extra_frames + frame_idx - 1 : &img->root_frame;
-            if (g->gap) change_gap(img, f, g->gap);
-        }
-    }
-    if (g->other_frame_number) {
-        uint32_t frame_idx = g->other_frame_number - 1;
-        if (frame_idx != img->current_frame_index && frame_idx <= img->extra_framecnt) {
-            img->current_frame_index = frame_idx;
-            *is_dirty = true;
-            update_current_frame(self, img, NULL);
-        }
-    }
-    if (g->animation_state) {
-        AnimationState old_state = img->animation_state;
-        switch(g->animation_state) {
-            case 1:
-                img->animation_state = ANIMATION_STOPPED; break;
-            case 2:
-                img->animation_state = ANIMATION_LOADING; break;
-            case 3:
-                img->animation_state = ANIMATION_RUNNING; break;
-            default:
-                break;
-        }
-        if (img->animation_state == ANIMATION_STOPPED) {
-            img->current_loop = 0;
-        } else {
-            if (old_state == ANIMATION_STOPPED) { img->current_frame_shown_at = monotonic(); img->is_drawn = true; }
-            self->has_images_needing_animation = true;
-            global_state.check_for_active_animated_images = true;
-        }
-        img->current_loop = 0;
-    }
-    if (g->loop_count) {
-        img->max_loops = g->loop_count - 1;
-        global_state.check_for_active_animated_images = true;
-    }
-}
 
 static bool
 image_is_animatable(const Image *img) {
@@ -1693,74 +695,6 @@ scan_active_animations(GraphicsManager *self, const monotonic_t now, monotonic_t
         skip_image:;
     }
     return dirtied;
-}
-// }}}
-
-// {{{ composition a=c
-static void
-cfd_free(CoalescedFrameData *p) { free((p)->buf); p->buf = NULL; }
-
-static void
-handle_compose_command(GraphicsManager *self, bool *is_dirty, const GraphicsCommand *g, Image *img) {
-    Frame *src_frame = frame_for_number(img, g->frame_number);
-    if (!src_frame) {
-        set_command_failed_response("ENOENT", "No source frame number %u exists in image id: %u\n", g->frame_number, img->client_id);
-        return;
-    }
-    Frame *dest_frame = frame_for_number(img, g->other_frame_number);
-    if (!dest_frame) {
-        set_command_failed_response("ENOENT", "No destination frame number %u exists in image id: %u\n", g->other_frame_number, img->client_id);
-        return;
-    }
-    const unsigned int width = g->width ? g->width : img->width;
-    const unsigned int height = g->height ? g->height : img->height;
-    const unsigned int dest_x = g->x_offset, dest_y = g->y_offset, src_x = g->cell_x_offset, src_y = g->cell_y_offset;
-    if (dest_x + width > img->width || dest_y + height > img->height) {
-        set_command_failed_response("EINVAL", "The destination rectangle is out of bounds");
-        return;
-    }
-    if (src_x + width > img->width || src_y + height > img->height) {
-        set_command_failed_response("EINVAL", "The source rectangle is out of bounds");
-        return;
-    }
-    if (src_frame == dest_frame) {
-        bool x_overlaps = MAX(src_x, dest_x) < (MIN(src_x, dest_x) + width);
-        bool y_overlaps = MAX(src_y, dest_y) < (MIN(src_y, dest_y) + height);
-        if (x_overlaps && y_overlaps) {
-            set_command_failed_response("EINVAL", "The source and destination rectangles overlap and the src and destination frames are the same");
-            return;
-        }
-    }
-
-    RAII_CoalescedFrameData(src_data, get_coalesced_frame_data(self, img, src_frame));
-    if (!src_data.buf) {
-        set_command_failed_response("EINVAL", "Failed to get data for src frame: %u", g->frame_number - 1);
-        return;
-    }
-    RAII_CoalescedFrameData(dest_data, get_coalesced_frame_data(self, img, dest_frame));
-    if (!dest_data.buf) {
-        set_command_failed_response("EINVAL", "Failed to get data for destination frame: %u", g->other_frame_number - 1);
-        return;
-    }
-    ComposeData d = {
-        .over_px_sz = src_data.is_opaque ? 3 : 4, .under_px_sz = dest_data.is_opaque ? 3: 4,
-        .needs_blending = !g->compose_mode && !src_data.is_opaque,
-        .over_offset_x = src_x, .over_offset_y = src_y,
-        .under_offset_x = dest_x, .under_offset_y = dest_y,
-        .over_width = width, .over_height = height, .under_width = width, .under_height = height,
-        .stride = img->width
-    };
-    compose_rectangles(d, dest_data.buf, src_data.buf);
-    const ImageAndFrame key = { .image_id = img->internal_id, .frame_id = dest_frame->id };
-    if (!add_to_cache(self, key, dest_data.buf, ((size_t)(dest_data.is_opaque ? 3 : 4)) * img->width * img->height)) {
-        if (PyErr_Occurred()) PyErr_Print();
-        set_command_failed_response("ENOSPC", "Failed to store image data in disk cache");
-    }
-    // frame is now a fully coalesced frame
-    dest_frame->x = 0; dest_frame->y = 0; dest_frame->width = img->width; dest_frame->height = img->height;
-    dest_frame->base_frame_id = 0; dest_frame->bgcolor = 0;
-    *is_dirty = (g->other_frame_number - 1) == img->current_frame_index;
-    if (*is_dirty) update_current_frame(self, img, &dest_data);
 }
 // }}}
 
@@ -1906,12 +840,6 @@ clear_filter_func(const ImageRef *ref, Image UNUSED *img, const void UNUSED *dat
 }
 
 static bool
-clear_filter_func_noncell(const ImageRef *ref, Image UNUSED *img, const void UNUSED *data, CellPixelSize cell UNUSED) {
-    if (ref->is_virtual_ref || is_cell_image(ref)) return false;
-    return ref->start_row + (int32_t)ref->effective_num_rows > 0;
-}
-
-static bool
 clear_all_filter_func(const ImageRef *ref UNUSED, Image UNUSED *img, const void UNUSED *data, CellPixelSize cell UNUSED) {
     if (ref->is_virtual_ref) return false;
     return true;
@@ -1922,219 +850,7 @@ grman_clear(GraphicsManager *self, bool all, CellPixelSize cell) {
     filter_refs(self, NULL, true, all ? clear_all_filter_func : clear_filter_func, cell, false);
 }
 
-static bool
-id_filter_func(const ImageRef *ref, Image *img, const void *data, CellPixelSize cell UNUSED) {
-    const GraphicsCommand *g = data;
-    if (g->id && img->client_id == g->id) return !g->placement_id || ref->client_id == g->placement_id;
-    return false;
-}
-
-static bool
-number_filter_func(const ImageRef *ref, Image *img, const void *data, CellPixelSize cell UNUSED) {
-    const GraphicsCommand *g = data;
-    if (g->image_number && img->client_number == g->image_number) return !g->placement_id || ref->client_id == g->placement_id;
-    return false;
-}
-
-
-static bool
-x_filter_func(const ImageRef *ref, Image UNUSED *img, const void *data, CellPixelSize cell UNUSED) {
-    if (ref->is_virtual_ref || is_cell_image(ref)) return false;
-    const GraphicsCommand *g = data;
-    return ref->start_column <= (int32_t)g->x_offset - 1 && ((int32_t)g->x_offset - 1) < ((int32_t)(ref->start_column + ref->effective_num_cols));
-}
-
-static bool
-y_filter_func(const ImageRef *ref, Image UNUSED *img, const void *data, CellPixelSize cell UNUSED) {
-    if (ref->is_virtual_ref || is_cell_image(ref)) return false;
-    const GraphicsCommand *g = data;
-    return ref->start_row <= (int32_t)g->y_offset - 1 && ((int32_t)g->y_offset - 1) < ((int32_t)(ref->start_row + ref->effective_num_rows));
-}
-
-static bool
-z_filter_func(const ImageRef *ref, Image UNUSED *img, const void *data, CellPixelSize cell UNUSED) {
-    if (ref->is_virtual_ref || is_cell_image(ref)) return false;
-    const GraphicsCommand *g = data;
-    return ref->z_index == g->z_index;
-}
-
-
-static bool
-point_filter_func(const ImageRef *ref, Image *img, const void *data, CellPixelSize cell) {
-    if (ref->is_virtual_ref || is_cell_image(ref)) return false;
-    return x_filter_func(ref, img, data, cell) && y_filter_func(ref, img, data, cell);
-}
-
-static bool
-point3d_filter_func(const ImageRef *ref, Image *img, const void *data, CellPixelSize cell) {
-    if (ref->is_virtual_ref || is_cell_image(ref)) return false;
-    return z_filter_func(ref, img, data, cell) && point_filter_func(ref, img, data, cell);
-}
-
-
-static void
-handle_delete_command(GraphicsManager *self, const GraphicsCommand *g, Cursor *c, bool *is_dirty, CellPixelSize cell) {
-    GraphicsCommand d;
-    bool only_first_image = false;
-    switch (g->delete_action) {
-#define I(u, data, func) filter_refs(self, data, g->delete_action == u, func, cell, only_first_image); *is_dirty = true; break
-#define D(l, u, data, func) case l: case u: I(u, data, func)
-#define G(l, u, func) D(l, u, g, func)
-        case 0:
-        D('a', 'A', NULL, clear_filter_func_noncell);
-        G('i', 'I', id_filter_func);
-        G('p', 'P', point_filter_func);
-        G('q', 'Q', point3d_filter_func);
-        G('x', 'X', x_filter_func);
-        G('y', 'Y', y_filter_func);
-        G('z', 'Z', z_filter_func);
-        case 'c':
-        case 'C':
-            d.x_offset = c->x + 1; d.y_offset = c->y + 1;
-            I('C', &d, point_filter_func);
-        case 'n':
-        case 'N':
-            only_first_image = true;
-            I('N', g, number_filter_func);
-        case 'f':
-        case 'F':
-            if (handle_delete_frame_command(self, g, is_dirty) != NULL) {
-                filter_refs(self, g, true, id_filter_func, cell, true);
-                *is_dirty = true;
-            }
-            break;
-        default:
-            REPORT_ERROR("Unknown graphics command delete action: %c", g->delete_action);
-            break;
-#undef G
-#undef D
-#undef I
-    }
-    if (!self->images && self->render_data.count) self->render_data.count = 0;
-}
-
 // }}}
-
-void
-grman_resize(GraphicsManager *self, index_type old_lines UNUSED, index_type lines UNUSED, index_type old_columns, index_type columns, index_type num_content_lines_before, index_type num_content_lines_after) {
-    ImageRef *ref; Image *img;
-    self->layers_dirty = true;
-    if (columns == old_columns && num_content_lines_before > num_content_lines_after) {
-        const unsigned int vertical_shrink_size = num_content_lines_before - num_content_lines_after;
-        for (img = self->images; img != NULL; img = img->hh.next) {
-            for (ref = img->refs; ref != NULL; ref = ref->hh.next) {
-                if (ref->is_virtual_ref || is_cell_image(ref)) continue;
-                ref->start_row -= vertical_shrink_size;
-            }
-        }
-    }
-}
-
-void
-grman_rescale(GraphicsManager *self, CellPixelSize cell) {
-    ImageRef *ref; Image *img;
-    self->layers_dirty = true;
-    for (img = self->images; img != NULL; img = img->hh.next) {
-        for (ref = img->refs; ref != NULL; ref = ref->hh.next) {
-            if (ref->is_virtual_ref || is_cell_image(ref)) continue;
-            ref->cell_x_offset = MIN(ref->cell_x_offset, cell.width - 1);
-            ref->cell_y_offset = MIN(ref->cell_y_offset, cell.height - 1);
-            update_dest_rect(ref, ref->num_cols, ref->num_rows, cell);
-        }
-    }
-}
-
-const char*
-grman_handle_command(GraphicsManager *self, const GraphicsCommand *g, const uint8_t *payload, Cursor *c, bool *is_dirty, CellPixelSize cell) {
-    const char *ret = NULL;
-    command_response[0] = 0;
-    self->context_made_current_for_this_command = false;
-
-    if (g->id && g->image_number) {
-        set_command_failed_response("EINVAL", "Must not specify both image id and image number");
-        return finish_command_response(g, false);
-    }
-
-    switch(g->action) {
-        case 0:
-        case 't':
-        case 'T':
-        case 'q': {
-            uint32_t iid = g->id, q_iid = iid;
-            bool is_query = g->action == 'q';
-            if (is_query) { iid = 0; if (!q_iid) { REPORT_ERROR("Query graphics command without image id"); break; } }
-            Image *image = handle_add_command(self, g, payload, is_dirty, iid, is_query);
-            if (!self->currently_loading.loading_for.image_id) free_load_data(&self->currently_loading);
-            GraphicsCommand *lg = &self->currently_loading.start_command;
-            if (g->quiet) lg->quiet = g->quiet;
-            if (is_query) ret = finish_command_response(&(const GraphicsCommand){.id=q_iid, .quiet=g->quiet}, image != NULL);
-            else ret = finish_command_response(lg, image != NULL);
-            if (lg->action == 'T' && image && image->root_frame_data_loaded) handle_put_command(self, lg, c, is_dirty, image, cell);
-            id_type added_image_id = image ? image->internal_id : 0;
-            if (g->action == 'q') remove_images(self, add_trim_predicate, 0);
-            if (self->used_storage > self->storage_limit) apply_storage_quota(self, self->storage_limit, added_image_id);
-            break;
-        }
-        case 'a':
-        case 'f': {
-            if (!g->id && !g->image_number && !self->currently_loading.loading_for.image_id) {
-                REPORT_ERROR("Add frame data command without image id or number");
-                break;
-            }
-            Image *img;
-            if (self->currently_loading.loading_for.image_id) img = img_by_internal_id(self, self->currently_loading.loading_for.image_id);
-            else img = g->id ? img_by_client_id(self, g->id) : img_by_client_number(self, g->image_number);
-            if (!img) {
-                set_command_failed_response("ENOENT", "Animation command refers to non-existent image with id: %u and number: %u", g->id, g->image_number);
-                ret = finish_command_response(g, false);
-            } else {
-                GraphicsCommand ag = *g;
-                if (ag.action == 'f') {
-                    img = handle_animation_frame_load_command(self, &ag, img, payload, is_dirty);
-                    if (!self->currently_loading.loading_for.image_id) free_load_data(&self->currently_loading);
-                    if (g->quiet) ag.quiet = g->quiet;
-                    else ag.quiet = self->currently_loading.start_command.quiet;
-                    ret = finish_command_response(&ag, img != NULL);
-                } else if (ag.action == 'a') {
-                    handle_animation_control_command(self, is_dirty, &ag, img);
-                }
-            }
-            break;
-        }
-        case 'p': {
-            if (!g->id && !g->image_number) {
-                REPORT_ERROR("Put graphics command without image id or number");
-                break;
-            }
-            uint32_t image_id = handle_put_command(self, g, c, is_dirty, NULL, cell);
-            GraphicsCommand rg = *g; rg.id = image_id;
-            ret = finish_command_response(&rg, true);
-            break;
-        }
-        case 'd':
-            handle_delete_command(self, g, c, is_dirty, cell);
-            break;
-        case 'c':
-            if (!g->id && !g->image_number) {
-                REPORT_ERROR("Compose frame data command without image id or number");
-                break;
-            }
-            Image *img = g->id ? img_by_client_id(self, g->id) : img_by_client_number(self, g->image_number);
-            if (!img) {
-                set_command_failed_response("ENOENT", "Animation command refers to non-existent image with id: %u and number: %u", g->id, g->image_number);
-                ret = finish_command_response(g, false);
-            } else {
-                handle_compose_command(self, is_dirty, g, img);
-                ret = finish_command_response(g, true);
-            }
-            break;
-        default:
-            REPORT_ERROR("Unknown graphics command action: %c", g->action);
-            break;
-    }
-    return ret;
-}
-
 
 // Boilerplate {{{
 static PyObject *
@@ -2144,106 +860,10 @@ new(PyTypeObject UNUSED *type, PyObject UNUSED *args, PyObject UNUSED *kwds) {
     return ans;
 }
 
-static PyObject*
-image_as_dict(GraphicsManager *self, Image *img) {
-#define U(x) #x, (unsigned int)(img->x)
-#define B(x) #x, img->x ? Py_True : Py_False
-    PyObject *frames = PyTuple_New(img->extra_framecnt);
-    for (unsigned i = 0; i < img->extra_framecnt; i++) {
-        Frame *f = img->extra_frames + i;
-        CoalescedFrameData cfd = get_coalesced_frame_data(self, img, f);
-        if (!cfd.buf) { PyErr_SetString(PyExc_RuntimeError, "Failed to get data for frame"); return NULL; }
-        PyTuple_SET_ITEM(frames, i, Py_BuildValue(
-            "{sI sI sy#}",
-            "gap", f->gap,
-            "id", f->id,
-            "data", cfd.buf, (Py_ssize_t)((cfd.is_opaque ? 3 : 4) * img->width * img->height)
-        ));
-        free(cfd.buf);
-        if (PyErr_Occurred()) { Py_CLEAR(frames); return NULL; }
-    }
-    CoalescedFrameData cfd = get_coalesced_frame_data(self, img, &img->root_frame);
-    if (!cfd.buf) { PyErr_SetString(PyExc_RuntimeError, "Failed to get data for root frame"); return NULL; }
-    PyObject *ans = Py_BuildValue("{sI sI sI sI sI sI sI " "sO sI sO " "sI sI sI " "sI sy# sN}",
-        U(texture_id), U(client_id), U(width), U(height), U(internal_id), "refs.count", (unsigned int)HASH_COUNT(img->refs), U(client_number),
-
-        B(root_frame_data_loaded), U(animation_state), "is_4byte_aligned", img->root_frame.is_4byte_aligned ? Py_True : Py_False,
-
-        U(current_frame_index), "root_frame_gap", img->root_frame.gap, U(current_frame_index),
-
-        U(animation_duration), "data", cfd.buf, (Py_ssize_t)((cfd.is_opaque ? 3 : 4) * img->width * img->height), "extra_frames", frames
-    );
-    free(cfd.buf);
-    return ans;
-#undef B
-#undef U
-}
-
 #define W(x) static PyObject* py##x(GraphicsManager UNUSED *self, PyObject *args)
 #define PA(fmt, ...) if(!PyArg_ParseTuple(args, fmt, __VA_ARGS__)) return NULL;
 
-W(image_for_client_id) {
-    unsigned long id = PyLong_AsUnsignedLong(args);
-    bool existing = false;
-    Image *img = find_or_create_image(self, id, &existing);
-    if (!existing) { Py_RETURN_NONE; }
-    return image_as_dict(self, img);
-}
-
-W(image_for_client_number) {
-    unsigned long num = PyLong_AsUnsignedLong(args);
-    Image *img = img_by_client_number(self, num);
-    if (!img) Py_RETURN_NONE;
-    return image_as_dict(self, img);
-}
-
-W(shm_write) {
-    const char *name, *data;
-    Py_ssize_t sz;
-    PA("ss#", &name, &data, &sz);
-    int fd = shm_open(name, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) { PyErr_SetFromErrnoWithFilename(PyExc_OSError, name); return NULL; }
-    int ret = ftruncate(fd, sz);
-    if (ret != 0) { safe_close(fd, __FILE__, __LINE__); PyErr_SetFromErrnoWithFilename(PyExc_OSError, name); return NULL; }
-    void *addr = mmap(0, sz, PROT_WRITE, MAP_SHARED, fd, 0);
-    if (addr == MAP_FAILED) { safe_close(fd, __FILE__, __LINE__); PyErr_SetFromErrnoWithFilename(PyExc_OSError, name); return NULL; }
-    memcpy(addr, data, sz);
-    if (munmap(addr, sz) != 0) { safe_close(fd, __FILE__, __LINE__); PyErr_SetFromErrnoWithFilename(PyExc_OSError, name); return NULL; }
-    safe_close(fd, __FILE__, __LINE__);
-    Py_RETURN_NONE;
-}
-
-W(shm_unlink) {
-    char *name;
-    PA("s", &name);
-    int ret = shm_unlink(name);
-    if (ret == -1) { PyErr_SetFromErrnoWithFilename(PyExc_OSError, name); return NULL; }
-    Py_RETURN_NONE;
-}
-
-W(update_layers) {
-    unsigned int scrolled_by, sx, sy; float xstart, ystart, dx, dy;
-    CellPixelSize cell;
-    PA("IffffIIII", &scrolled_by, &xstart, &ystart, &dx, &dy, &sx, &sy, &cell.width, &cell.height);
-    grman_update_layers(self, scrolled_by, xstart, ystart, dx, dy, sx, sy, cell);
-    PyObject *ans = PyTuple_New(self->render_data.count);
-    for (size_t i = 0; i < self->render_data.count; i++) {
-        ImageRenderData *r = self->render_data.item + i;
-#define R(which) Py_BuildValue("{sf sf sf sf}", "left", r->which.left, "top", r->which.top, "right", r->which.right, "bottom", r->which.bottom)
-        PyTuple_SET_ITEM(ans, i,
-            Py_BuildValue("{sN sN sI si sK sK}", "src_rect", R(src_rect), "dest_rect", R(dest_rect), "group_count", r->group_count, "z_index", r->z_index, "image_id", r->image_id, "ref_id", r->ref_id)
-        );
-#undef R
-    }
-    return ans;
-}
-
-#define M(x, va) {#x, (PyCFunction)py##x, va, ""}
-
 static PyMethodDef methods[] = {
-    M(image_for_client_id, METH_O),
-    M(image_for_client_number, METH_O),
-    M(update_layers, METH_VARARGS),
     {NULL}  /* Sentinel */
 };
 
@@ -2276,35 +896,7 @@ PyTypeObject GraphicsManager_Type = {
     .tp_getset = getsets,
 };
 
-static PyObject*
-pycreate_canvas(PyObject *self UNUSED, PyObject *args) {
-    unsigned int bytes_per_pixel;
-    unsigned int over_width, width, height, x, y;
-    Py_ssize_t over_sz;
-    const uint8_t *over_data;
-    if (!PyArg_ParseTuple(args, "y#IIIIII", &over_data, &over_sz, &over_width, &x, &y, &width, &height, &bytes_per_pixel)) return NULL;
-    size_t canvas_sz = (size_t)width * height * bytes_per_pixel;
-    PyObject *ans = PyBytes_FromStringAndSize(NULL, canvas_sz);
-    if (!ans) return NULL;
-
-    uint8_t* canvas = (uint8_t*)PyBytes_AS_STRING(ans);
-    memset(canvas, 0, canvas_sz);
-    ComposeData cd = {
-        .needs_blending = bytes_per_pixel == 4,
-        .over_width = over_width, .over_height = over_sz / (bytes_per_pixel * over_width),
-        .under_width = width, .under_height = height,
-        .over_px_sz = bytes_per_pixel, .under_px_sz = bytes_per_pixel,
-        .over_offset_x = x, .over_offset_y = y
-    };
-    compose(cd, canvas, over_data);
-
-    return ans;
-}
-
 static PyMethodDef module_methods[] = {
-    M(shm_write, METH_VARARGS),
-    M(shm_unlink, METH_VARARGS),
-    M(create_canvas, METH_VARARGS),
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

@@ -691,9 +691,6 @@ class ColorProfile:
         pass
 
 
-def create_canvas(d: bytes, w: int, x: int, y: int, cw: int, ch: int, bpp: int) -> bytes: ...
-
-
 def os_window_font_size(
     os_window_id: int, new_sz: float = -1., force: bool = False
 ) -> float:

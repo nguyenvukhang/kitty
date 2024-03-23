@@ -349,7 +349,7 @@ cell_update_uniform_block(ssize_t vao_idx, Screen *screen, int uniform_buffer, c
 }
 
 static bool
-cell_prepare_to_render(ssize_t vao_idx, Screen *screen, GLfloat xstart, GLfloat ystart, GLfloat dx, GLfloat dy, FONTS_DATA_HANDLE fonts_data) {
+cell_prepare_to_render(ssize_t vao_idx, Screen *screen, FONTS_DATA_HANDLE fonts_data) {
     size_t sz;
     CELL_BUFFERS;
     void *address;
@@ -382,9 +382,6 @@ cell_prepare_to_render(ssize_t vao_idx, Screen *screen, GLfloat xstart, GLfloat 
         changed = true;
     }
 
-    if (grman_update_layers(screen->grman, screen->scrolled_by, xstart, ystart, dx, dy, screen->columns, screen->lines, screen->cell_size)) {
-        changed = true;
-    }
     screen->last_rendered.scrolled_by = screen->scrolled_by;
     screen->last_rendered.columns = screen->columns;
     screen->last_rendered.lines = screen->lines;
@@ -477,10 +474,10 @@ blank_canvas(float background_opacity, color_type color) {
 }
 
 bool
-send_cell_data_to_gpu(ssize_t vao_idx, GLfloat xstart, GLfloat ystart, GLfloat dx, GLfloat dy, Screen *screen, OSWindow *os_window) {
+send_cell_data_to_gpu(ssize_t vao_idx, Screen *screen, OSWindow *os_window) {
     bool changed = false;
     if (os_window->fonts_data) {
-        if (cell_prepare_to_render(vao_idx, screen, xstart, ystart, dx, dy, os_window->fonts_data)) changed = true;
+        if (cell_prepare_to_render(vao_idx, screen, os_window->fonts_data)) changed = true;
     }
     return changed;
 }
