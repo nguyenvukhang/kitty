@@ -921,12 +921,6 @@ class Line:
         pass
 
 
-def test_shape(line: Line,
-               path: Optional[str] = None,
-               index: int = 0) -> List[Tuple[int, int, int, Tuple[int, ...]]]:
-    pass
-
-
 def sprite_map_set_limits(w: int, h: int) -> None:
     pass
 

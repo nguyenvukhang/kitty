@@ -1150,44 +1150,6 @@ render_groups(FontGroup *fg, Font *font, bool center_glyph) {
     }
 }
 
-static PyObject*
-test_shape(PyObject UNUSED *self, PyObject *args) {
-    Line *line;
-    char *path = NULL;
-    int index = 0;
-    if(!PyArg_ParseTuple(args, "O!|zi", &Line_Type, &line, &path, &index)) return NULL;
-    index_type num = 0;
-    while(num < line->xnum && line->cpu_cells[num].ch) num += line->gpu_cells[num].attrs.width;
-    PyObject *face = NULL;
-    Font *font;
-    if (!num_font_groups) { PyErr_SetString(PyExc_RuntimeError, "must create at least one font group first"); return NULL; }
-    if (path) {
-        face = face_from_path(path, index, (FONTS_DATA_HANDLE)font_groups);
-        if (face == NULL) return NULL;
-        font = calloc(1, sizeof(Font));
-        font->face = face;
-    } else {
-        FontGroup *fg = font_groups;
-        font = fg->fonts + fg->medium_font_idx;
-    }
-    shape_run(line->cpu_cells, line->gpu_cells, num, font);
-
-    PyObject *ans = PyList_New(0);
-    unsigned int idx = 0;
-    glyph_index first_glyph;
-    while (idx <= G(group_idx)) {
-        Group *group = G(groups) + idx;
-        if (!group->num_cells) break;
-        first_glyph = group->num_glyphs ? G(info)[group->first_glyph_idx].codepoint : 0;
-
-        PyObject *eg = PyTuple_New(group->num_glyphs);
-        for (size_t g = 0; g < group->num_glyphs; g++) PyTuple_SET_ITEM(eg, g, Py_BuildValue("H", G(info)[group->first_glyph_idx + g].codepoint));
-        PyList_Append(ans, Py_BuildValue("IIHN", group->num_cells, group->num_glyphs, first_glyph, eg));
-        idx++;
-    }
-    if (face) { Py_CLEAR(face); free_maps(font); free(font); }
-    return ans;
-}
 #undef G
 
 static void
@@ -1562,7 +1524,6 @@ static PyMethodDef module_methods[] = {
     METHODB(test_sprite_position_for, METH_VARARGS),
     METHODB(concat_cells, METH_VARARGS),
     METHODB(set_send_sprite_to_gpu, METH_O),
-    METHODB(test_shape, METH_VARARGS),
     METHODB(current_fonts, METH_NOARGS),
     METHODB(get_fallback_font, METH_VARARGS),
     {NULL, NULL, 0, NULL}        /* Sentinel */
