@@ -740,25 +740,6 @@ def clear_all_shortcuts(val: str, dict_with_parse_results: Optional[Dict[str, An
     return ans
 
 
-def font_features(val: str) -> Iterable[Tuple[str, Tuple[FontFeature, ...]]]:
-    if val == 'none':
-        return
-    parts = val.split()
-    if len(parts) < 2:
-        log_error(f"Ignoring invalid font_features {val}")
-        return
-    if parts[0]:
-        features = []
-        for feat in parts[1:]:
-            try:
-                parsed = defines.parse_font_feature(feat)
-            except ValueError:
-                log_error(f'Ignoring invalid font feature: {feat}')
-            else:
-                features.append(FontFeature(feat, parsed))
-        yield parts[0], tuple(features)
-
-
 def modify_font(val: str) -> Iterable[Tuple[str, FontModification]]:
     parts = val.split()
     pos, plen = 0, len(parts)

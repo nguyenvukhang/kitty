@@ -8,19 +8,14 @@ from typing import Dict, Generator, List, Optional, Tuple, cast
 from alatty.fast_data_types import (
     FC_DUAL,
     FC_MONO,
-    FC_SLANT_ROMAN,
-    FC_WEIGHT_REGULAR,
     FC_WIDTH_NORMAL,
     fc_list,
-    fc_match_postscript_name,
-    parse_font_feature,
 )
 from alatty.fast_data_types import fc_match as fc_match_impl
 from alatty.options.types import Options
 from alatty.typing import FontConfigPattern
-from alatty.utils import log_error
 
-from . import FontFeature, ListedFont
+from . import ListedFont
 
 attr_map = {(False, False): 'font_family'}
 
@@ -73,24 +68,6 @@ def family_name_to_key(family: str) -> str:
 @lru_cache()
 def fc_match(family: str, spacing: int = FC_MONO) -> FontConfigPattern:
     return fc_match_impl(family, spacing)
-
-
-def find_font_features(postscript_name: str) -> Tuple[FontFeature, ...]:
-    pat = fc_match_postscript_name(postscript_name)
-
-    if pat.get('postscript_name') != postscript_name or 'fontfeatures' not in pat:
-        return ()
-
-    features = []
-    for feat in pat['fontfeatures']:
-        try:
-            parsed = parse_font_feature(feat)
-        except ValueError:
-            log_error(f'Ignoring invalid font feature: {feat}')
-        else:
-            features.append(FontFeature(feat, parsed))
-
-    return tuple(features)
 
 
 def find_best_match(family: str, monospaced: bool = True) -> FontConfigPattern:

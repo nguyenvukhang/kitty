@@ -539,10 +539,6 @@ def get_options() -> Options:
     pass
 
 
-def parse_font_feature(ff: str) -> bytes:
-    pass
-
-
 def glfw_primary_monitor_size() -> Tuple[int, int]:
     pass
 
@@ -953,7 +949,6 @@ def set_font_data(
     descriptor_for_idx: Callable[[int], Tuple[FontObject, bool, bool]],
     num_symbol_fonts: int,
     font_sz_in_pts: float,
-    font_feature_settings: Dict[str, Tuple[FontFeature, ...]],
 ) -> None:
     pass
 

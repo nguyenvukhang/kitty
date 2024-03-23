@@ -62,63 +62,6 @@ terminals.
 '''
     )
 
-opt('+font_features', 'none',
-    option_type='font_features',
-    add_to_default=False,
-    long_text='''
-Choose exactly which OpenType features to enable or disable. This is useful as
-some fonts might have features worthwhile in a terminal. For example, Fira Code
-includes a discretionary feature, :code:`zero`, which in that font changes the
-appearance of the zero (0), to make it more easily distinguishable from Ø. Fira
-Code also includes other discretionary features known as Stylistic Sets which
-have the tags :code:`ss01` through :code:`ss20`.
-
-For the exact syntax to use for individual features, see the
-:link:`HarfBuzz documentation
-<https://harfbuzz.github.io/harfbuzz-hb-common.html#hb-feature-from-string>`.
-
-Note that this code is indexed by PostScript name, and not the font family. This
-allows you to define very precise feature settings; e.g. you can disable a
-feature in the italic font but not in the regular font.
-
-On Linux, font features are first read from the FontConfig database and then
-this option is applied, so they can be configured in a single, central place.
-
-To get the PostScript name for a font, use ``alatty +list-fonts --psnames``:
-
-.. code-block:: sh
-
-    $ alatty +list-fonts --psnames | grep Fira
-    Fira Code
-    Fira Code Bold (FiraCode-Bold)
-    Fira Code Light (FiraCode-Light)
-    Fira Code Medium (FiraCode-Medium)
-    Fira Code Regular (FiraCode-Regular)
-    Fira Code Retina (FiraCode-Retina)
-
-The part in brackets is the PostScript name.
-
-Enable alternate zero and oldstyle numerals::
-
-    font_features FiraCode-Retina +zero +onum
-
-Enable only alternate zero in the bold font::
-
-    font_features FiraCode-Bold +zero
-
-Disable the normal ligatures, but keep the :code:`calt` feature which (in this
-font) breaks up monotony::
-
-    font_features TT2020StyleB-Regular -liga +calt
-
-In conjunction with :opt:`force_ltr`, you may want to disable Arabic shaping
-entirely, and only look at their isolated forms if they show up in a document.
-You can do this with e.g.::
-
-    font_features UnifontMedium +isol -medi -fina -init
-'''
-    )
-
 opt('+modify_font', '',
     option_type='modify_font', ctype='!modify_font',
     add_to_default=False,

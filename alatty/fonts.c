@@ -42,7 +42,6 @@ static hb_feature_t hb_features[1] = {{0}};
 static char_type shape_buffer[4096] = {0};
 static size_t max_texture_size = 1024, max_array_len = 1024;
 typedef enum { CALT_FEATURE } HBFeature;
-static PyObject* font_feature_settings = NULL;
 
 typedef struct {
     char_type left, right;
@@ -1328,12 +1327,12 @@ DescriptorIndices descriptor_indices = {0};
 
 static PyObject*
 set_font_data(PyObject UNUSED *m, PyObject *args) {
-    Py_CLEAR(box_drawing_function); Py_CLEAR(prerender_function); Py_CLEAR(descriptor_for_idx); Py_CLEAR(font_feature_settings);
-    if (!PyArg_ParseTuple(args, "OOOIdO",
+    Py_CLEAR(box_drawing_function); Py_CLEAR(prerender_function); Py_CLEAR(descriptor_for_idx);
+    if (!PyArg_ParseTuple(args, "OOOId",
                 &box_drawing_function, &prerender_function, &descriptor_for_idx,
                 &descriptor_indices.num_symbol_fonts,
-                &OPT(font_size), &font_feature_settings)) return NULL;
-    Py_INCREF(box_drawing_function); Py_INCREF(prerender_function); Py_INCREF(descriptor_for_idx); Py_INCREF(font_feature_settings);
+                &OPT(font_size))) return NULL;
+    Py_INCREF(box_drawing_function); Py_INCREF(prerender_function); Py_INCREF(descriptor_for_idx);
     free_font_groups();
     Py_RETURN_NONE;
 }
@@ -1425,7 +1424,6 @@ finalize(void) {
     Py_CLEAR(box_drawing_function);
     Py_CLEAR(prerender_function);
     Py_CLEAR(descriptor_for_idx);
-    Py_CLEAR(font_feature_settings);
     free_font_groups();
     free(ligature_types);
     if (harfbuzz_buffer) { hb_buffer_destroy(harfbuzz_buffer); harfbuzz_buffer = NULL; }
@@ -1557,26 +1555,9 @@ free_font_data(PyObject *self UNUSED, PyObject *args UNUSED) {
     Py_RETURN_NONE;
 }
 
-static PyObject*
-parse_font_feature(PyObject *self UNUSED, PyObject *feature) {
-    if (!PyUnicode_Check(feature)) {
-        PyErr_SetString(PyExc_TypeError, "feature must be a unicode object");
-        return NULL;
-    }
-    PyObject *ans = PyBytes_FromStringAndSize(NULL, sizeof(hb_feature_t));
-    if (!ans) return NULL;
-    if (!hb_feature_from_string(PyUnicode_AsUTF8(feature), -1, (hb_feature_t*)PyBytes_AS_STRING(ans))) {
-        Py_CLEAR(ans);
-        PyErr_Format(PyExc_ValueError, "%U is not a valid font feature", feature);
-        return NULL;
-    }
-    return ans;
-}
-
 static PyMethodDef module_methods[] = {
     METHODB(set_font_data, METH_VARARGS),
     METHODB(free_font_data, METH_NOARGS),
-    METHODB(parse_font_feature, METH_O),
     METHODB(sprite_map_set_layout, METH_VARARGS),
     METHODB(test_sprite_position_for, METH_VARARGS),
     METHODB(concat_cells, METH_VARARGS),

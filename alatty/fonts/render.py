@@ -19,11 +19,9 @@ from alatty.typing import CoreTextFont, FontConfigPattern
 from alatty.utils import log_error
 
 if is_macos:
-    from .core_text import find_font_features
     from .core_text import font_for_family as font_for_family_macos
     from .core_text import get_font_files as get_font_files_coretext
 else:
-    from .fontconfig import find_font_features
     from .fontconfig import font_for_family as font_for_family_fontconfig
     from .fontconfig import get_font_files as get_font_files_fontconfig
 
@@ -55,11 +53,7 @@ def set_font_family(opts: Optional[Options] = None, override_font_size: Optional
     current_faces = [(font_map['medium'], False, False)]
     before = len(current_faces)
     num_symbol_fonts = len(current_faces) - before
-    font_features = {}
-    for face, _, _ in current_faces:
-        font_features[face['postscript_name']] = find_font_features(face['postscript_name'])
-    font_features.update(opts.font_features)
-    set_font_data(render_box_drawing, prerender_function, descriptor_for_idx, num_symbol_fonts, sz, font_features)
+    set_font_data(render_box_drawing, prerender_function, descriptor_for_idx, num_symbol_fonts, sz)
 
 
 if TYPE_CHECKING:

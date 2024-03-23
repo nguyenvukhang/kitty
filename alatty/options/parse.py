@@ -11,7 +11,7 @@ from alatty.options.utils import (
     clear_all_mouse_actions, clear_all_shortcuts, clipboard_control,
     config_or_absolute_path, copy_on_select, cursor_text_color,
     deprecated_hide_window_decorations_aliases, deprecated_macos_show_window_title_in_menubar_alias,
-    deprecated_send_text, edge_width, env, font_features, hide_window_decorations,
+    deprecated_send_text, edge_width, env, hide_window_decorations,
     macos_option_as_alt, macos_titlebar_color, menu_map, modify_font,
     notify_on_cmd_finish, optional_edge_width, parse_map, parse_mouse_map, paste_actions,
     resize_debounce_time, scrollback_lines, scrollback_pager_history_size,
@@ -911,10 +911,6 @@ class Parser:
     def font_family(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['font_family'] = str(val)
 
-    def font_features(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        for k, v in font_features(val):
-            ans["font_features"][k] = v
-
     def font_size(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['font_size'] = to_font_size(val)
 
@@ -1257,7 +1253,6 @@ def create_result_dict() -> typing.Dict[str, typing.Any]:
         'action_alias': {},
         'env': {},
         'exe_search_path': {},
-        'font_features': {},
         'kitten_alias': {},
         'menu_map': {},
         'modify_font': {},

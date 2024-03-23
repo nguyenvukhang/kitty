@@ -321,7 +321,6 @@ option_names = (  # {{{
  'env',
  'exe_search_path',
  'font_family',
- 'font_features',
  'font_size',
  'force_ltr',
  'foreground',
@@ -528,7 +527,6 @@ class Options:
     action_alias: typing.Dict[str, str] = {}
     env: typing.Dict[str, str] = {}
     exe_search_path: typing.Dict[str, str] = {}
-    font_features: typing.Dict[str, typing.Tuple[alatty.fonts.FontFeature, ...]] = {}
     kitten_alias: typing.Dict[str, str] = {}
     menu_map: typing.Dict[typing.Tuple[str, ...], str] = {}
     modify_font: typing.Dict[str, alatty.fonts.FontModification] = {}
@@ -647,7 +645,6 @@ defaults = Options()
 defaults.action_alias = {}
 defaults.env = {}
 defaults.exe_search_path = {}
-defaults.font_features = {}
 defaults.kitten_alias = {}
 defaults.menu_map = {}
 defaults.modify_font = {}

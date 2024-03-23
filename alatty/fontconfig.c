@@ -187,7 +187,6 @@ pattern_as_dict(FcPattern *pat) {
     S(FC_STYLE, style);
     S(FC_FULLNAME, full_name);
     S(FC_POSTSCRIPT_NAME, postscript_name);
-    LS(FC_FONT_FEATURES, fontfeatures);
     I(FC_WEIGHT, weight);
     I(FC_WIDTH, width)
     I(FC_SLANT, slant);

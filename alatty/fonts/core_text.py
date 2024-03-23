@@ -47,11 +47,6 @@ def list_fonts() -> Generator[ListedFont, None, None]:
             yield {'family': f, 'full_name': fn, 'postscript_name': fd['postscript_name'] or '', 'is_monospace': is_mono}
 
 
-def find_font_features(postscript_name: str) -> Tuple[FontFeature, ...]:
-    """Not Implemented"""
-    return ()
-
-
 def find_best_match(family: str, ignore_face: Optional[CoreTextFont] = None) -> CoreTextFont:
     q = re.sub(r'\s+', ' ', family.lower())
     font_map = all_fonts_map()
