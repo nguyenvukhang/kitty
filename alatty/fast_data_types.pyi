@@ -989,7 +989,6 @@ class Screen:
     color_profile: ColorProfile
     columns: int
     lines: int
-    focus_tracking_enabled: bool
     historybuf: HistoryBuf
     linebuf: LineBuf
     in_bracketed_paste_mode: bool
@@ -997,7 +996,6 @@ class Screen:
     scrolled_by: int
     cursor: Cursor
     cursor_key_mode: bool
-    auto_repeat_enabled: bool
     render_unfocused_cursor: int
     last_reported_cwd: Optional[str]
 

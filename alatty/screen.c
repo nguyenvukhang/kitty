@@ -3367,8 +3367,6 @@ WRAP0(clear_scrollback)
     static int name##_set(Screen *self, PyObject *val, void UNUSED *closure) { if (val == NULL) { PyErr_SetString(PyExc_TypeError, "Cannot delete attribute"); return -1; } set_mode_from_const(self, uname, PyObject_IsTrue(val) ? true : false); return 0; }
 
 MODE_GETSET(in_bracketed_paste_mode, BRACKETED_PASTE)
-MODE_GETSET(focus_tracking_enabled, FOCUS_TRACKING)
-MODE_GETSET(auto_repeat_enabled, DECARM)
 MODE_GETSET(cursor_visible, DECTCEM)
 MODE_GETSET(cursor_key_mode, DECCKM)
 
@@ -4071,8 +4069,6 @@ static PyMethodDef methods[] = {
 
 static PyGetSetDef getsetters[] = {
     GETSET(in_bracketed_paste_mode)
-    GETSET(auto_repeat_enabled)
-    GETSET(focus_tracking_enabled)
     GETSET(cursor_visible)
     GETSET(cursor_key_mode)
     {NULL}  /* Sentinel */
