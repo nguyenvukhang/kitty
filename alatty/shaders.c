@@ -143,31 +143,6 @@ send_sprite_to_gpu(FONTS_DATA_HANDLE fg, unsigned int x, unsigned int y, unsigne
     glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, x, y, z, sprite_map->cell_width, sprite_map->cell_height, 1, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, buf);
 }
 
-void
-send_image_to_gpu(GLuint *tex_id, const void* data, GLsizei width, GLsizei height, bool is_opaque, bool is_4byte_aligned, bool linear, RepeatStrategy repeat) {
-    if (!(*tex_id)) { glGenTextures(1, tex_id);  }
-    glBindTexture(GL_TEXTURE_2D, *tex_id);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, is_4byte_aligned ? 4 : 1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, linear ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, linear ? GL_LINEAR : GL_NEAREST);
-    RepeatStrategy r;
-    switch (repeat) {
-        case REPEAT_MIRROR:
-            r = GL_MIRRORED_REPEAT; break;
-        case REPEAT_CLAMP: {
-            static const GLfloat border_color[4] = {0};
-            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border_color);
-            r = GL_CLAMP_TO_BORDER;
-            break;
-        }
-        default:
-            r = GL_REPEAT;
-    }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, r);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, r);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, is_opaque ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
-}
-
 // }}}
 
 // Cell {{{

@@ -337,8 +337,6 @@ void draw_cells(ssize_t, const ScreenRenderData *, OSWindow *, bool, bool);
 void update_surface_size(int, int, uint32_t);
 void free_texture(uint32_t *);
 void free_framebuffer(uint32_t *);
-void send_image_to_gpu(uint32_t *, const void *, int32_t, int32_t, bool, bool,
-                       bool, RepeatStrategy);
 void send_sprite_to_gpu(FONTS_DATA_HANDLE fg, unsigned int, unsigned int,
                         unsigned int, pixel *);
 void blank_canvas(float, color_type);
