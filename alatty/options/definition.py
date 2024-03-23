@@ -1058,20 +1058,12 @@ opt('active_tab_background', '#eee',
     option_type='to_color',
     )
 
-opt('active_tab_font_style', 'bold-italic',
-    option_type='tab_font_style',
-    )
-
 opt('inactive_tab_foreground', '#444',
     option_type='to_color',
     )
 
 opt('inactive_tab_background', '#999',
     option_type='to_color',
-    )
-
-opt('inactive_tab_font_style', 'normal',
-    option_type='tab_font_style',
     )
 
 opt('tab_bar_background', 'none',

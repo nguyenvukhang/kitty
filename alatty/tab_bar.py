@@ -357,8 +357,6 @@ class TabBar:
             self.leading_spaces += 1
             sep = sep[:-1]
         self.sep = sep
-        self.active_font_style = opts.active_tab_font_style
-        self.inactive_font_style = opts.inactive_tab_font_style
 
         self.active_bg = as_rgb(color_as_int(opts.active_tab_background))
         self.active_fg = as_rgb(color_as_int(opts.active_tab_foreground))

@@ -601,10 +601,6 @@ def tab_bar_edge(x: str) -> int:
     return {'top': 1, 'bottom': 3}.get(x.lower(), 3)
 
 
-def tab_font_style(x: str) -> Tuple[bool, bool]:
-    return (False, False)
-
-
 def tab_bar_min_tabs(x: str) -> int:
     return max(1, positive_int(x))
 

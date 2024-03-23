@@ -31,7 +31,6 @@ option_names = (  # {{{
  'action_alias',
  'active_border_color',
  'active_tab_background',
- 'active_tab_font_style',
  'active_tab_foreground',
  'active_tab_title_template',
  'background',
@@ -328,7 +327,6 @@ option_names = (  # {{{
  'hide_window_decorations',
  'inactive_border_color',
  'inactive_tab_background',
- 'inactive_tab_font_style',
  'inactive_tab_foreground',
  'inactive_text_alpha',
  'initial_window_height',
@@ -412,7 +410,6 @@ option_names = (  # {{{
 class Options:
     active_border_color: typing.Optional[alatty.fast_data_types.Color] = Color(0, 255, 0)
     active_tab_background: Color = Color(238, 238, 238)
-    active_tab_font_style: typing.Tuple[bool, bool] = (True, True)
     active_tab_foreground: Color = Color(0, 0, 0)
     active_tab_title_template: typing.Optional[str] = None
     background: Color = Color(0, 0, 0)
@@ -451,7 +448,6 @@ class Options:
     hide_window_decorations: int = 0
     inactive_border_color: Color = Color(204, 204, 204)
     inactive_tab_background: Color = Color(153, 153, 153)
-    inactive_tab_font_style: typing.Tuple[bool, bool] = (False, False)
     inactive_tab_foreground: Color = Color(68, 68, 68)
     inactive_text_alpha: float = 1.0
     initial_window_height: typing.Tuple[int, str] = (400, 'px')

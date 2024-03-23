@@ -16,7 +16,7 @@ from alatty.options.utils import (
     notify_on_cmd_finish, optional_edge_width, parse_map, parse_mouse_map, paste_actions,
     resize_debounce_time, scrollback_lines, scrollback_pager_history_size,
     store_multiple, tab_activity_symbol, tab_bar_edge,
-    tab_bar_margin_height, tab_bar_min_tabs, tab_fade, tab_font_style, tab_separator,
+    tab_bar_margin_height, tab_bar_min_tabs, tab_fade, tab_separator,
     tab_title_template, titlebar_color, to_cursor_shape, to_font_size, to_layout_names, to_modifiers,
     url_prefixes, visual_window_select_characters, window_border_width, window_size
 )
@@ -33,9 +33,6 @@ class Parser:
 
     def active_tab_background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['active_tab_background'] = to_color(val)
-
-    def active_tab_font_style(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['active_tab_font_style'] = tab_font_style(val)
 
     def active_tab_foreground(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['active_tab_foreground'] = to_color(val)
@@ -931,9 +928,6 @@ class Parser:
 
     def inactive_tab_background(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['inactive_tab_background'] = to_color(val)
-
-    def inactive_tab_font_style(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['inactive_tab_font_style'] = tab_font_style(val)
 
     def inactive_tab_foreground(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['inactive_tab_foreground'] = to_color(val)
