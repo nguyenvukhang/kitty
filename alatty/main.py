@@ -5,8 +5,8 @@ import locale
 import os
 import shutil
 import sys
-from contextlib import contextmanager, suppress
-from typing import Dict, Generator, List, Optional, Sequence, Tuple
+from contextlib import suppress
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from .borders import load_borders_program
 from .boss import Boss
@@ -17,13 +17,11 @@ from .conf.utils import BadLine
 from .config import cached_values_for
 from .constants import (
     appname,
-    clear_handled_signals,
     config_dir,
     glfw_path,
     is_macos,
     is_wayland,
     kitten_exe,
-    alatty_exe,
     logo_png_file,
     running_in_alatty,
 )
@@ -255,31 +253,6 @@ def ensure_macos_locale() -> None:
         set_LANG_in_default_env(os.environ['LANG'])
 
 
-@contextmanager
-def setup_profiling() -> Generator[None, None, None]:
-    try:
-        from .fast_data_types import start_profiler, stop_profiler
-        do_profile = True
-    except ImportError:
-        do_profile = False
-    if do_profile:
-        start_profiler('/tmp/alatty-profile.log')
-    yield
-    if do_profile:
-        import subprocess
-        stop_profiler()
-        exe = alatty_exe()
-        cg = '/tmp/alatty-profile.callgrind'
-        print('Post processing profile data for', exe, '...')
-        with open(cg, 'wb') as f:
-            subprocess.call(['pprof', '--callgrind', exe, '/tmp/alatty-profile.log'], stdout=f)
-        try:
-            subprocess.Popen(['kcachegrind', cg], preexec_fn=clear_handled_signals)
-        except FileNotFoundError:
-            subprocess.call(['pprof', '--text', exe, '/tmp/alatty-profile.log'])
-            print('To view the graphical call data, use: kcachegrind', cg)
-
-
 def macos_cmdline(argv_args: List[str]) -> List[str]:
     try:
         with open(os.path.join(config_dir, 'macos-launch-services-cmdline')) as f:
@@ -334,22 +307,6 @@ def ensure_kitten_in_path() -> None:
     os.environ['PATH'] = prepend_if_not_present(os.path.dirname(correct_kitten), env_path)
 
 
-def setup_manpath(env: Dict[str, str]) -> None:
-    # Ensure alatty manpages are available in frozen builds
-    if not getattr(sys, 'frozen', False):
-        return
-    from .constants import local_docs
-    mp = os.environ.get('MANPATH', env.get('MANPATH', ''))
-    d = os.path.dirname
-    alatty_man = os.path.join(d(d(d(local_docs()))), 'man')
-    if not mp:
-        env['MANPATH'] = f'{alatty_man}:'
-    elif mp.startswith(':'):
-        env['MANPATH'] = f':{alatty_man}:{mp}'
-    else:
-        env['MANPATH'] = f'{alatty_man}:{mp}'
-
-
 def setup_environment(opts: Options, cli_opts: CLIOptions) -> None:
     env = opts.env.copy()
     ensure_alatty_in_path()
@@ -361,7 +318,6 @@ def setup_environment(opts: Options, cli_opts: CLIOptions) -> None:
         # the other values mean the user doesn't want a PATH
         if child_path not in ('', DELETE_ENV_VAR) and child_path is not None:
             env['PATH'] = prepend_if_not_present(os.path.dirname(alatty_path), env['PATH'])
-    setup_manpath(env)
     set_default_env(env)
 
 
@@ -431,9 +387,8 @@ def _main() -> None:
         global_watchers.set_extra(cli_opts.watcher)
         log_error('The --watcher command line option has been deprecated in favor of using the watcher option in alatty.conf')
     try:
-        with setup_profiling():
-            # Avoid needing to launch threads to reap zombies
-            run_app(opts, cli_opts, bad_lines)
+        # Avoid needing to launch threads to reap zombies
+        run_app(opts, cli_opts, bad_lines)
     finally:
         glfw_terminate()
         cleanup_ssh_control_masters()

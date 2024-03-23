@@ -21,34 +21,17 @@ class Version(NamedTuple):
 
 
 appname: str = 'alatty'
-alatty_face = '🐱'
 version: Version = Version(0, 32, 2)
 str_version: str = '.'.join(map(str, version))
 _plat = sys.platform.lower()
 is_macos: bool = 'darwin' in _plat
 is_freebsd: bool = 'freebsd' in _plat
-is_running_from_develop: bool = False
 RC_ENCRYPTION_PROTOCOL_VERSION = '1'
 default_pager_for_help = ('less', '-iRXF')
 if getattr(sys, 'frozen', False):
     extensions_dir: str = getattr(sys, 'alatty_run_data')['extensions_dir']
 
     def get_frozen_base() -> str:
-        global is_running_from_develop
-        try:
-            from bypy_importer import running_in_develop_mode  # type: ignore
-        except ImportError:
-            pass
-        else:
-            is_running_from_develop = running_in_develop_mode()
-
-        if is_running_from_develop:
-            q = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            try:
-                if os.path.isdir(q):
-                    return q
-            except OSError:
-                pass
         ans = os.path.dirname(extensions_dir)
         if is_macos:
             ans = os.path.dirname(os.path.dirname(ans))
@@ -258,32 +241,6 @@ def clear_handled_signals(*a: Any) -> None:
         signal.pthread_sigmask(signal.SIG_UNBLOCK, handled_signals)
     for s in handled_signals:
         signal.signal(s, signal.SIG_DFL)
-
-
-@run_once
-def local_docs() -> str:
-    d = os.path.dirname
-    base = d(d(alatty_exe()))
-    from_source = getattr(sys, 'alatty_run_data').get('from_source')
-    if is_macos and from_source and '/alatty.app/Contents/' in alatty_exe():
-        base = d(d(d(base)))
-    subdir = os.path.join('doc', 'alatty', 'html')
-    linux_ans = os.path.join(base, 'share', subdir)
-    if getattr(sys, 'frozen', False):
-        if is_macos:
-            return os.path.join(d(d(d(extensions_dir))), subdir)
-        return linux_ans
-    if os.path.isdir(linux_ans):
-        return linux_ans
-    if from_source:
-        sq = os.path.join(d(base), 'docs', '_build', 'html')
-        if os.path.isdir(sq):
-            return sq
-    for candidate in ('/usr', '/usr/local', '/opt/homebrew'):
-        q = os.path.join(candidate, 'share', subdir)
-        if os.path.isdir(q):
-            return q
-    return ''
 
 
 @run_once

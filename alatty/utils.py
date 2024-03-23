@@ -2,8 +2,6 @@
 # License: GPL v3 Copyright: 2016, Kovid Goyal <kovid at kovidgoyal.net>
 
 import atexit
-import errno
-import fcntl
 import math
 import os
 import re
@@ -33,7 +31,6 @@ from typing import (
 )
 
 from .constants import (
-    appname,
     clear_handled_signals,
     config_dir,
     is_macos,
@@ -46,7 +43,7 @@ from .constants import (
 from .fast_data_types import WINDOW_FULLSCREEN, WINDOW_MAXIMIZED, WINDOW_MINIMIZED, WINDOW_NORMAL, Color, Shlex, get_options, open_tty
 from .rgb import to_color
 from .types import run_once
-from .typing import AddressFamily, PopenType, Socket, StartupCtx
+from .typing import PopenType, Socket, StartupCtx
 
 if TYPE_CHECKING:
     import tarfile
