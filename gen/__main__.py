@@ -14,13 +14,7 @@ def main(args: List[str]=sys.argv) -> None:
         raise SystemExit('usage: python gen which')
     which = args[1]
     del args[1]
-    if which == 'apc-parsers':
-        from gen.apc_parsers import main
-        main(args)
-    elif which == 'config':
-        from gen.config import main
-        main(args)
-    elif which == 'srgb-lut':
+    if which == 'srgb-lut':
         from gen.srgb_lut import main
         main(args)
     elif which == 'key-constants':
@@ -28,9 +22,6 @@ def main(args: List[str]=sys.argv) -> None:
         main(args)
     elif which == 'go-code':
         from gen.go_code import main
-        main(args)
-    elif which == 'wcwidth':
-        from gen.wcwidth import main
         main(args)
     elif which == 'cursors':
         from gen.cursors import main
