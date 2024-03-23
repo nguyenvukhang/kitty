@@ -893,12 +893,6 @@ type=bool-set
     return ans
 
 
-def options_for_completion() -> OptionSpecSeq:
-    raw = '--help -h\ntype=bool-set\nShow help for {appname} command line options\n\n{raw}'.format(
-            appname=appname, raw=options_spec())
-    return parse_option_spec(raw)[0]
-
-
 def option_spec_as_rst(
     ospec: Callable[[], str] = options_spec,
     usage: Optional[str] = None, message: Optional[str] = None, appname: Optional[str] = None,
