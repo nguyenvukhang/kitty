@@ -10,7 +10,6 @@ from importlib import import_module
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Match, Optional, Set, Tuple, Union, cast
 
 import alatty.conf.utils as generic_parsers
-from alatty.types import run_once
 
 if typing.TYPE_CHECKING:
     Only = typing.Literal['macos', 'linux', '']
