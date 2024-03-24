@@ -463,7 +463,6 @@ func (self *Command) ExecArgs(args []string) (exit_code int) {
 	help_opt := cmd.option_map["Help"]
 	version_opt := root.option_map["Version"]
 	if help_opt != nil && help_opt.parsed_value().(bool) {
-		cmd.ShowHelp()
 		return
 	} else if version_opt != nil && version_opt.parsed_value().(bool) {
 		root.ShowVersion()

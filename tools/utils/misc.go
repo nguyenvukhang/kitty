@@ -4,8 +4,6 @@ package utils
 
 import (
 	"fmt"
-
-	"golang.org/x/exp/slices"
 )
 
 var _ = fmt.Print
@@ -14,11 +12,6 @@ func Reverse[T any](s []T) []T {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
-	return s
-}
-
-func Sort[T any](s []T, cmp func(a, b T) int) []T {
-	slices.SortFunc(s, cmp)
 	return s
 }
 

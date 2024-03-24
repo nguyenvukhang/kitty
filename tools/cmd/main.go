@@ -13,7 +13,6 @@ func main() {
 	root.HelpText = "kitten serves as a launcher for running individual kittens. Each kitten can be run as :code:`kitten command`. The list of available kittens is given below."
 	root.Usage = "command [command options] [command args]"
 	root.Run = func(cmd *cli.Command, args []string) (int, error) {
-		cmd.ShowHelp()
 		return 0, nil
 	}
 
