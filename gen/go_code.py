@@ -2,29 +2,16 @@
 # License: GPLv3 Copyright: 2022, Kovid Goyal <kovid at kovidgoyal.net>
 
 import argparse
-import bz2
 import io
 import json
 import os
 import re
-import shlex
-import struct
 import subprocess
 import sys
 from contextlib import contextmanager, suppress
 from functools import lru_cache
 from itertools import chain
-from typing import (
-    Any,
-    BinaryIO,
-    Dict,
-    Iterator,
-    List,
-    Sequence,
-    TextIO,
-    Tuple,
-    Union,
-)
+from typing import Any, Dict, Iterator, List, Sequence, Union
 
 import alatty.constants as kc
 from kittens.tui.operations import Mode
@@ -34,15 +21,13 @@ from alatty.cli import (
     parse_option_spec,
     serialize_as_go_string,
 )
-from alatty.conf.generate import gen_go_code
-from alatty.conf.types import Definition
 from alatty.key_encoding import config_mod_map
 from alatty.key_names import character_key_name_aliases, functional_key_name_aliases
 from alatty.options.types import Options
-from alatty.rgb import color_names
 
 if __name__ == '__main__' and not __package__:
     import __main__
+
     __main__.__package__ = 'gen'
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -62,9 +47,6 @@ def newer(dest: str, *sources: str) -> bool:
     return False
 
 
-
-# Utils {{{
-
 def serialize_go_dict(x: Union[Dict[str, int], Dict[int, str], Dict[int, int], Dict[str, str]]) -> str:
     ans = []
 
@@ -78,15 +60,6 @@ def serialize_go_dict(x: Union[Dict[str, int], Dict[int, str], Dict[int, int], D
     return '{' + ', '.join(ans) + '}'
 
 
-def replace(template: str, **kw: str) -> str:
-    for k, v in kw.items():
-        template = template.replace(k, v)
-    return template
-# }}}
-
-# {{{  Stringer
-
-
 @lru_cache(maxsize=1)
 def enum_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser()
@@ -94,83 +67,13 @@ def enum_parser() -> argparse.ArgumentParser:
     return p
 
 
-def stringify_file(path: str) -> None:
-    with open(path) as f:
-        src = f.read()
-    types = {}
-    constant_name_maps = {}
-    for m in re.finditer(r'^type +(\S+) +\S+ +// *enum *(.*?)$', src, re.MULTILINE):
-        args = m.group(2)
-        types[m.group(1)] = enum_parser().parse_args(args=shlex.split(args) if args else [])
-
-    def get_enum_def(src: str) -> None:
-        type_name = q = ''
-        constants = {}
-        for line in src.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            parts = line.split()
-            if not type_name:
-                if len(parts) < 2 or parts[1] not in types:
-                    return
-                type_name = parts[1]
-                q = type_name + '_'
-            constant_name = parts[0]
-            a, sep, b = line.partition('//')
-            if sep:
-                string_val = b.strip()
-            else:
-                string_val = constant_name
-                if constant_name.startswith(q):
-                    string_val = constant_name[len(q):]
-            constants[constant_name] = serialize_as_go_string(string_val)
-        if constants and type_name:
-            constant_name_maps[type_name] = constants
-
-    for m in re.finditer(r'^const +\((.+?)^\)', src, re.MULTILINE|re.DOTALL):
-        get_enum_def(m.group(1))
-
-    with replace_if_needed(path.replace('.go', '_stringer_generated.go')):
-        print('package', os.path.basename(os.path.dirname(path)))
-        print ('import "fmt"')
-        print ('import "encoding/json"')
-        print()
-        for type_name, constant_map in constant_name_maps.items():
-            print(f'func (self {type_name}) String() string ''{')
-            print('switch self {')
-            is_first = True
-            for constant_name, string_val in constant_map.items():
-                if is_first:
-                    print(f'default: return "{string_val}"')
-                    is_first = False
-                else:
-                    print(f'case {constant_name}: return "{string_val}"')
-            print('}}')
-            print(f'func (self {type_name}) MarshalJSON() ([]byte, error) {{ return json.Marshal(self.String()) }}')
-            fsname = types[type_name].from_string_func_name or (type_name + '_from_string')
-            print(f'func {fsname}(x string) (ans {type_name}, err error) ''{')
-            print('switch x {')
-            for constant_name, string_val in constant_map.items():
-                print(f'case "{string_val}": return {constant_name}, nil')
-            print('}')
-            print(f'err = fmt.Errorf("unknown value for enum {type_name}: %#v", x)')
-            print('return')
-            print('}')
-            print(f'func (self *{type_name}) SetString(x string) error ''{')
-            print(f's, err := {fsname}(x); if err == nil {{ *self = s }}; return err''}')
-            print(f'func (self *{type_name}) UnmarshalJSON(data []byte) (err error)''{')
-            print('var x string')
-            print('if err = json.Unmarshal(data, &x); err != nil {return err}')
-            print('return self.SetString(x)}')
-
-# }}}
-
 # Completions {{{
+
 
 @lru_cache
 def kitten_cli_docs(kitten: str) -> Any:
     from kittens.runner import get_kitten_cli_docs
+
     return get_kitten_cli_docs(kitten)
 
 
@@ -182,13 +85,21 @@ def go_options_for_kitten(kitten: str) -> Sequence[GoOption]:
         return go_options_for_seq(parse_option_spec(ospec())[0])
     return ()
 
+
 # }}}
 
 
 # rc command wrappers {{{
 json_field_types: Dict[str, str] = {
-    'bool': 'bool', 'str': 'escaped_string', 'list.str': '[]escaped_string', 'dict.str': 'map[escaped_string]escaped_string', 'float': 'float64', 'int': 'int',
-    'scroll_amount': 'any', 'spacing': 'any', 'colors': 'any',
+    'bool': 'bool',
+    'str': 'escaped_string',
+    'list.str': '[]escaped_string',
+    'dict.str': 'map[escaped_string]escaped_string',
+    'float': 'float64',
+    'int': 'int',
+    'scroll_amount': 'any',
+    'spacing': 'any',
+    'colors': 'any',
 }
 
 
@@ -224,39 +135,9 @@ class JSONField:
 
 # kittens {{{
 
-@lru_cache
-def wrapped_kittens() -> Tuple[str, ...]:
-    return ("ask",)
-
-
-def generate_conf_parser(kitten: str, defn: Definition) -> None:
-    with replace_if_needed(f'kittens/{kitten}/conf_generated.go'):
-        print(f'package {kitten}')
-        print(gen_go_code(defn))
-
-
-def generate_extra_cli_parser(name: str, spec: str) -> None:
-    print('import "alatty/tools/cli"')
-    go_opts = tuple(go_options_for_seq(parse_option_spec(spec)[0]))
-    print(f'type {name}_options struct ''{')
-    for opt in go_opts:
-        print(opt.struct_declaration())
-    print('}')
-    print(f'func parse_{name}_args(args []string) (*{name}_options, []string, error) ''{')
-    print(f'root := cli.Command{{Name: `{name}` }}')
-    for opt in go_opts:
-        print(opt.as_option('root'))
-    print('cmd, err := root.ParseArgs(args)')
-    print('if err != nil { return nil, nil, err }')
-    print(f'var opts {name}_options')
-    print('err = cmd.GetOptionValues(&opts)')
-    print('if err != nil { return nil, nil, err }')
-    print('return &opts, cmd.Args, nil')
-    print('}')
-
 
 def kitten_clis() -> None:
-    for kitten in wrapped_kittens():
+    for kitten in ('ask',):
         with replace_if_needed(f'kittens/{kitten}/cli_generated.go'):
             od = []
             kcd = kitten_cli_docs(kitten)
@@ -293,30 +174,11 @@ def kitten_clis() -> None:
             print('\n'.join(od))
             print('}')
 
+
 # }}}
 
 
 # Constants {{{
-
-def generate_color_names() -> str:
-    selfg = "" if Options.selection_foreground is None else Options.selection_foreground.as_sharp
-    selbg = "" if Options.selection_background is None else Options.selection_background.as_sharp
-    cursor = "" if Options.cursor is None else Options.cursor.as_sharp
-    return 'package style\n\nvar ColorNames = map[string]RGBA{' + '\n'.join(
-        f'\t"{name}": RGBA{{ Red:{val.red}, Green:{val.green}, Blue:{val.blue} }},'
-        for name, val in color_names.items()
-    ) + '\n}' + '\n\nvar ColorTable = [256]uint32{' + ', '.join(
-        f'{x}' for x in Options.color_table) + '}\n' + f'''
-var DefaultColors = struct {{
-Foreground, Background, Cursor, SelectionFg, SelectionBg string
-}}{{
-Foreground: "{Options.foreground.as_sharp}",
-Background: "{Options.background.as_sharp}",
-Cursor: "{cursor}",
-SelectionFg: "{selfg}",
-SelectionBg: "{selbg}",
-}}
-'''
 
 
 def generate_constants() -> str:
@@ -362,6 +224,7 @@ const OptionNames = {option_names}
 
 # Boilerplate {{{
 
+
 @contextmanager
 def replace_if_needed(path: str, show_diff: bool = False) -> Iterator[io.StringIO]:
     buf = io.StringIO()
@@ -394,7 +257,7 @@ def define_enum(package_name: str, type_name: str, items: str, underlying_type: 
         if x:
             actions.append(x)
     ans = [f'package {package_name}', 'import "strconv"', f'type {type_name} {underlying_type}', 'const (']
-    stringer = [f'func (ac {type_name}) String() string ''{', 'switch(ac) {']
+    stringer = [f'func (ac {type_name}) String() string ' '{', 'switch(ac) {']
     for i, ac in enumerate(actions):
         stringer.append(f'case {ac}: return "{ac}"')
         if i == 0:
@@ -406,7 +269,10 @@ def define_enum(package_name: str, type_name: str, items: str, underlying_type: 
 
 
 def generate_readline_actions() -> str:
-    return define_enum('readline', 'Action', '''\
+    return define_enum(
+        'readline',
+        'Action',
+        '''\
         ActionNil
 
         ActionBackspace
@@ -448,36 +314,13 @@ def generate_readline_actions() -> str:
         ActionNumericArgumentDigit8
         ActionNumericArgumentDigit9
         ActionNumericArgumentDigitMinus
-    ''')
+    ''',
+    )
 
 
-def write_compressed_data(data: bytes, d: BinaryIO) -> None:
-    d.write(struct.pack('<I', len(data)))
-    d.write(bz2.compress(data))
-
-
-def generate_unicode_names(src: TextIO, dest: BinaryIO) -> None:
-    num_names, num_of_words = map(int, next(src).split())
-    gob = io.BytesIO()
-    gob.write(struct.pack('<II', num_names, num_of_words))
-    for line in src:
-        line = line.strip()
-        if line:
-            a, aliases = line.partition('\t')[::2]
-            cp, name = a.partition(' ')[::2]
-            ename = name.encode()
-            record = struct.pack('<IH', int(cp), len(ename)) + ename
-            if aliases:
-                record += aliases.encode()
-            gob.write(struct.pack('<H', len(record)) + record)
-    write_compressed_data(gob.getvalue(), dest)
-
-
-def main(args: List[str]=sys.argv) -> None:
+def main(args: List[str] = sys.argv) -> None:
     with replace_if_needed('constants_generated.go') as f:
         f.write(generate_constants())
-    with replace_if_needed('tools/utils/style/color-names_generated.go') as f:
-        f.write(generate_color_names())
     with replace_if_needed('tools/tui/readline/actions_generated.go') as f:
         f.write(generate_readline_actions())
 
@@ -487,6 +330,7 @@ def main(args: List[str]=sys.argv) -> None:
 
 if __name__ == '__main__':
     import runpy
+
     m = runpy.run_path(os.path.dirname(os.path.abspath(__file__)))
     m['main']([sys.executable, 'go-code'])
 # }}}

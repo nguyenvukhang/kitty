@@ -147,34 +147,6 @@ func parse_rgb(color string) (ans RGBA, err error) {
 	return
 }
 
-func ParseColor(color string) (RGBA, error) {
-	raw := strings.TrimSpace(strings.ToLower(color))
-	if val, ok := ColorNames[raw]; ok {
-		return val, nil
-	}
-	if strings.HasPrefix(raw, "#") {
-		return parse_sharp(raw[1:])
-	}
-	if strings.HasPrefix(raw, "rgb:") {
-		return parse_rgb(raw[4:])
-	}
-	return RGBA{}, fmt.Errorf("Not a valid color name: %#v", color)
-}
-
-type NullableColor struct {
-	Color RGBA
-	IsSet bool
-}
-
-func ParseColorOrNone(color string) (NullableColor, error) {
-	raw := strings.TrimSpace(strings.ToLower(color))
-	if raw == "none" {
-		return NullableColor{}, nil
-	}
-	c, err := ParseColor(raw)
-	return NullableColor{Color: c, IsSet: err == nil}, err
-}
-
 var named_colors = map[string]uint8{
 	"black": 0, "red": 1, "green": 2, "yellow": 3, "blue": 4, "magenta": 5, "cyan": 6, "gray": 7, "white": 7,
 
@@ -197,13 +169,7 @@ func (self *color_value) from_string(raw string) bool {
 		self.val = color_type{val: RGBA{Red: uint8(a)}, is_numbered: true}
 		return true
 	}
-	c, err := ParseColor(raw)
-	if err != nil {
-		return false
-	}
-	self.is_set = true
-	self.val = color_type{val: c}
-	return true
+  return false;
 }
 
 func (self color_value) as_sgr(number_base int, prefix, suffix []string) ([]string, []string) {
