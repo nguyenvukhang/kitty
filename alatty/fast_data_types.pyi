@@ -756,14 +756,6 @@ def toggle_secure_input() -> None:
     pass
 
 
-def start_profiler(path: str) -> None:
-    pass
-
-
-def stop_profiler() -> None:
-    pass
-
-
 def destroy_global_data() -> None:
     pass
 

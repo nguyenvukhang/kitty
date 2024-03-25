@@ -109,22 +109,6 @@ pyset_iutf8(PyObject UNUSED *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-#ifdef WITH_PROFILER
-static PyObject*
-start_profiler(PyObject UNUSED *self, PyObject *args) {
-    char *path;
-    if (!PyArg_ParseTuple(args, "s", &path)) return NULL;
-    ProfilerStart(path);
-    Py_RETURN_NONE;
-}
-
-static PyObject*
-stop_profiler(PyObject UNUSED *self, PyObject *args UNUSED) {
-    ProfilerStop();
-    Py_RETURN_NONE;
-}
-#endif
-
 static bool
 put_tty_in_raw_mode(int fd, const struct termios* termios_p, bool read_with_timeout, int optional_actions) {
     struct termios raw_termios = *termios_p;
@@ -317,10 +301,6 @@ static PyMethodDef module_methods[] = {
 #ifdef __APPLE__
     METHODB(user_cache_dir, METH_NOARGS),
     METHODB(process_group_map, METH_NOARGS),
-#endif
-#ifdef WITH_PROFILER
-    {"start_profiler", (PyCFunction)start_profiler, METH_VARARGS, ""},
-    {"stop_profiler", (PyCFunction)stop_profiler, METH_NOARGS, ""},
 #endif
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
