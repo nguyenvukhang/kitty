@@ -865,36 +865,6 @@ class Boss:
     def _set_os_window_background_opacity(self, os_window_id: int, opacity: float) -> None:
         change_background_opacity(os_window_id, max(0.1, min(opacity, 1.0)))
 
-    @ac('win', '''
-        Set the background opacity for the active OS Window
-
-        For example::
-
-            map f1 set_background_opacity +0.1
-            map f2 set_background_opacity -0.1
-            map f3 set_background_opacity 0.5
-        ''')
-    def set_background_opacity(self, opacity: str) -> None:
-        window = self.active_window
-        if window is None or not opacity:
-            return
-        if not get_options().dynamic_background_opacity:
-            self.show_error(
-                    _('Cannot change background opacity'),
-                    _('You must set the dynamic_background_opacity option in alatty.conf to be able to change background opacity'))
-            return
-        os_window_id = window.os_window_id
-        if opacity[0] in '+-':
-            old_opacity = background_opacity_of(os_window_id)
-            if old_opacity is None:
-                return
-            fin_opacity = old_opacity + float(opacity)
-        elif opacity == 'default':
-            fin_opacity = get_options().background_opacity
-        else:
-            fin_opacity = float(opacity)
-        self._set_os_window_background_opacity(os_window_id, fin_opacity)
-
     @property
     def active_tab_manager(self) -> Optional[TabManager]:
         os_window_id = current_focused_os_window_id()

@@ -3416,22 +3416,6 @@ Open the alatty shell in a new :code:`window` / :code:`tab` / :code:`overlay` /
 '''
     )
 
-map('Increase background opacity',
-    'increase_background_opacity alatty_mod+a>m set_background_opacity +0.1',
-    )
-
-map('Decrease background opacity',
-    'decrease_background_opacity alatty_mod+a>l set_background_opacity -0.1',
-    )
-
-map('Make background fully opaque',
-    'full_background_opacity alatty_mod+a>1 set_background_opacity 1',
-    )
-
-map('Reset background opacity',
-    'reset_background_opacity alatty_mod+a>d set_background_opacity default',
-    )
-
 map('Reset the terminal',
     'reset_terminal alatty_mod+delete clear_terminal reset active',
     long_text='''
