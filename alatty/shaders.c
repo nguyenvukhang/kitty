@@ -16,7 +16,7 @@
 #define BLEND_ONTO_OPAQUE_WITH_OPAQUE_OUTPUT  glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);  // blending onto opaque colors with final color having alpha 1
 #define BLEND_PREMULT glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);  // blending of pre-multiplied colors
 
-enum { CELL_PROGRAM, CELL_BG_PROGRAM, CELL_SPECIAL_PROGRAM, CELL_FG_PROGRAM, BORDERS_PROGRAM, GRAPHICS_PROGRAM, GRAPHICS_PREMULT_PROGRAM, GRAPHICS_ALPHA_MASK_PROGRAM, BGIMAGE_PROGRAM, TINT_PROGRAM, NUM_PROGRAMS };
+enum { CELL_PROGRAM, CELL_BG_PROGRAM, CELL_SPECIAL_PROGRAM, CELL_FG_PROGRAM, BORDERS_PROGRAM, BGIMAGE_PROGRAM, TINT_PROGRAM, NUM_PROGRAMS };
 enum { SPRITE_MAP_UNIT, GRAPHICS_UNIT, BGIMAGE_UNIT };
 
 // Sprites {{{
@@ -161,11 +161,6 @@ typedef struct {
 } CellProgramLayout;
 static CellProgramLayout cell_program_layouts[NUM_PROGRAMS];
 
-typedef struct {
-    GraphicsUniforms uniforms;
-} GraphicsProgramLayout;
-static GraphicsProgramLayout graphics_program_layouts[NUM_PROGRAMS];
-
 static void
 init_cell_program(void) {
     for (int i = CELL_PROGRAM; i < BORDERS_PROGRAM; i++) {
@@ -185,9 +180,6 @@ init_cell_program(void) {
         C(p, colors, 0); C(p, sprite_coords, 1); C(p, is_selected, 2);
     }
 #undef C
-    for (int i = GRAPHICS_PROGRAM; i <= GRAPHICS_ALPHA_MASK_PROGRAM; i++) {
-        get_uniform_locations_graphics(i, &graphics_program_layouts[i].uniforms);
-    }
 }
 
 #define CELL_BUFFERS enum { cell_data_buffer, selection_buffer, uniform_buffer };
@@ -213,14 +205,6 @@ create_cell_vao(void) {
     return vao_idx;
 #undef A
 #undef A1
-}
-
-ssize_t
-create_graphics_vao(void) {
-    ssize_t vao_idx = create_vao();
-    add_buffer_to_vao(vao_idx, GL_ARRAY_BUFFER);
-    add_attribute_to_vao(GRAPHICS_PROGRAM, vao_idx, "src", 4, GL_FLOAT, 0, NULL, 0);
-    return vao_idx;
 }
 
 #define IS_SPECIAL_COLOR(name) (screen->color_profile->overridden.name.type == COLOR_IS_SPECIAL || (screen->color_profile->overridden.name.type == COLOR_NOT_SET && screen->color_profile->configured.name.type == COLOR_IS_SPECIAL))
@@ -372,9 +356,6 @@ set_cell_uniforms(float current_inactive_text_alpha, bool force) {
         float text_contrast = 1.0f + OPT(text_contrast) * 0.01f;
         float text_gamma_adjustment = OPT(text_gamma_adjustment) < 0.01f ? 1.0f : 1.0f / OPT(text_gamma_adjustment);
 
-        for (int i = GRAPHICS_PROGRAM; i <= GRAPHICS_PREMULT_PROGRAM; i++) {
-            bind_program(i); glUniform1i(graphics_program_layouts[i].uniforms.image, GRAPHICS_UNIT);
-        }
         for (int i = CELL_PROGRAM; i <= CELL_FG_PROGRAM; i++) {
             bind_program(i); const CellUniforms *cu = &cell_program_layouts[i].uniforms;
             switch(i) {
@@ -390,9 +371,6 @@ set_cell_uniforms(float current_inactive_text_alpha, bool force) {
     }
     if (current_inactive_text_alpha != prev_inactive_text_alpha || force) {
         prev_inactive_text_alpha = current_inactive_text_alpha;
-        for (int i = GRAPHICS_PROGRAM; i <= GRAPHICS_PREMULT_PROGRAM; i++) {
-            bind_program(i); glUniform1f(graphics_program_layouts[i].uniforms.inactive_text_alpha, current_inactive_text_alpha);
-        }
 #define S(prog, loc) bind_program(prog); glUniform1f(cell_program_layouts[prog].uniforms.inactive_text_alpha, current_inactive_text_alpha);
         S(CELL_PROGRAM, cploc); S(CELL_FG_PROGRAM, cfploc);
 #undef S
@@ -610,7 +588,7 @@ static PyMethodDef module_methods[] = {
 bool
 init_shaders(PyObject *module) {
 #define C(x) if (PyModule_AddIntConstant(module, #x, x) != 0) { PyErr_NoMemory(); return false; }
-    C(CELL_PROGRAM); C(CELL_BG_PROGRAM); C(CELL_SPECIAL_PROGRAM); C(CELL_FG_PROGRAM); C(BORDERS_PROGRAM); C(GRAPHICS_PROGRAM); C(GRAPHICS_PREMULT_PROGRAM); C(GRAPHICS_ALPHA_MASK_PROGRAM); C(BGIMAGE_PROGRAM); C(TINT_PROGRAM);
+    C(CELL_PROGRAM); C(CELL_BG_PROGRAM); C(CELL_SPECIAL_PROGRAM); C(CELL_FG_PROGRAM); C(BORDERS_PROGRAM); C(BGIMAGE_PROGRAM); C(TINT_PROGRAM);
     C(GLSL_VERSION);
     C(GL_VERSION);
     C(GL_VENDOR);

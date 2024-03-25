@@ -16,9 +16,6 @@ from .fast_data_types import (
     DECORATION_MASK,
     DIM,
     GLSL_VERSION,
-    GRAPHICS_ALPHA_MASK_PROGRAM,
-    GRAPHICS_PREMULT_PROGRAM,
-    GRAPHICS_PROGRAM,
     MARK,
     MARK_MASK,
     NUM_UNDERLINE_STYLES,
@@ -180,19 +177,6 @@ class LoadShaderPrograms:
                 frag=partial(resolve_cell_defines, which),
             )
             cell.compile(p, allow_recompile)
-
-        graphics = program_for('graphics')
-
-        def resolve_graphics_fragment_defines(which: str, f: str) -> str:
-            return f.replace('#define ALPHA_TYPE', f'#define {which}', 1)
-
-        for which, p in {
-            'SIMPLE': GRAPHICS_PROGRAM,
-            'PREMULT': GRAPHICS_PREMULT_PROGRAM,
-            'ALPHA_MASK': GRAPHICS_ALPHA_MASK_PROGRAM,
-        }.items():
-            graphics.apply_to_sources(frag=partial(resolve_graphics_fragment_defines, which))
-            graphics.compile(p, allow_recompile)
 
         init_cell_program()
 

@@ -330,7 +330,6 @@ void draw_borders(ssize_t vao_idx, unsigned int num_border_rects,
                   uint32_t viewport_width, uint32_t viewport_height, color_type,
                   unsigned int, bool, OSWindow *w);
 ssize_t create_cell_vao(void);
-ssize_t create_graphics_vao(void);
 ssize_t create_border_vao(void);
 bool send_cell_data_to_gpu(ssize_t, Screen *, OSWindow *);
 void draw_cells(ssize_t, const ScreenRenderData *, OSWindow *, bool, bool);
