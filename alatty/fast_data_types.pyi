@@ -905,15 +905,6 @@ def open_tty(read_with_timeout: bool = False, optional_actions: int = termios.TC
     pass
 
 
-def parse_input_from_terminal(
-    text_callback: Callable[[str], None], dcs_callback: Callable[[str], None],
-    csi_callback: Callable[[str], None], osc_callback: Callable[[str], None],
-    pm_callback: Callable[[str], None], apc_callback: Callable[[str], None],
-    data: str, in_bracketed_paste: bool
-) -> str:
-    pass
-
-
 class Line:
 
     def sprite_at(self, cell: int) -> Tuple[int, int, int]:
