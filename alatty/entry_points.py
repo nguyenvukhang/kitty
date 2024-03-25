@@ -47,8 +47,7 @@ def run_kitten(args: List[str]) -> None:
     try:
         kitten = args[1]
     except IndexError:
-        from kittens.runner import list_kittens
-        list_kittens()
+        print("Invalid kitten")
         raise SystemExit(1)
     sys.argv = args[1:]
     from kittens.runner import run_kitten as rk

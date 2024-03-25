@@ -7,18 +7,13 @@ import os
 import sys
 from contextlib import contextmanager
 from functools import partial
-from typing import TYPE_CHECKING, Any, Dict, FrozenSet, Generator, List, Optional, cast
+from typing import Any, Dict, FrozenSet, Generator, List
 
 from alatty.constants import list_alatty_resources
 from alatty.types import run_once
 from alatty.utils import resolve_abs_or_config_path
 
 aliases = {'url_hints': 'hints'}
-if TYPE_CHECKING:
-    from alatty.conf.types import Definition
-else:
-    Definition = object
-
 
 def resolved_kitten(k: str) -> str:
     ans = aliases.get(k, k)
@@ -118,14 +113,6 @@ def all_kitten_names() -> FrozenSet[str]:
     return frozenset(ans)
 
 
-def list_kittens() -> None:
-    print('You must specify the name of a kitten to run')
-    print('Choose from:')
-    print()
-    for kitten in all_kitten_names():
-        print(kitten)
-
-
 def get_kitten_cli_docs(kitten: str) -> Any:
     setattr(sys, 'cli_docs', {})
     run_kitten(kitten, run_name='__doc__')
@@ -133,14 +120,6 @@ def get_kitten_cli_docs(kitten: str) -> Any:
     delattr(sys, 'cli_docs')
     if 'help_text' in ans and 'usage' in ans and 'options' in ans:
         return ans
-
-
-def get_kitten_wrapper_of(kitten: str) -> str:
-    setattr(sys, 'cli_docs', {})
-    run_kitten(kitten, run_name='__wrapper_of__')
-    ans = getattr(sys, 'cli_docs')
-    delattr(sys, 'cli_docs')
-    return ans.get('wrapper_of') or ''
 
 
 def main() -> None:
