@@ -69,41 +69,13 @@ func GetChoices(o *Options) (response string, err error) {
 	lp.MouseTrackingMode(loop.FULL_MOUSE_TRACKING)
 
 	prefix_style_pat := regexp.MustCompile("^(?:\x1b\\[[^m]*?m)+")
-	choice_order := make([]Choice, 0, len(o.Choices))
 	clickable_ranges := make(map[string][]Range, 16)
 	allowed := utils.NewSet[string](max(2, len(o.Choices)))
 	response_on_accept := o.Default
-	switch o.Type {
-	case "yesno":
-		allowed.AddItems("y", "n")
-		if !allowed.Has(response_on_accept) {
-			response_on_accept = "y"
-		}
-	case "choices":
-		first_choice := ""
-		for i, x := range o.Choices {
-			letter, text, _ := strings.Cut(x, ":")
-			color := ""
-			if strings.Contains(letter, ";") {
-				letter, color, _ = strings.Cut(letter, ";")
-			}
-			letter = strings.ToLower(letter)
-			idx := strings.Index(strings.ToLower(text), letter)
-			if idx < 0 {
-				return "", fmt.Errorf("The choice letter %#v is not present in the choice text: %#v", letter, text)
-			}
-			idx = len([]rune(strings.ToLower(text)[:idx]))
-			allowed.Add(letter)
-			c := Choice{text: text, idx: idx, color: color, letter: letter}
-			choice_order = append(choice_order, c)
-			if i == 0 {
-				first_choice = letter
-			}
-		}
-		if !allowed.Has(response_on_accept) {
-			response_on_accept = first_choice
-		}
-	}
+  allowed.AddItems("y", "n")
+  if !allowed.Has(response_on_accept) {
+    response_on_accept = "y"
+  }
 	message := o.Message
 	hidden_text_start_pos := -1
 	hidden_text_end_pos := -1
@@ -266,58 +238,6 @@ func GetChoices(o *Options) (response string, err error) {
 		}
 	}
 
-	draw_choice := func(y, screen_width, screen_height int) {
-		if y+3 <= screen_height {
-			draw_choice_boxes(y, screen_width, screen_height, choice_order...)
-			return
-		}
-		clickable_ranges = map[string][]Range{}
-		current_line := ""
-		current_ranges := map[string]int{}
-		width := screen_width - 2
-
-		commit_line := func(add_newline bool) {
-			x := extra_for(wcswidth.Stringwidth(current_line), width)
-			text := strings.Repeat(" ", x) + current_line
-			if add_newline {
-				lp.Println(text)
-			} else {
-				lp.QueueWriteString(text)
-			}
-			for letter, sz := range current_ranges {
-				clickable_ranges[letter] = []Range{{x, x + sz - 3, y}}
-				x += sz
-			}
-			current_ranges = map[string]int{}
-			y++
-			current_line = ""
-		}
-		for _, choice := range choice_order {
-			text := choice.prefix()
-			spec := ""
-			if choice.color != "" {
-				spec = "fg=" + choice.color
-			} else {
-				spec = "fg=green"
-			}
-			if choice.letter == response_on_accept {
-				spec += " u=straight"
-			}
-			text += ctx.SprintFunc(spec)(choice.display_letter())
-			text += choice.suffix()
-			text += "  "
-			sz := wcswidth.Stringwidth(text)
-			if sz+wcswidth.Stringwidth(current_line) >= width {
-				commit_line(true)
-			}
-			current_line += text
-			current_ranges[choice.letter] = sz
-		}
-		if current_line != "" {
-			commit_line(false)
-		}
-	}
-
 	draw_screen := func() error {
 		lp.StartAtomicUpdate()
 		defer lp.EndAtomicUpdate()
@@ -351,12 +271,7 @@ func GetChoices(o *Options) (response string, err error) {
 			lp.Println()
 			y++
 		}
-		switch o.Type {
-		case "yesno":
-			draw_yesno(y, int(sz.WidthCells), int(sz.HeightCells))
-		case "choices":
-			draw_choice(y, int(sz.WidthCells), int(sz.HeightCells))
-		}
+    draw_yesno(y, int(sz.WidthCells), int(sz.HeightCells))
 		return nil
 	}
 

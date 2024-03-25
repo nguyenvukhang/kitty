@@ -29,7 +29,7 @@ func main(_ *cli.Command, o *Options, args []string) (rc int, err error) {
 		o.Prompt = o.Prompt[1 : len(o.Prompt)-1]
 	}
 	switch o.Type {
-	case "yesno", "choices":
+	case "yesno":
 		result.Response, err = GetChoices(o)
 		if err != nil {
 			return 1, err
