@@ -9,7 +9,7 @@ from typing import (
 
 from alatty.typing import BossType, TypedDict
 
-from ..tui.handler import result_handler
+from .handler import result_handler
 
 
 def option_text() -> str:

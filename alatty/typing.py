@@ -8,7 +8,7 @@ BadLineType = SequenceMap = KeyActionType = AliasMap = None
 AddressFamily = PopenType = Socket = StartupCtx = None
 SessionTab = SessionType = LayoutType = SpecialWindowInstance = None
 MarkType = RemoteCommandType = CoreTextFont = FontConfigPattern = None
-KeyEventType = ImageManagerType = AlattyCommonOpts = HandlerType = None
+KeyEventType = ImageManagerType = AlattyCommonOpts = None
 GRT_t = GRT_a = GRT_d = GRT_f = GRT_m = GRT_o = GRT_C = None
 ScreenSize = KittensKeyActionType = MouseEvent = MouseButton = AbstractEventLoop = None
 TermManagerType = LoopType = Debug = GraphicsCommandType = None
