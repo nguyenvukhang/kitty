@@ -89,7 +89,6 @@ void line_set_char(Line *, unsigned int , uint32_t , unsigned int , Cursor *, hy
 void line_right_shift(Line *, unsigned int , unsigned int );
 void line_add_combining_char(Line *, uint32_t , unsigned int );
 bool line_as_ansi(Line *self, ANSIBuf *output, const GPUCell**, index_type start_at, index_type stop_before, char_type prefix_char) __attribute__((nonnull));
-unsigned int line_length(Line *self);
 size_t cell_as_unicode(CPUCell *cell, bool include_cc, Py_UCS4 *buf, char_type);
 size_t cell_as_unicode_for_fallback(CPUCell *cell, Py_UCS4 *buf);
 size_t cell_as_utf8(CPUCell *cell, bool include_cc, char *buf, char_type);

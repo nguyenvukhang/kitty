@@ -28,15 +28,6 @@ dealloc(Line* self) {
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-unsigned int
-line_length(Line *self) {
-    index_type last = self->xnum - 1;
-    for (index_type i = 0; i < self->xnum; i++) {
-        if ((self->cpu_cells[last - i].ch) != BLANK_CHAR) return self->xnum - i;
-    }
-    return 0;
-}
-
 PyObject*
 cell_text(CPUCell *cell) {
     PyObject *ans;
@@ -256,13 +247,6 @@ as_ansi(Line* self, PyObject *a UNUSED) {
     PyObject *ans = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, output.buf, output.len);
     free(output.buf);
     return ans;
-}
-
-static PyObject*
-last_char_has_wrapped_flag(Line* self, PyObject *a UNUSED) {
-#define last_char_has_wrapped_flag_doc "Return True if the last cell of this line has the wrapped flags set"
-    if (self->gpu_cells[self->xnum - 1].attrs.next_char_was_wrapped) { Py_RETURN_TRUE; }
-    Py_RETURN_FALSE;
 }
 
 static PyObject*
@@ -736,17 +720,6 @@ static PyObject*
 copy_char(Line* self, PyObject *args);
 #define copy_char_doc "copy_char(src, to, dest) -> Copy the character at src to to the character dest in the line `to`"
 
-#define hyperlink_ids_doc "hyperlink_ids() -> Tuple of hyper link ids at every cell"
-static PyObject*
-hyperlink_ids(Line *self, PyObject *args UNUSED) {
-    PyObject *ans = PyTuple_New(self->xnum);
-    for (index_type x = 0; x < self->xnum; x++) {
-        PyTuple_SET_ITEM(ans, x, PyLong_FromUnsignedLong(self->cpu_cells[x].hyperlink_id));
-    }
-    return ans;
-}
-
-
 static PyObject *
 richcmp(PyObject *obj1, PyObject *obj2, int op);
 
@@ -768,8 +741,6 @@ static PyMethodDef methods[] = {
     METHOD(set_char, METH_VARARGS)
     METHOD(set_attribute, METH_VARARGS)
     METHOD(as_ansi, METH_NOARGS)
-    METHOD(last_char_has_wrapped_flag, METH_NOARGS)
-    METHOD(hyperlink_ids, METH_NOARGS)
     METHOD(width, METH_O)
     METHOD(sprite_at, METH_O)
 

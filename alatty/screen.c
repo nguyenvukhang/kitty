@@ -518,30 +518,6 @@ selection_has_screen_line(const Selections *selections, const int y) {
     return false;
 }
 
-hyperlink_id_type
-remap_hyperlink_ids(Screen *self, hyperlink_id_type *map) {
-#define PROCESS_CELL(cell) { hid = (cell).hyperlink_id; if (hid) { if (!map[hid]) map[hid] = ++num; (cell).hyperlink_id = map[hid]; }}
-    hyperlink_id_type num = 0, hid;
-    if (self->historybuf->count) {
-        for (index_type y = self->historybuf->count; y-- > 0;) {
-            CPUCell *cells = historybuf_cpu_cells(self->historybuf, y);
-            for (index_type x = 0; x < self->historybuf->xnum; x++) {
-                PROCESS_CELL(cells[x]);
-            }
-        }
-    }
-    LineBuf *second = self->linebuf, *first = second == self->main_linebuf ? self->alt_linebuf : self->main_linebuf;
-    for (index_type i = 0; i < self->lines * self->columns; i++) {
-        PROCESS_CELL(first->cpu_cell_buf[i]);
-    }
-    for (index_type i = 0; i < self->lines * self->columns; i++) {
-        PROCESS_CELL(second->cpu_cell_buf[i]);
-    }
-    return num;
-#undef PROCESS_CELL
-}
-
-
 static bool is_flag_pair(char_type a, char_type b) {
     return is_flag_codepoint(a) && is_flag_codepoint(b);
 }
