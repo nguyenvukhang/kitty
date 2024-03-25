@@ -4,19 +4,9 @@
 from typing import Dict, Tuple, Type
 
 from .base import Layout
-from .grid import Grid
 from .splits import Splits
-from .stack import Stack
-from .tall import Fat, Tall
-from .vertical import Horizontal, Vertical
 
 all_layouts: Dict[str, Type[Layout]] = {
-    Stack.name: Stack,
-    Tall.name: Tall,
-    Fat.name: Fat,
-    Vertical.name: Vertical,
-    Horizontal.name: Horizontal,
-    Grid.name: Grid,
     Splits.name: Splits,
 }
 
