@@ -376,14 +376,6 @@ class Parser:
     def tab_separator(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['tab_separator'] = tab_separator(val)
 
-    def tab_switch_strategy(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_tab_switch_strategy:
-            raise ValueError(f"The value {val} is not a valid choice for tab_switch_strategy")
-        ans["tab_switch_strategy"] = val
-
-    choices_for_tab_switch_strategy = frozenset(('last', 'left', 'previous', 'right'))
-
     def tab_title_max_length(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['tab_title_max_length'] = positive_int(val)
 

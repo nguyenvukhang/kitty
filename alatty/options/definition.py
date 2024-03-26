@@ -891,17 +891,6 @@ opt('tab_bar_min_tabs', '2',
     long_text='The minimum number of tabs that must exist before the tab bar is shown.'
     )
 
-opt('tab_switch_strategy', 'previous',
-    choices=('last', 'left', 'previous', 'right'),
-    long_text='''
-The algorithm to use when switching to a tab when the current tab is closed. The
-default of :code:`previous` will switch to the last used tab. A value of
-:code:`left` will switch to the tab to the left of the closed tab. A value of
-:code:`right` will switch to the tab to the right of the closed tab. A value of
-:code:`last` will switch to the right-most tab.
-'''
-    )
-
 opt('tab_fade', '0.25 0.5 0.75 1',
     option_type='tab_fade',
     long_text='''

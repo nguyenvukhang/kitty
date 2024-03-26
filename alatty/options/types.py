@@ -18,7 +18,6 @@ choices_for_macos_colorspace = typing.Literal['srgb', 'default', 'displayp3']
 choices_for_strip_trailing_spaces = typing.Literal['always', 'never', 'smart']
 choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separator', 'slant', 'custom']
 choices_for_tab_powerline_style = typing.Literal['angled', 'round', 'slanted']
-choices_for_tab_switch_strategy = typing.Literal['last', 'left', 'previous', 'right']
 
 option_names = (  # {{{
  'action_alias',
@@ -131,7 +130,6 @@ option_names = (  # {{{
  'tab_fade',
  'tab_powerline_style',
  'tab_separator',
- 'tab_switch_strategy',
  'tab_title_max_length',
  'tab_title_template',
  'term',
@@ -245,7 +243,7 @@ class Options:
     tab_fade: typing.Tuple[float, ...] = (0.25, 0.5, 0.75, 1.0)
     tab_powerline_style: choices_for_tab_powerline_style = 'angled'
     tab_separator: str = ' ┇'
-    tab_switch_strategy: choices_for_tab_switch_strategy = 'previous'
+    tab_switch_strategy = 'previous'
     tab_title_max_length: int = 0
     tab_title_template: str = '{fmt.fg.red}{activity_symbol}{fmt.fg.tab}{title}'
     term: str = 'xterm-alatty'
