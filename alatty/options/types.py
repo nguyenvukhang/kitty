@@ -21,7 +21,6 @@ choices_for_tab_bar_align = typing.Literal['left', 'center', 'right']
 choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separator', 'slant', 'custom']
 choices_for_tab_powerline_style = typing.Literal['angled', 'round', 'slanted']
 choices_for_tab_switch_strategy = typing.Literal['last', 'left', 'previous', 'right']
-choices_for_undercurl_style = typing.Literal['thin-sparse', 'thin-dense', 'thick-sparse', 'thick-dense']
 
 option_names = (  # {{{
  'action_alias',
@@ -143,7 +142,6 @@ option_names = (  # {{{
  'text_composition_strategy',
  'text_fg_override_threshold',
  'touch_scroll_multiplier',
- 'undercurl_style',
  'url_excluded_characters',
  'url_prefixes',
  'visual_window_select_characters',
@@ -258,7 +256,7 @@ class Options:
     text_composition_strategy: str = 'platform'
     text_fg_override_threshold: float = 0.0
     touch_scroll_multiplier: float = 1.0
-    undercurl_style: choices_for_undercurl_style = 'thin-sparse'
+    undercurl_style = 'thin-sparse'
     url_excluded_characters: str = ''
     url_prefixes: typing.Tuple[str, ...] = ('file', 'ftp', 'ftps', 'gemini', 'git', 'gopher', 'http', 'https', 'irc', 'ircs', 'alatty', 'mailto', 'news', 'sftp', 'ssh')
     visual_window_select_characters: str = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ'

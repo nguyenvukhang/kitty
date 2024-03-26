@@ -98,10 +98,7 @@ def add_curl(buf: CBufType, cell_width: int, position: int, thickness: int, cell
 
     max_height = cell_height - (position - thickness // 2)  # descender from the font
     half_height = max(1, max_height // 4)
-    if 'thick' in opts.undercurl_style:
-        thickness = max(half_height, thickness)
-    else:
-        thickness = max(1, thickness) - (1 if thickness < 3 else 2)
+    thickness = max(1, thickness) - (1 if thickness < 3 else 2)
 
     def add_intensity(x: int, y: int, val: int) -> None:
         y += position
