@@ -274,14 +274,6 @@ class Parser:
     def paste_actions(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['paste_actions'] = paste_actions(val)
 
-    def placement_strategy(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_placement_strategy:
-            raise ValueError(f"The value {val} is not a valid choice for placement_strategy")
-        ans["placement_strategy"] = val
-
-    choices_for_placement_strategy = frozenset(('center', 'top-left'))
-
     def remember_window_size(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['remember_window_size'] = to_bool(val)
 

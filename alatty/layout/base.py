@@ -70,7 +70,7 @@ def idx_for_id(win_id: int, windows: Iterable[WindowType]) -> Optional[int]:
 def set_layout_options(opts: Options) -> None:
     lgd.draw_minimal_borders = opts.draw_minimal_borders and sum(opts.window_margin_width) == 0
     lgd.draw_active_borders = opts.active_border_color is not None
-    lgd.align_top_left = opts.placement_strategy == 'top-left'
+    lgd.align_top_left = False
 
 
 def convert_bias_map(bias: Dict[int, float], number_of_windows: int, number_of_cells: int) -> Sequence[float]:

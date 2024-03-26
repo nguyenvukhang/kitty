@@ -15,7 +15,6 @@ import alatty.types
 
 choices_for_linux_display_server = typing.Literal['auto', 'wayland', 'x11']
 choices_for_macos_colorspace = typing.Literal['srgb', 'default', 'displayp3']
-choices_for_placement_strategy = typing.Literal['center', 'top-left']
 choices_for_strip_trailing_spaces = typing.Literal['always', 'never', 'smart']
 choices_for_tab_bar_align = typing.Literal['left', 'center', 'right']
 choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separator', 'slant', 'custom']
@@ -104,7 +103,6 @@ option_names = (  # {{{
  'mouse_map',
  'notify_on_cmd_finish',
  'paste_actions',
- 'placement_strategy',
  'remember_window_size',
  'repaint_delay',
  'resize_debounce_time',
@@ -216,7 +214,7 @@ class Options:
     mouse_hide_wait: float = 0.0 if is_macos else 3.0
     notify_on_cmd_finish: NotifyOnCmdFinish = NotifyOnCmdFinish(when='never', duration=5.0, action='notify', cmdline=())
     paste_actions: typing.FrozenSet[str] = frozenset({'confirm', 'quote-urls-at-prompt'})
-    placement_strategy: choices_for_placement_strategy = 'center'
+    placement_strategy = 'center'
     pointer_shape_when_dragging = 'beam'
     pointer_shape_when_grabbed = 'arrow'
     remember_window_size: bool = True

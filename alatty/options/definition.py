@@ -738,17 +738,6 @@ bottom and left.
 '''
     )
 
-opt('placement_strategy', 'center',
-    choices=('center', 'top-left'),
-    long_text='''
-When the window size is not an exact multiple of the cell size, the cell area of
-the terminal window will have some extra padding on the sides. You can control
-how that padding is distributed with this option. Using a value of
-:code:`center` means the cell area will be placed centrally. A value of
-:code:`top-left` means the padding will be only at the bottom and right edges.
-'''
-    )
-
 opt('active_border_color', '#00ff00',
     option_type='to_color_or_none', ctype='active_border_color',
     long_text='''
@@ -778,8 +767,8 @@ macOS, :code:`titlebar-only` and :code:`titlebar-and-corners` can be used to onl
 Whether this works and exactly what effect it has depends on the window manager/operating
 system. Note that the effects of changing this option when reloading config
 are undefined. When using :code:`titlebar-only`, it is useful to also set
-:opt:`window_margin_width` and :opt:`placement_strategy` to prevent the rounded
-corners from clipping text. Or use :code:`titlebar-and-corners`.
+:opt:`window_margin_width` to prevent the rounded corners from clipping text.
+Or use :code:`titlebar-and-corners`.
 '''
     )
 
