@@ -16,7 +16,6 @@ import alatty.types
 choices_for_linux_display_server = typing.Literal['auto', 'wayland', 'x11']
 choices_for_macos_colorspace = typing.Literal['srgb', 'default', 'displayp3']
 choices_for_strip_trailing_spaces = typing.Literal['always', 'never', 'smart']
-choices_for_tab_bar_align = typing.Literal['left', 'center', 'right']
 choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separator', 'slant', 'custom']
 choices_for_tab_powerline_style = typing.Literal['angled', 'round', 'slanted']
 choices_for_tab_switch_strategy = typing.Literal['last', 'left', 'previous', 'right']
@@ -122,7 +121,6 @@ option_names = (  # {{{
  'strip_trailing_spaces',
  'sync_to_monitor',
  'tab_activity_symbol',
- 'tab_bar_align',
  'tab_bar_background',
  'tab_bar_edge',
  'tab_bar_margin_color',
@@ -236,7 +234,7 @@ class Options:
     strip_trailing_spaces: choices_for_strip_trailing_spaces = 'never'
     sync_to_monitor: bool = True
     tab_activity_symbol: str = ''
-    tab_bar_align: choices_for_tab_bar_align = 'left'
+    tab_bar_align = 'left'
     tab_bar_background: typing.Optional[alatty.fast_data_types.Color] = None
     tab_bar_edge: int = 3
     tab_bar_margin_color: typing.Optional[alatty.fast_data_types.Color] = None

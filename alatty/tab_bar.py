@@ -376,12 +376,7 @@ class TabBar:
             self.draw_func = load_custom_draw_tab()
         else:
             self.draw_func: DrawTabFunc = draw_tab_with_separator
-        if opts.tab_bar_align == 'center':
-            self.align: Callable[[], None] = partial(self.align_with_factor, 2)
-        elif opts.tab_bar_align == 'right':
-            self.align = self.align_with_factor
-        else:
-            self.align = lambda: None
+        self.align = lambda: None
 
     @property
     def current_colors(self) -> Dict[str, Color]:
