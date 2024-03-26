@@ -68,7 +68,7 @@ typedef struct {
   float text_contrast, text_gamma_adjustment;
   bool text_old_gamma;
 
-  char *background_image, *default_window_logo;
+  char *default_window_logo;
   ImageAnchorPosition window_logo_position;
   float background_tint, background_tint_gaps;
 

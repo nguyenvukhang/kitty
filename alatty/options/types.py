@@ -31,7 +31,6 @@ option_names = (  # {{{
  'active_tab_title_template',
  'background',
  'background_blur',
- 'background_image',
  'background_opacity',
  'background_tint',
  'background_tint_gaps',
@@ -167,7 +166,6 @@ class Options:
     active_tab_title_template: typing.Optional[str] = None
     background: Color = Color(0, 0, 0)
     background_blur: int = 0
-    background_image: typing.Optional[str] = None
     background_opacity: float = 1.0
     background_tint: float = 0
     background_tint_gaps: float = 1.0

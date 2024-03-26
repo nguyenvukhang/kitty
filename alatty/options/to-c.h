@@ -54,9 +54,6 @@ parse_ms_long_to_monotonic_t(PyObject *val) {
 }
 
 static void
-background_image(PyObject *src, Options *opts) { STR_SETTER(background_image); }
-
-static void
 window_logo_path(PyObject *src, Options *opts) { STR_SETTER(default_window_logo); }
 
 #undef STR_SETTER
@@ -248,6 +245,6 @@ free_allocs_in_options(Options *opts) {
     free_url_prefixes(opts);
 #define F(x) free(opts->x); opts->x = NULL;
     F(select_by_word_characters); F(url_excluded_characters); F(select_by_word_characters_forward);
-    F(background_image); F(default_window_logo);
+    F(default_window_logo);
 #undef F
 }

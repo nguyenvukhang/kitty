@@ -469,10 +469,6 @@ def init_borders_program() -> None:
     pass
 
 
-def os_window_has_background_image(os_window_id: int) -> bool:
-    pass
-
-
 def dbus_send_notification(
     app_name: str,
     icon: str,

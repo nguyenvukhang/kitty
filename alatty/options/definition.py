@@ -1110,11 +1110,6 @@ depending on how the platform implements it, so use with care. Currently support
 on macOS and KDE under X11.
 ''')
 
-opt('background_image', 'none',
-    option_type='config_or_absolute_path', ctype='!background_image',
-    long_text='Path to a background image. Must be in PNG format.'
-    )
-
 opt('dynamic_background_opacity', 'no',
     option_type='to_bool', ctype='bool',
     long_text='''
@@ -1131,7 +1126,7 @@ opt('background_tint', '0.0',
 How much to tint the background image by the background color. This option
 makes it easier to read the text. Tinting is done using the current background
 color for each window. This option applies only if :opt:`background_opacity` is
-set and transparent windows are supported or :opt:`background_image` is set.
+set and transparent windows are supported.
 '''
     )
 

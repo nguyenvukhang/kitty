@@ -1157,7 +1157,7 @@ finalize(void) {
     if (detached_windows.windows) free(detached_windows.windows);
     detached_windows.capacity = 0;
 #define F(x) free(OPT(x)); OPT(x) = NULL;
-    F(background_image); F(default_window_logo);
+    F(default_window_logo);
 #undef F
     free_allocs_in_options(&global_state.opts);
 }
