@@ -365,14 +365,6 @@ class Parser:
     def tab_fade(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['tab_fade'] = tab_fade(val)
 
-    def tab_powerline_style(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_tab_powerline_style:
-            raise ValueError(f"The value {val} is not a valid choice for tab_powerline_style")
-        ans["tab_powerline_style"] = val
-
-    choices_for_tab_powerline_style = frozenset(('angled', 'round', 'slanted'))
-
     def tab_separator(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['tab_separator'] = tab_separator(val)
 

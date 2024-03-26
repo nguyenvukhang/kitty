@@ -873,7 +873,6 @@ The tab bar style, can be one of:
     :opt:`tab_separator`)
 :code:`powerline`
     Tabs are shown as a continuous line with "fancy" separators.
-    (See also :opt:`tab_powerline_style`)
 :code:`custom`
     A user-supplied Python function called draw_tab is loaded from the file
     :file:`tab_bar.py` in the alatty config directory. For examples of how to
@@ -907,15 +906,6 @@ opt('tab_separator', '" ┇"',
     long_text='''
 The separator between tabs in the tab bar when using :code:`separator` as the
 :opt:`tab_bar_style`.
-'''
-    )
-
-opt('tab_powerline_style', 'angled',
-    choices=('angled', 'round', 'slanted'),
-    long_text='''
-The powerline separator style between tabs in the tab bar when using
-:code:`powerline` as the :opt:`tab_bar_style`, can be one of: :code:`angled`,
-:code:`slanted`, :code:`round`.
 '''
     )
 

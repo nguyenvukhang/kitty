@@ -66,7 +66,6 @@ class DrawData(NamedTuple):
     title_template: str
     active_title_template: Optional[str]
     tab_activity_symbol: str
-    powerline_style: PowerlineStyle
     tab_bar_edge: EdgeLiteral
     max_tab_title_length: int
 
@@ -367,7 +366,6 @@ class TabBar:
             opts.tab_bar_background or opts.background, opts.tab_title_template,
             opts.active_tab_title_template,
             opts.tab_activity_symbol,
-            opts.tab_powerline_style,
             'top' if opts.tab_bar_edge == 1 else 'bottom',
             opts.tab_title_max_length,
         )
