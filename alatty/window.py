@@ -1472,9 +1472,9 @@ def set_pointer_shape(screen: Screen, value: str, os_window_id: int = 0) -> str:
                 ans.append('1')
             else:
                 if q == '__default__':
-                    ans.append(pointer_name_to_css_name(get_options().default_pointer_shape))
+                    ans.append(pointer_name_to_css_name("beam"))
                 elif q == '__grabbed__':
-                    ans.append(pointer_name_to_css_name(get_options().pointer_shape_when_grabbed))
+                    ans.append(pointer_name_to_css_name("arrow"))
                 elif q == '__current__':
                     ans.append(screen.current_pointer_shape())
                 else:

@@ -266,45 +266,6 @@ convert_from_opts_click_interval(PyObject *py_opts, Options *opts) {
 }
 
 static void
-convert_from_python_pointer_shape_when_grabbed(PyObject *val, Options *opts) {
-    opts->pointer_shape_when_grabbed = pointer_shape(val);
-}
-
-static void
-convert_from_opts_pointer_shape_when_grabbed(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "pointer_shape_when_grabbed");
-    if (ret == NULL) return;
-    convert_from_python_pointer_shape_when_grabbed(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_default_pointer_shape(PyObject *val, Options *opts) {
-    opts->default_pointer_shape = pointer_shape(val);
-}
-
-static void
-convert_from_opts_default_pointer_shape(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "default_pointer_shape");
-    if (ret == NULL) return;
-    convert_from_python_default_pointer_shape(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
-convert_from_python_pointer_shape_when_dragging(PyObject *val, Options *opts) {
-    opts->pointer_shape_when_dragging = pointer_shape(val);
-}
-
-static void
-convert_from_opts_pointer_shape_when_dragging(PyObject *py_opts, Options *opts) {
-    PyObject *ret = PyObject_GetAttrString(py_opts, "pointer_shape_when_dragging");
-    if (ret == NULL) return;
-    convert_from_python_pointer_shape_when_dragging(ret, opts);
-    Py_DECREF(ret);
-}
-
-static void
 convert_from_python_repaint_delay(PyObject *val, Options *opts) {
     opts->repaint_delay = parse_ms_long_to_monotonic_t(val);
 }
@@ -826,12 +787,6 @@ convert_opts_from_python_opts(PyObject *py_opts, Options *opts) {
     convert_from_opts_select_by_word_characters_forward(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_click_interval(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_pointer_shape_when_grabbed(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_default_pointer_shape(py_opts, opts);
-    if (PyErr_Occurred()) return false;
-    convert_from_opts_pointer_shape_when_dragging(py_opts, opts);
     if (PyErr_Occurred()) return false;
     convert_from_opts_repaint_delay(py_opts, opts);
     if (PyErr_Occurred()) return false;

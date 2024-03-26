@@ -13,13 +13,10 @@ import alatty.options.utils
 from alatty.types import FloatEdges
 import alatty.types
 
-choices_for_default_pointer_shape = typing.Literal['arrow', 'beam', 'text', 'pointer', 'hand', 'help', 'wait', 'progress', 'crosshair', 'cell', 'vertical-text', 'move', 'e-resize', 'ne-resize', 'nw-resize', 'n-resize', 'se-resize', 'sw-resize', 's-resize', 'w-resize', 'ew-resize', 'ns-resize', 'nesw-resize', 'nwse-resize', 'zoom-in', 'zoom-out', 'alias', 'copy', 'not-allowed', 'no-drop', 'grab', 'grabbing']
 choices_for_linux_display_server = typing.Literal['auto', 'wayland', 'x11']
 choices_for_macos_colorspace = typing.Literal['srgb', 'default', 'displayp3']
 choices_for_macos_show_window_title_in = typing.Literal['all', 'menubar', 'none', 'window']
 choices_for_placement_strategy = typing.Literal['center', 'top-left']
-choices_for_pointer_shape_when_dragging = choices_for_default_pointer_shape
-choices_for_pointer_shape_when_grabbed = choices_for_default_pointer_shape
 choices_for_strip_trailing_spaces = typing.Literal['always', 'never', 'smart']
 choices_for_tab_bar_align = typing.Literal['left', 'center', 'right']
 choices_for_tab_bar_style = typing.Literal['fade', 'hidden', 'powerline', 'separator', 'slant', 'custom']
@@ -112,8 +109,6 @@ option_names = (  # {{{
  'notify_on_cmd_finish',
  'paste_actions',
  'placement_strategy',
- 'pointer_shape_when_dragging',
- 'pointer_shape_when_grabbed',
  'remember_window_size',
  'repaint_delay',
  'resize_debounce_time',
@@ -194,7 +189,7 @@ class Options:
     cursor_stop_blinking_after: float = 15.0
     cursor_text_color: typing.Optional[alatty.fast_data_types.Color] = Color(17, 17, 17)
     cursor_underline_thickness: float = 2.0
-    default_pointer_shape: choices_for_default_pointer_shape = 'beam'
+    default_pointer_shape = 'beam'
     dim_opacity: float = 0.4
     draw_minimal_borders: bool = True
     dynamic_background_opacity: bool = False
@@ -228,8 +223,8 @@ class Options:
     notify_on_cmd_finish: NotifyOnCmdFinish = NotifyOnCmdFinish(when='never', duration=5.0, action='notify', cmdline=())
     paste_actions: typing.FrozenSet[str] = frozenset({'confirm', 'quote-urls-at-prompt'})
     placement_strategy: choices_for_placement_strategy = 'center'
-    pointer_shape_when_dragging: choices_for_pointer_shape_when_dragging = 'beam'
-    pointer_shape_when_grabbed: choices_for_pointer_shape_when_grabbed = 'arrow'
+    pointer_shape_when_dragging = 'beam'
+    pointer_shape_when_grabbed = 'arrow'
     remember_window_size: bool = True
     repaint_delay: int = 10
     resize_debounce_time: typing.Tuple[float, float] = (0.1, 0.5)

@@ -458,29 +458,6 @@ pointer_shape_names = (
 # end pointer shape names
 )
 
-opt('pointer_shape_when_grabbed', 'arrow',
-    choices=pointer_shape_names, ctype='pointer_shape',
-    long_text='''
-The shape of the mouse pointer when the program running in the terminal grabs
-the mouse.
-'''
-    )
-
-opt('default_pointer_shape', 'beam',
-    choices=pointer_shape_names, ctype='pointer_shape',
-    long_text='''
-The default shape of the mouse pointer.
-'''
-    )
-
-opt('pointer_shape_when_dragging', 'beam',
-    choices=pointer_shape_names, ctype='pointer_shape',
-    long_text='''
-The default shape of the mouse pointer when dragging across text.
-'''
-    )
-
-
 # mouse.mousemap {{{
 agr('mouse.mousemap', 'Mouse actions', '''
 Mouse buttons can be mapped to perform arbitrary actions. The syntax is:
