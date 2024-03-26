@@ -10,7 +10,7 @@ from alatty.options.utils import (
     action_alias, active_tab_title_template, box_drawing_scale,
     clear_all_mouse_actions, clear_all_shortcuts, clipboard_control,
     config_or_absolute_path, copy_on_select, cursor_text_color,
-    deprecated_hide_window_decorations_aliases, deprecated_macos_show_window_title_in_menubar_alias,
+    deprecated_hide_window_decorations_aliases,
     deprecated_send_text, edge_width, env, hide_window_decorations,
     macos_option_as_alt, macos_titlebar_color, menu_map, modify_font,
     notify_on_cmd_finish, optional_edge_width, parse_map, parse_mouse_map, paste_actions,
@@ -248,14 +248,6 @@ class Parser:
     def macos_quit_when_last_window_closed(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['macos_quit_when_last_window_closed'] = to_bool(val)
 
-    def macos_show_window_title_in(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        val = val.lower()
-        if val not in self.choices_for_macos_show_window_title_in:
-            raise ValueError(f"The value {val} is not a valid choice for macos_show_window_title_in")
-        ans["macos_show_window_title_in"] = val
-
-    choices_for_macos_show_window_title_in = frozenset(('all', 'menubar', 'none', 'window'))
-
     def macos_thicken_font(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['macos_thicken_font'] = positive_float(val)
 
@@ -482,9 +474,6 @@ class Parser:
 
     def macos_hide_titlebar(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         deprecated_hide_window_decorations_aliases('macos_hide_titlebar', val, ans)
-
-    def macos_show_window_title_in_menubar(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        deprecated_macos_show_window_title_in_menubar_alias('macos_show_window_title_in_menubar', val, ans)
 
     def send_text(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         deprecated_send_text('send_text', val, ans)

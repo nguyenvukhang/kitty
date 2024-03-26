@@ -44,19 +44,6 @@ parse_ms_long_to_monotonic_t(PyObject *val) {
     return ms_to_monotonic_t(PyLong_AsUnsignedLong(val));
 }
 
-static WindowTitleIn
-window_title_in(PyObject *title_in) {
-    const char *in = PyUnicode_AsUTF8(title_in);
-    switch(in[0]) {
-        case 'a': return ALL;
-        case 'w': return WINDOW;
-        case 'm': return MENUBAR;
-        case 'n': return NONE;
-        default: break;
-    }
-    return ALL;
-}
-
 #define STR_SETTER(name) { \
     free(opts->name); opts->name = NULL; \
     if (src == Py_None || !PyUnicode_Check(src)) return; \

@@ -15,7 +15,6 @@ import alatty.types
 
 choices_for_linux_display_server = typing.Literal['auto', 'wayland', 'x11']
 choices_for_macos_colorspace = typing.Literal['srgb', 'default', 'displayp3']
-choices_for_macos_show_window_title_in = typing.Literal['all', 'menubar', 'none', 'window']
 choices_for_placement_strategy = typing.Literal['center', 'top-left']
 choices_for_strip_trailing_spaces = typing.Literal['always', 'never', 'smart']
 choices_for_tab_bar_align = typing.Literal['left', 'center', 'right']
@@ -96,7 +95,6 @@ option_names = (  # {{{
  'macos_hide_from_tasks',
  'macos_option_as_alt',
  'macos_quit_when_last_window_closed',
- 'macos_show_window_title_in',
  'macos_thicken_font',
  'macos_titlebar_color',
  'macos_traditional_fullscreen',
@@ -214,7 +212,7 @@ class Options:
     macos_hide_from_tasks: bool = False
     macos_option_as_alt: int = 0
     macos_quit_when_last_window_closed: bool = False
-    macos_show_window_title_in: choices_for_macos_show_window_title_in = 'all'
+    macos_show_window_title_in = 'window'
     macos_thicken_font: float = 0
     macos_titlebar_color: int = 0
     macos_traditional_fullscreen: bool = False

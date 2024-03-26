@@ -15,7 +15,6 @@ definition = Definition(
     has_color_table=True,
 )
 definition.add_deprecation('deprecated_hide_window_decorations_aliases', 'x11_hide_window_decorations', 'macos_hide_titlebar')
-definition.add_deprecation('deprecated_macos_show_window_title_in_menubar_alias', 'macos_show_window_title_in_menubar')
 definition.add_deprecation('deprecated_send_text', 'send_text')
 
 agr = definition.add_group
@@ -1572,19 +1571,6 @@ opt('macos_traditional_fullscreen', 'no',
     long_text='''
 Use the macOS traditional full-screen transition, that is faster, but less
 pretty.
-'''
-    )
-
-opt('macos_show_window_title_in', 'all',
-    choices=('all', 'menubar', 'none', 'window'), ctype='window_title_in',
-    long_text='''
-Control where the window title is displayed on macOS. A value of :code:`window`
-will show the title of the currently active window at the top of the macOS
-window. A value of :code:`menubar` will show the title of the currently active
-window in the macOS global menu bar, making use of otherwise wasted space. A
-value of :code:`all` will show the title in both places, and :code:`none` hides
-the title. See :opt:`macos_menubar_title_max_length` for how to control the
-length of the title in the menu bar.
 '''
     )
 

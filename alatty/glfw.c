@@ -958,7 +958,7 @@ init_window_chrome_state(WindowChromeState *s, color_type active_window_bg, bool
 #endif
     s->background_blur = should_blur ? OPT(background_blur) : 0;
     s->hide_window_decorations = OPT(hide_window_decorations);
-    s->show_title_in_titlebar = (OPT(macos_show_window_title_in) & WINDOW) != 0;
+    s->show_title_in_titlebar = true;
     s->background_opacity = background_opacity;
 }
 

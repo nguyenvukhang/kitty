@@ -1194,24 +1194,6 @@ def deprecated_hide_window_decorations_aliases(key: str, val: str, ans: Dict[str
             ans['hide_window_decorations'] = True
 
 
-def deprecated_macos_show_window_title_in_menubar_alias(key: str, val: str, ans: Dict[str, Any]) -> None:
-    if not hasattr(deprecated_macos_show_window_title_in_menubar_alias, key):
-        setattr(deprecated_macos_show_window_title_in_menubar_alias, 'key', True)
-        log_error(f'The option {key} is deprecated. Use macos_show_window_title_in menubar instead.')
-    macos_show_window_title_in = ans.get('macos_show_window_title_in', 'all')
-    if to_bool(val):
-        if macos_show_window_title_in == 'none':
-            macos_show_window_title_in = 'menubar'
-        elif macos_show_window_title_in == 'window':
-            macos_show_window_title_in = 'all'
-    else:
-        if macos_show_window_title_in == 'all':
-            macos_show_window_title_in = 'window'
-        elif macos_show_window_title_in == 'menubar':
-            macos_show_window_title_in = 'none'
-    ans['macos_show_window_title_in'] = macos_show_window_title_in
-
-
 def deprecated_send_text(key: str, val: str, ans: Dict[str, Any]) -> None:
     parts = val.split(' ')
 
