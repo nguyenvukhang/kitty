@@ -1097,34 +1097,6 @@ class TabManager:  # {{{
             ))
         return ans
 
-    def handle_click_on_tab(self, x: int, button: int, modifiers: int, action: int) -> None:
-        i = self.tab_bar.tab_at(x)
-        now = monotonic()
-        if i is None:
-            if button == GLFW_MOUSE_BUTTON_LEFT and action == GLFW_RELEASE and len(self.recent_mouse_events) > 2:
-                ci = get_click_interval()
-                prev, prev2 = self.recent_mouse_events[-1], self.recent_mouse_events[-2]
-                if (
-                    prev.button == button and prev2.button == button and
-                    prev.action == GLFW_PRESS and prev2.action == GLFW_RELEASE and
-                    prev.tab_idx is None and prev2.tab_idx is None and
-                    now - prev.at <= ci and now - prev2.at <= 2 * ci
-                ):  # double click
-                    self.new_tab()
-                    self.recent_mouse_events.clear()
-                    return
-        else:
-            if action == GLFW_PRESS and button == GLFW_MOUSE_BUTTON_LEFT:
-                self.set_active_tab_idx(i)
-            elif button == GLFW_MOUSE_BUTTON_MIDDLE and action == GLFW_RELEASE and self.recent_mouse_events:
-                p = self.recent_mouse_events[-1]
-                if p.button == button and p.action == GLFW_PRESS and p.tab_idx == i:
-                    tab = self.tabs[i]
-                    get_boss().close_tab(tab)
-        self.recent_mouse_events.append(TabMouseEvent(button, modifiers, action, now, i))
-        if len(self.recent_mouse_events) > 5:
-            self.recent_mouse_events.popleft()
-
     @property
     def tab_bar_rects(self) -> Tuple[Border, ...]:
         return self.tab_bar.blank_rects if self.tab_bar_should_be_visible else ()

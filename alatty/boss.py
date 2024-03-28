@@ -743,11 +743,6 @@ class Boss:
                 handled_signals.add(signum)
             self.startup_first_child(first_os_window_id, startup_sessions=startup_sessions)
 
-    def handle_click_on_tab(self, os_window_id: int, x: int, button: int, modifiers: int, action: int) -> None:
-        tm = self.os_window_map.get(os_window_id)
-        if tm is not None:
-            tm.handle_click_on_tab(x, button, modifiers, action)
-
     def on_window_resize(self, os_window_id: int, w: int, h: int, dpi_changed: bool) -> None:
         if dpi_changed:
             self.on_dpi_change(os_window_id)

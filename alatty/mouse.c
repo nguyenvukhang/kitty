@@ -569,13 +569,6 @@ HANDLER(handle_event) {
     }
 }
 
-static void
-handle_tab_bar_mouse(int button, int modifiers, int action) {
-    if (button > -1) {  // dont report motion events, as they are expensive and useless
-        call_boss(handle_click_on_tab, "Kdiii", global_state.callback_os_window->id, global_state.callback_os_window->mouse_x, button, modifiers, action);
-    }
-}
-
 static bool
 mouse_in_region(Region *r) {
     if (r->left == r->right) return false;
@@ -793,11 +786,7 @@ mouse_event(const int button, int modifiers, int action) {
         }
     }
     w = window_for_event(&window_idx, &in_tab_bar);
-    if (in_tab_bar) {
-        mouse_cursor_shape = POINTER_POINTER;
-        handle_tab_bar_mouse(button, modifiers, action);
-        debug("handled by tab bar\n");
-    } else if (w) {
+    if (w) {
         debug("grabbed: %d\n", w->render_data.screen->modes.mouse_tracking_mode != 0);
         handle_event(w, button, modifiers, window_idx);
     } else if (button == GLFW_MOUSE_BUTTON_LEFT && global_state.callback_os_window->mouse_button_pressed[button]) {
