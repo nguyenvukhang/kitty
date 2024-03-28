@@ -43,11 +43,6 @@ typedef VkResult (APIENTRY *PFN_vkCreateWaylandSurfaceKHR)(VkInstance,const VkWa
 typedef VkBool32 (APIENTRY *PFN_vkGetPhysicalDeviceWaylandPresentationSupportKHR)(VkPhysicalDevice,uint32_t,struct wl_display*);
 
 #include "posix_thread.h"
-#ifdef __linux__
-#include "linux_joystick.h"
-#else
-#include "null_joystick.h"
-#endif
 #include "backend_utils.h"
 #include "xkb_glfw.h"
 #include "wl_cursors.h"

@@ -37,7 +37,6 @@
 
 #include "posix_time.h"
 #include "posix_thread.h"
-#include "null_joystick.h"
 
 #if defined(_GLFW_WIN32)
  #define _glfw_dlopen(name) LoadLibraryA(name)

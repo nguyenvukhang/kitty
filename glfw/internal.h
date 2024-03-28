@@ -81,7 +81,6 @@ typedef struct _GLFWmonitor     _GLFWmonitor;
 typedef struct _GLFWcursor      _GLFWcursor;
 typedef struct _GLFWmapelement  _GLFWmapelement;
 typedef struct _GLFWmapping     _GLFWmapping;
-typedef struct _GLFWjoystick    _GLFWjoystick;
 typedef struct _GLFWtls         _GLFWtls;
 typedef struct _GLFWmutex       _GLFWmutex;
 
@@ -510,46 +509,6 @@ struct _GLFWcursor
     _GLFW_PLATFORM_CURSOR_STATE;
 };
 
-// Gamepad mapping element structure
-//
-struct _GLFWmapelement
-{
-    uint8_t         type;
-    uint8_t         index;
-    int8_t          axisScale;
-    int8_t          axisOffset;
-};
-
-// Gamepad mapping structure
-//
-struct _GLFWmapping
-{
-    char            name[128];
-    char            guid[33];
-    _GLFWmapelement buttons[15];
-    _GLFWmapelement axes[6];
-};
-
-// Joystick structure
-//
-struct _GLFWjoystick
-{
-    bool            present;
-    float*          axes;
-    int             axisCount;
-    unsigned char*  buttons;
-    int             buttonCount;
-    unsigned char*  hats;
-    int             hatCount;
-    char*           name;
-    void*           userPointer;
-    char            guid[33];
-    _GLFWmapping*   mapping;
-
-    // This is defined in the joystick API's joystick.h
-    _GLFW_PLATFORM_JOYSTICK_STATE;
-};
-
 // Thread local storage structure
 //
 struct _GLFWtls
@@ -597,8 +556,6 @@ struct _GLFWlibrary
     _GLFWmonitor**      monitors;
     int                 monitorCount;
 
-    bool                joysticksInitialized;
-    _GLFWjoystick       joysticks[GLFW_JOYSTICK_LAST + 1];
     _GLFWmapping*       mappings;
     int                 mappingCount;
 
@@ -632,7 +589,6 @@ struct _GLFWlibrary
 
     struct {
         GLFWmonitorfun  monitor;
-        GLFWjoystickfun joystick;
         GLFWapplicationclosefun application_close;
         GLFWsystemcolorthemechangefun system_color_theme_change;
         GLFWdrawtextfun draw_text;
@@ -645,8 +601,6 @@ struct _GLFWlibrary
     _GLFW_PLATFORM_LIBRARY_WINDOW_STATE;
     // This is defined in the context API's context.h
     _GLFW_PLATFORM_LIBRARY_CONTEXT_STATE
-    // This is defined in the platform's joystick.h
-    _GLFW_PLATFORM_LIBRARY_JOYSTICK_STATE
     // This is defined in egl_context.h
     _GLFWlibraryEGL egl;
     // This is defined in osmesa_context.h
@@ -692,11 +646,6 @@ void _glfwPlatformSetGammaRamp(_GLFWmonitor* monitor, const GLFWgammaramp* ramp)
 
 void _glfwPlatformSetClipboard(GLFWClipboardType t);
 void _glfwPlatformGetClipboard(GLFWClipboardType clipboard_type, const char* mime_type, GLFWclipboardwritedatafun write_data, void *object);
-
-bool _glfwPlatformInitJoysticks(void);
-void _glfwPlatformTerminateJoysticks(void);
-int _glfwPlatformPollJoystick(_GLFWjoystick* js, int mode);
-void _glfwPlatformUpdateGamepadGUID(char* guid);
 
 int _glfwPlatformCreateWindow(_GLFWwindow* window,
                               const _GLFWwndconfig* wndconfig,
@@ -804,10 +753,6 @@ void _glfwInputMouseClick(_GLFWwindow* window, int button, int action, int mods)
 void _glfwInputCursorPos(_GLFWwindow* window, double xpos, double ypos);
 void _glfwInputCursorEnter(_GLFWwindow* window, bool entered);
 int _glfwInputDrop(_GLFWwindow* window, const char *mime, const char *text, size_t sz);
-void _glfwInputJoystick(_GLFWjoystick* js, int event);
-void _glfwInputJoystickAxis(_GLFWjoystick* js, int axis, float value);
-void _glfwInputJoystickButton(_GLFWjoystick* js, int button, char value);
-void _glfwInputJoystickHat(_GLFWjoystick* js, int hat, char value);
 
 void _glfwInputMonitor(_GLFWmonitor* monitor, int action, int placement);
 void _glfwInputMonitorWindow(_GLFWmonitor* monitor, _GLFWwindow* window);
@@ -846,12 +791,6 @@ void _glfwAllocGammaArrays(GLFWgammaramp* ramp, unsigned int size);
 void _glfwFreeGammaArrays(GLFWgammaramp* ramp);
 void _glfwSplitBPP(int bpp, int* red, int* green, int* blue);
 
-_GLFWjoystick* _glfwAllocJoystick(const char* name,
-                                  const char* guid,
-                                  int axisCount,
-                                  int buttonCount,
-                                  int hatCount);
-void _glfwFreeJoystick(_GLFWjoystick* js);
 const char* _glfwGetKeyName(int key);
 void _glfwCenterCursorInContentArea(_GLFWwindow* window);
 

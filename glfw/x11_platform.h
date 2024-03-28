@@ -166,11 +166,6 @@ typedef VkBool32 (APIENTRY *PFN_vkGetPhysicalDeviceXcbPresentationSupportKHR)(Vk
 
 #include "posix_thread.h"
 #include "glx_context.h"
-#if defined(__linux__)
-#include "linux_joystick.h"
-#else
-#include "null_joystick.h"
-#endif
 
 #define _glfw_dlopen(name) dlopen(name, RTLD_LAZY | RTLD_LOCAL)
 #define _glfw_dlclose(handle) dlclose(handle)

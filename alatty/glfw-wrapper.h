@@ -38,24 +38,6 @@
 #define GLFW_VERSION_REVISION       0
 /*! @} */
 
-/*! @defgroup hat_state Joystick hat states
- *  @brief Joystick hat states.
- *
- *  See [joystick hat input](@ref joystick_hat) for how these are used.
- *
- *  @ingroup input
- *  @{ */
-#define GLFW_HAT_CENTERED           0
-#define GLFW_HAT_UP                 1
-#define GLFW_HAT_RIGHT              2
-#define GLFW_HAT_DOWN               4
-#define GLFW_HAT_LEFT               8
-#define GLFW_HAT_RIGHT_UP           (GLFW_HAT_RIGHT | GLFW_HAT_UP)
-#define GLFW_HAT_RIGHT_DOWN         (GLFW_HAT_RIGHT | GLFW_HAT_DOWN)
-#define GLFW_HAT_LEFT_UP            (GLFW_HAT_LEFT  | GLFW_HAT_UP)
-#define GLFW_HAT_LEFT_DOWN          (GLFW_HAT_LEFT  | GLFW_HAT_DOWN)
-/*! @} */
-
 /*! @defgroup keys Keyboard keys
  *  @brief Keyboard key IDs.
  *
@@ -276,78 +258,6 @@ typedef enum GLFWMouseButton {
     GLFW_MOUSE_BUTTON_8 = 7,
     GLFW_MOUSE_BUTTON_LAST = 7
 } GLFWMouseButton;
-/*! @} */
-
-/*! @defgroup joysticks Joysticks
- *  @brief Joystick IDs.
- *
- *  See [joystick input](@ref joystick) for how these are used.
- *
- *  @ingroup input
- *  @{ */
-#define GLFW_JOYSTICK_1             0
-#define GLFW_JOYSTICK_2             1
-#define GLFW_JOYSTICK_3             2
-#define GLFW_JOYSTICK_4             3
-#define GLFW_JOYSTICK_5             4
-#define GLFW_JOYSTICK_6             5
-#define GLFW_JOYSTICK_7             6
-#define GLFW_JOYSTICK_8             7
-#define GLFW_JOYSTICK_9             8
-#define GLFW_JOYSTICK_10            9
-#define GLFW_JOYSTICK_11            10
-#define GLFW_JOYSTICK_12            11
-#define GLFW_JOYSTICK_13            12
-#define GLFW_JOYSTICK_14            13
-#define GLFW_JOYSTICK_15            14
-#define GLFW_JOYSTICK_16            15
-#define GLFW_JOYSTICK_LAST          GLFW_JOYSTICK_16
-/*! @} */
-
-/*! @defgroup gamepad_buttons Gamepad buttons
- *  @brief Gamepad buttons.
- *
- *  See @ref gamepad for how these are used.
- *
- *  @ingroup input
- *  @{ */
-#define GLFW_GAMEPAD_BUTTON_A               0
-#define GLFW_GAMEPAD_BUTTON_B               1
-#define GLFW_GAMEPAD_BUTTON_X               2
-#define GLFW_GAMEPAD_BUTTON_Y               3
-#define GLFW_GAMEPAD_BUTTON_LEFT_BUMPER     4
-#define GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER    5
-#define GLFW_GAMEPAD_BUTTON_BACK            6
-#define GLFW_GAMEPAD_BUTTON_START           7
-#define GLFW_GAMEPAD_BUTTON_GUIDE           8
-#define GLFW_GAMEPAD_BUTTON_LEFT_THUMB      9
-#define GLFW_GAMEPAD_BUTTON_RIGHT_THUMB     10
-#define GLFW_GAMEPAD_BUTTON_DPAD_UP         11
-#define GLFW_GAMEPAD_BUTTON_DPAD_RIGHT      12
-#define GLFW_GAMEPAD_BUTTON_DPAD_DOWN       13
-#define GLFW_GAMEPAD_BUTTON_DPAD_LEFT       14
-#define GLFW_GAMEPAD_BUTTON_LAST            GLFW_GAMEPAD_BUTTON_DPAD_LEFT
-
-#define GLFW_GAMEPAD_BUTTON_CROSS       GLFW_GAMEPAD_BUTTON_A
-#define GLFW_GAMEPAD_BUTTON_CIRCLE      GLFW_GAMEPAD_BUTTON_B
-#define GLFW_GAMEPAD_BUTTON_SQUARE      GLFW_GAMEPAD_BUTTON_X
-#define GLFW_GAMEPAD_BUTTON_TRIANGLE    GLFW_GAMEPAD_BUTTON_Y
-/*! @} */
-
-/*! @defgroup gamepad_axes Gamepad axes
- *  @brief Gamepad axes.
- *
- *  See @ref gamepad for how these are used.
- *
- *  @ingroup input
- *  @{ */
-#define GLFW_GAMEPAD_AXIS_LEFT_X        0
-#define GLFW_GAMEPAD_AXIS_LEFT_Y        1
-#define GLFW_GAMEPAD_AXIS_RIGHT_X       2
-#define GLFW_GAMEPAD_AXIS_RIGHT_Y       3
-#define GLFW_GAMEPAD_AXIS_LEFT_TRIGGER  4
-#define GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER 5
-#define GLFW_GAMEPAD_AXIS_LAST          GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER
 /*! @} */
 
 /*! @defgroup errors Error codes
@@ -878,11 +788,6 @@ typedef enum {
 
 /*! @addtogroup init
  *  @{ */
-/*! @brief Joystick hat buttons init hint.
- *
- *  Joystick hat buttons [init hint](@ref GLFW_JOYSTICK_HAT_BUTTONS).
- */
-#define GLFW_JOYSTICK_HAT_BUTTONS   0x00050001
 /*! @brief ANGLE rendering backend init hint.
  *
  *  ANGLE rendering backend [init hint](@ref GLFW_ANGLE_PLATFORM_TYPE_hint).
@@ -1474,27 +1379,6 @@ typedef void (* GLFWliveresizefun)(GLFWwindow*, bool);
  */
 typedef void (* GLFWmonitorfun)(GLFWmonitor*,int);
 
-/*! @brief The function pointer type for joystick configuration callbacks.
- *
- *  This is the function pointer type for joystick configuration callbacks.
- *  A joystick configuration callback function has the following signature:
- *  @code
- *  void function_name(int jid, int event)
- *  @endcode
- *
- *  @param[in] jid The joystick that was connected or disconnected.
- *  @param[in] event One of `GLFW_CONNECTED` or `GLFW_DISCONNECTED`.  Future
- *  releases may add more events.
- *
- *  @sa @ref joystick_event
- *  @sa @ref glfwSetJoystickCallback
- *
- *  @since Added in version 3.2.
- *
- *  @ingroup input
- */
-typedef void (* GLFWjoystickfun)(int,int);
-
 typedef void (* GLFWuserdatafun)(unsigned long long, void*);
 typedef void (* GLFWtickcallback)(void*);
 typedef void (* GLFWactivationcallback)(GLFWwindow *window, const char *token, void *data);
@@ -1603,30 +1487,6 @@ typedef struct GLFWimage
      */
     unsigned char* pixels;
 } GLFWimage;
-
-/*! @brief Gamepad input state
- *
- *  This describes the input state of a gamepad.
- *
- *  @sa @ref gamepad
- *  @sa @ref glfwGetGamepadState
- *
- *  @since Added in version 3.3.
- *
- *  @ingroup input
- */
-typedef struct GLFWgamepadstate
-{
-    /*! The states of each [gamepad button](@ref gamepad_buttons), `GLFW_PRESS`
-     *  or `GLFW_RELEASE`.
-     */
-    unsigned char buttons[15];
-    /*! The states of each [gamepad axis](@ref gamepad_axes), in the range -1.0
-     *  to 1.0 inclusive.
-     */
-    float axes[6];
-} GLFWgamepadstate;
-
 
 /*************************************************************************
  * GLFW API functions
@@ -2102,58 +1962,6 @@ GFW_EXTERN glfwSetDropCallback_func glfwSetDropCallback_impl;
 typedef GLFWliveresizefun (*glfwSetLiveResizeCallback_func)(GLFWwindow*, GLFWliveresizefun);
 GFW_EXTERN glfwSetLiveResizeCallback_func glfwSetLiveResizeCallback_impl;
 #define glfwSetLiveResizeCallback glfwSetLiveResizeCallback_impl
-
-typedef int (*glfwJoystickPresent_func)(int);
-GFW_EXTERN glfwJoystickPresent_func glfwJoystickPresent_impl;
-#define glfwJoystickPresent glfwJoystickPresent_impl
-
-typedef const float* (*glfwGetJoystickAxes_func)(int, int*);
-GFW_EXTERN glfwGetJoystickAxes_func glfwGetJoystickAxes_impl;
-#define glfwGetJoystickAxes glfwGetJoystickAxes_impl
-
-typedef const unsigned char* (*glfwGetJoystickButtons_func)(int, int*);
-GFW_EXTERN glfwGetJoystickButtons_func glfwGetJoystickButtons_impl;
-#define glfwGetJoystickButtons glfwGetJoystickButtons_impl
-
-typedef const unsigned char* (*glfwGetJoystickHats_func)(int, int*);
-GFW_EXTERN glfwGetJoystickHats_func glfwGetJoystickHats_impl;
-#define glfwGetJoystickHats glfwGetJoystickHats_impl
-
-typedef const char* (*glfwGetJoystickName_func)(int);
-GFW_EXTERN glfwGetJoystickName_func glfwGetJoystickName_impl;
-#define glfwGetJoystickName glfwGetJoystickName_impl
-
-typedef const char* (*glfwGetJoystickGUID_func)(int);
-GFW_EXTERN glfwGetJoystickGUID_func glfwGetJoystickGUID_impl;
-#define glfwGetJoystickGUID glfwGetJoystickGUID_impl
-
-typedef void (*glfwSetJoystickUserPointer_func)(int, void*);
-GFW_EXTERN glfwSetJoystickUserPointer_func glfwSetJoystickUserPointer_impl;
-#define glfwSetJoystickUserPointer glfwSetJoystickUserPointer_impl
-
-typedef void* (*glfwGetJoystickUserPointer_func)(int);
-GFW_EXTERN glfwGetJoystickUserPointer_func glfwGetJoystickUserPointer_impl;
-#define glfwGetJoystickUserPointer glfwGetJoystickUserPointer_impl
-
-typedef int (*glfwJoystickIsGamepad_func)(int);
-GFW_EXTERN glfwJoystickIsGamepad_func glfwJoystickIsGamepad_impl;
-#define glfwJoystickIsGamepad glfwJoystickIsGamepad_impl
-
-typedef GLFWjoystickfun (*glfwSetJoystickCallback_func)(GLFWjoystickfun);
-GFW_EXTERN glfwSetJoystickCallback_func glfwSetJoystickCallback_impl;
-#define glfwSetJoystickCallback glfwSetJoystickCallback_impl
-
-typedef int (*glfwUpdateGamepadMappings_func)(const char*);
-GFW_EXTERN glfwUpdateGamepadMappings_func glfwUpdateGamepadMappings_impl;
-#define glfwUpdateGamepadMappings glfwUpdateGamepadMappings_impl
-
-typedef const char* (*glfwGetGamepadName_func)(int);
-GFW_EXTERN glfwGetGamepadName_func glfwGetGamepadName_impl;
-#define glfwGetGamepadName glfwGetGamepadName_impl
-
-typedef int (*glfwGetGamepadState_func)(int, GLFWgamepadstate*);
-GFW_EXTERN glfwGetGamepadState_func glfwGetGamepadState_impl;
-#define glfwGetGamepadState glfwGetGamepadState_impl
 
 typedef void (*glfwSetClipboardDataTypes_func)(GLFWClipboardType, const char* const*, size_t, GLFWclipboarditerfun);
 GFW_EXTERN glfwSetClipboardDataTypes_func glfwSetClipboardDataTypes_impl;

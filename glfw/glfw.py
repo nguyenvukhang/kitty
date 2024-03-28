@@ -94,9 +94,6 @@ def init_env(
     with open(os.path.join(base, 'source-info.json')) as f:
         sinfo = json.load(f)
     module_sources = list(sinfo[module]['sources'])
-    if module in ('x11', 'wayland'):
-        remove = 'null_joystick.c' if is_linux else 'linux_joystick.c'
-        module_sources.remove(remove)
 
     ans.sources = sinfo['common']['sources'] + module_sources
     ans.all_headers = [x for x in os.listdir(base) if x.endswith('.h')]

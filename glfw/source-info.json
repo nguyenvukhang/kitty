@@ -2,7 +2,6 @@
   "cocoa": {
     "headers": [
       "cocoa_platform.h",
-      "cocoa_joystick.h",
       "posix_thread.h",
       "nsgl_context.h",
       "egl_context.h",
@@ -10,7 +9,6 @@
     ],
     "sources": [
       "cocoa_init.m",
-      "cocoa_joystick.m",
       "cocoa_monitor.m",
       "cocoa_window.m",
       "posix_thread.c",
@@ -37,7 +35,6 @@
   "osmesa": {
     "headers": [
       "null_platform.h",
-      "null_joystick.h",
       "posix_thread.h",
       "osmesa_context.h"
     ],
@@ -45,7 +42,6 @@
       "null_init.c",
       "null_monitor.c",
       "null_window.c",
-      "null_joystick.c",
       "posix_thread.c",
       "osmesa_context.c"
     ]
@@ -62,8 +58,6 @@
       "backend_utils.h",
       "egl_context.h",
       "osmesa_context.h",
-      "linux_joystick.h",
-      "null_joystick.h",
       "linux_notify.h",
       "linux_desktop_settings.h",
       "wl_client_side_decorations.h",
@@ -95,9 +89,7 @@
       "egl_context.c",
       "osmesa_context.c",
       "backend_utils.c",
-      "linux_joystick.c",
       "linux_desktop_settings.c",
-      "null_joystick.c",
       "linux_notify.c"
     ]
   },
@@ -108,14 +100,12 @@
   "win32": {
     "headers": [
       "win32_platform.h",
-      "win32_joystick.h",
       "wgl_context.h",
       "egl_context.h",
       "osmesa_context.h"
     ],
     "sources": [
       "win32_init.c",
-      "win32_joystick.c",
       "win32_monitor.c",
       "win32_time.c",
       "win32_thread.c",
@@ -136,8 +126,6 @@
       "glx_context.h",
       "egl_context.h",
       "osmesa_context.h",
-      "linux_joystick.h",
-      "null_joystick.h",
       "linux_notify.h",
       "main_loop.h"
     ],
@@ -153,8 +141,6 @@
       "egl_context.c",
       "osmesa_context.c",
       "backend_utils.c",
-      "linux_joystick.c",
-      "null_joystick.c",
       "linux_notify.c"
     ]
   }

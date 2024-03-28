@@ -2258,26 +2258,6 @@ init_glfw(PyObject *m) {
     ADDC(GLFW_MOUSE_BUTTON_MIDDLE);
 
 
-// --- Joystick ----------------------------------------------------------------
-    ADDC(GLFW_JOYSTICK_1);
-    ADDC(GLFW_JOYSTICK_2);
-    ADDC(GLFW_JOYSTICK_3);
-    ADDC(GLFW_JOYSTICK_4);
-    ADDC(GLFW_JOYSTICK_5);
-    ADDC(GLFW_JOYSTICK_6);
-    ADDC(GLFW_JOYSTICK_7);
-    ADDC(GLFW_JOYSTICK_8);
-    ADDC(GLFW_JOYSTICK_9);
-    ADDC(GLFW_JOYSTICK_10);
-    ADDC(GLFW_JOYSTICK_11);
-    ADDC(GLFW_JOYSTICK_12);
-    ADDC(GLFW_JOYSTICK_13);
-    ADDC(GLFW_JOYSTICK_14);
-    ADDC(GLFW_JOYSTICK_15);
-    ADDC(GLFW_JOYSTICK_16);
-    ADDC(GLFW_JOYSTICK_LAST);
-
-
 // --- Error codes -------------------------------------------------------------
     ADDC(GLFW_NOT_INITIALIZED);
     ADDC(GLFW_NO_CURRENT_CONTEXT);

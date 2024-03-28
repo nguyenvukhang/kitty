@@ -338,45 +338,6 @@ load_glfw(const char* path) {
     *(void **) (&glfwSetLiveResizeCallback_impl) = dlsym(handle, "glfwSetLiveResizeCallback");
     if (glfwSetLiveResizeCallback_impl == NULL) fail("Failed to load glfw function glfwSetLiveResizeCallback with error: %s", dlerror());
 
-    *(void **) (&glfwJoystickPresent_impl) = dlsym(handle, "glfwJoystickPresent");
-    if (glfwJoystickPresent_impl == NULL) fail("Failed to load glfw function glfwJoystickPresent with error: %s", dlerror());
-
-    *(void **) (&glfwGetJoystickAxes_impl) = dlsym(handle, "glfwGetJoystickAxes");
-    if (glfwGetJoystickAxes_impl == NULL) fail("Failed to load glfw function glfwGetJoystickAxes with error: %s", dlerror());
-
-    *(void **) (&glfwGetJoystickButtons_impl) = dlsym(handle, "glfwGetJoystickButtons");
-    if (glfwGetJoystickButtons_impl == NULL) fail("Failed to load glfw function glfwGetJoystickButtons with error: %s", dlerror());
-
-    *(void **) (&glfwGetJoystickHats_impl) = dlsym(handle, "glfwGetJoystickHats");
-    if (glfwGetJoystickHats_impl == NULL) fail("Failed to load glfw function glfwGetJoystickHats with error: %s", dlerror());
-
-    *(void **) (&glfwGetJoystickName_impl) = dlsym(handle, "glfwGetJoystickName");
-    if (glfwGetJoystickName_impl == NULL) fail("Failed to load glfw function glfwGetJoystickName with error: %s", dlerror());
-
-    *(void **) (&glfwGetJoystickGUID_impl) = dlsym(handle, "glfwGetJoystickGUID");
-    if (glfwGetJoystickGUID_impl == NULL) fail("Failed to load glfw function glfwGetJoystickGUID with error: %s", dlerror());
-
-    *(void **) (&glfwSetJoystickUserPointer_impl) = dlsym(handle, "glfwSetJoystickUserPointer");
-    if (glfwSetJoystickUserPointer_impl == NULL) fail("Failed to load glfw function glfwSetJoystickUserPointer with error: %s", dlerror());
-
-    *(void **) (&glfwGetJoystickUserPointer_impl) = dlsym(handle, "glfwGetJoystickUserPointer");
-    if (glfwGetJoystickUserPointer_impl == NULL) fail("Failed to load glfw function glfwGetJoystickUserPointer with error: %s", dlerror());
-
-    *(void **) (&glfwJoystickIsGamepad_impl) = dlsym(handle, "glfwJoystickIsGamepad");
-    if (glfwJoystickIsGamepad_impl == NULL) fail("Failed to load glfw function glfwJoystickIsGamepad with error: %s", dlerror());
-
-    *(void **) (&glfwSetJoystickCallback_impl) = dlsym(handle, "glfwSetJoystickCallback");
-    if (glfwSetJoystickCallback_impl == NULL) fail("Failed to load glfw function glfwSetJoystickCallback with error: %s", dlerror());
-
-    *(void **) (&glfwUpdateGamepadMappings_impl) = dlsym(handle, "glfwUpdateGamepadMappings");
-    if (glfwUpdateGamepadMappings_impl == NULL) fail("Failed to load glfw function glfwUpdateGamepadMappings with error: %s", dlerror());
-
-    *(void **) (&glfwGetGamepadName_impl) = dlsym(handle, "glfwGetGamepadName");
-    if (glfwGetGamepadName_impl == NULL) fail("Failed to load glfw function glfwGetGamepadName with error: %s", dlerror());
-
-    *(void **) (&glfwGetGamepadState_impl) = dlsym(handle, "glfwGetGamepadState");
-    if (glfwGetGamepadState_impl == NULL) fail("Failed to load glfw function glfwGetGamepadState with error: %s", dlerror());
-
     *(void **) (&glfwSetClipboardDataTypes_impl) = dlsym(handle, "glfwSetClipboardDataTypes");
     if (glfwSetClipboardDataTypes_impl == NULL) fail("Failed to load glfw function glfwSetClipboardDataTypes with error: %s", dlerror());
 

@@ -28,7 +28,6 @@
 //========================================================================
 
 #include "internal.h"
-#include "mappings.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -94,7 +93,6 @@ static void terminate(void)
     _glfw.mappingCount = 0;
 
     _glfwTerminateVulkan();
-    _glfwPlatformTerminateJoysticks();
     _glfwPlatformTerminate();
 
     _glfw.initialized = false;
@@ -251,19 +249,6 @@ GLFWAPI int glfwInit(monotonic_t start_time)
 
     glfwDefaultWindowHints();
 
-    {
-        int i;
-
-        for (i = 0;  _glfwDefaultMappings[i];  i++)
-        {
-            if (!glfwUpdateGamepadMappings(_glfwDefaultMappings[i]))
-            {
-                terminate();
-                return false;
-            }
-        }
-    }
-
     return true;
 }
 
@@ -279,9 +264,6 @@ GLFWAPI void glfwInitHint(int hint, int value)
 {
     switch (hint)
     {
-        case GLFW_JOYSTICK_HAT_BUTTONS:
-            _glfwInitHints.hatButtons = value;
-            return;
         case GLFW_ANGLE_PLATFORM_TYPE:
             _glfwInitHints.angleType = value;
             return;
