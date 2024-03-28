@@ -8,7 +8,6 @@ import weakref
 from collections import deque
 from contextlib import suppress
 from operator import attrgetter
-from time import monotonic
 from typing import (
     Any,
     Callable,
@@ -31,16 +30,11 @@ from .child import Child
 from .cli_stub import CLIOptions
 from .constants import appname
 from .fast_data_types import (
-    GLFW_MOUSE_BUTTON_LEFT,
-    GLFW_MOUSE_BUTTON_MIDDLE,
-    GLFW_PRESS,
-    GLFW_RELEASE,
     add_tab,
     attach_window,
     current_focused_os_window_id,
     detach_window,
     get_boss,
-    get_click_interval,
     get_options,
     last_focused_os_window_id,
     mark_tab_bar_dirty,
@@ -219,19 +213,6 @@ class Tab:  # {{{
                 self.resize_window(*window.resize_spec)
 
         self.windows.set_active_window_group_for(self.windows.all_windows[session_tab.active_window_idx])
-
-    def serialize_state(self) -> Dict[str, Any]:
-        return {
-            'version': 1,
-            'id': self.id,
-            'window_list': self.windows.serialize_state(),
-            'current_layout': self._current_layout_name,
-            'last_used_layout': self._last_used_layout,
-            'layout_opts': self.current_layout.layout_opts,
-            'layout_state': self.current_layout.layout_state,
-            'enabled_layouts': self.enabled_layouts,
-            'name': self.name,
-        }
 
     def active_window_changed(self) -> None:
         w = self.active_window
@@ -947,14 +928,6 @@ class TabManager:  # {{{
                         'groups': tab.list_groups(),
                         'active_window_history': list(tab.windows.active_window_history),
                     }
-
-    def serialize_state(self) -> Dict[str, Any]:
-        return {
-            'version': 1,
-            'id': self.os_window_id,
-            'tabs': [tab.serialize_state() for tab in self],
-            'active_tab_idx': self.active_tab_idx,
-        }
 
     @property
     def active_tab(self) -> Optional[Tab]:

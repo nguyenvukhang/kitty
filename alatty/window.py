@@ -637,29 +637,6 @@ class Window:
             'user_vars': self.user_vars,
         }
 
-    def serialize_state(self) -> Dict[str, Any]:
-        ans = {
-            'version': 1,
-            'id': self.id,
-            'child_title': self.child_title,
-            'override_title': self.override_title,
-            'default_title': self.default_title,
-            'title_stack': list(self.title_stack),
-            'cwd': self.child.current_cwd or self.child.cwd,
-            'env': self.child.environ,
-            'cmdline': self.child.cmdline,
-            'margin': self.margin.serialize(),
-            'user_vars': self.user_vars,
-            'padding': self.padding.serialize(),
-        }
-        if self.window_custom_type:
-            ans['window_custom_type'] = self.window_custom_type
-        if self.overlay_type is not OverlayType.transient:
-            ans['overlay_type'] = self.overlay_type.value
-        if self.user_vars:
-            ans['user_vars'] = self.user_vars
-        return ans
-
     @property
     def overlay_parent(self) -> Optional['Window']:
         tab = self.tabref()

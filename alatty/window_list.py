@@ -85,12 +85,6 @@ class WindowGroup:
         with suppress(ValueError):
             self.windows.remove(window)
 
-    def serialize_state(self) -> Dict[str, Any]:
-        return {
-            'id': self.id,
-            'windows': [w.serialize_state() for w in self.windows]
-        }
-
     def as_simple_dict(self) -> Dict[str, Any]:
         return {
             'id': self.id,
@@ -163,13 +157,6 @@ class WindowList:
     def __contains__(self, window: WindowOrId) -> bool:
         q = window if isinstance(window, int) else window.id
         return q in self.id_map
-
-    def serialize_state(self) -> Dict[str, Any]:
-        return {
-            'active_group_idx': self.active_group_idx,
-            'active_group_history': list(self.active_group_history),
-            'window_groups': [g.serialize_state() for g in self.groups]
-        }
 
     @property
     def active_group_idx(self) -> int:
