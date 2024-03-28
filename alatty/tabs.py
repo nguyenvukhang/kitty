@@ -2,7 +2,6 @@
 # License: GPL v3 Copyright: 2016, Kovid Goyal <kovid at kovidgoyal.net>
 
 import os
-import re
 import stat
 import weakref
 from collections import deque
@@ -36,7 +35,6 @@ from .fast_data_types import (
     detach_window,
     get_boss,
     get_options,
-    last_focused_os_window_id,
     mark_tab_bar_dirty,
     next_window_id,
     remove_tab,
@@ -681,39 +679,6 @@ class Tab:  # {{{
 
     def list_groups(self) -> List[Dict[str, Any]]:
         return [g.as_simple_dict() for g in self.windows.groups]
-
-    def matches_query(self, field: str, query: str, active_tab_manager: Optional['TabManager'] = None) -> bool:
-        if field == 'title':
-            return re.search(query, self.effective_title) is not None
-        if field == 'id':
-            return query == str(self.id)
-        if field in ('window_id', 'window_title'):
-            field = field.partition('_')[-1]
-            for w in self:
-                if w.matches_query(field, query):
-                    return True
-            return False
-        if field == 'index':
-            if active_tab_manager and len(active_tab_manager.tabs):
-                idx = (int(query) + len(active_tab_manager.tabs)) % len(active_tab_manager.tabs)
-                return active_tab_manager.tabs[idx] is self
-            return False
-        if field == 'state':
-            if query == 'active':
-                tm = self.tab_manager_ref()
-                return tm is not None and self is tm.active_tab
-            if query == 'focused':
-                return active_tab_manager is not None and self is active_tab_manager.active_tab and self.os_window_id == last_focused_os_window_id()
-            if query == 'needs_attention':
-                for w in self:
-                    if w.needs_attention:
-                        return True
-            if query == 'parent_active':
-                return active_tab_manager is not None and self.tab_manager_ref() is active_tab_manager
-            if query == 'parent_focused':
-                return active_tab_manager is not None and self.tab_manager_ref() is active_tab_manager and self.os_window_id == last_focused_os_window_id()
-            return False
-        return False
 
     def __iter__(self) -> Iterator[Window]:
         return iter(self.windows)

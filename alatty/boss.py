@@ -20,7 +20,6 @@ from typing import (
     List,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Union,
 )
@@ -331,75 +330,12 @@ class Boss:
         for tab in self.all_tabs:
             yield from tab
 
-    def match_windows(self, match: str, self_window: Optional['Window'] = None) -> Iterator[Window]:
-        if match == 'all':
-            yield from self.all_windows
-            return
-        from .search_query_parser import search
-        tab = self.active_tab
-        if current_focused_os_window_id() <= 0:
-            tm = self.os_window_map.get(last_focused_os_window_id())
-            if tm is not None:
-                tab = tm.active_tab
-        window_id_limit = max(self.window_id_map, default=-1) + 1
-
-        def get_matches(location: str, query: str, candidates: Set[int]) -> Set[int]:
-            if location == 'id' and query.startswith('-'):
-                try:
-                    q = int(query)
-                except Exception:
-                    return set()
-                if q < 0:
-                    query = str(window_id_limit + q)
-            return {wid for wid in candidates if self.window_id_map[wid].matches_query(location, query, tab, self_window)}
-
-        for wid in search(match, (
-            'id', 'title', 'pid', 'cwd', 'cmdline', 'num', 'env', 'var', 'recent', 'state', 'neighbor',
-        ), set(self.window_id_map), get_matches):
-            yield self.window_id_map[wid]
-
     def tab_for_window(self, window: Window) -> Optional[Tab]:
         for tab in self.all_tabs:
             for w in tab:
                 if w.id == window.id:
                     return tab
         return None
-
-    def match_tabs(self, match: str) -> Iterator[Tab]:
-        if match == 'all':
-            yield from self.all_tabs
-            return
-        from .search_query_parser import search
-        tm = self.active_tab_manager
-        if current_focused_os_window_id() <= 0:
-            tm = self.os_window_map.get(last_focused_os_window_id()) or tm
-        tim = {t.id: t for t in self.all_tabs}
-        tab_id_limit = max(tim, default=-1) + 1
-        window_id_limit = max(self.window_id_map, default=-1) + 1
-
-        def get_matches(location: str, query: str, candidates: Set[int]) -> Set[int]:
-            if location in ('id', 'window_id') and query.startswith('-'):
-                try:
-                    q = int(query)
-                except Exception:
-                    return set()
-                if q < 0:
-                    limit = tab_id_limit if location == 'id' else window_id_limit
-                    query = str(limit + q)
-            return {wid for wid in candidates if tim[wid].matches_query(location, query, tm)}
-
-        found = False
-        for tid in search(match, (
-                'id', 'index', 'title', 'window_id', 'window_title', 'pid', 'cwd', 'env', 'var', 'cmdline', 'recent', 'state'
-        ), set(tim), get_matches):
-            found = True
-            yield tim[tid]
-
-        if not found:
-            tabs = {self.tab_for_window(w) for w in self.match_windows(match)}
-            for q in tabs:
-                if q:
-                    yield q
 
     def set_active_window(self, window: Window, switch_os_window_if_needed: bool = False, for_keep_focus: bool = False) -> Optional[int]:
         for os_window_id, tm in self.os_window_map.items():

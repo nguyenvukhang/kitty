@@ -63,7 +63,6 @@ from .fast_data_types import (
     get_click_interval,
     get_options,
     is_css_pointer_name_valid,
-    last_focused_os_window_id,
     mark_os_window_dirty,
     mouse_selection,
     move_cursor_to_mouse_if_in_prompt,
@@ -678,46 +677,6 @@ class Window:
                     return True
             return False
         return False
-
-    def matches_query(self, field: str, query: str, active_tab: Optional[TabType] = None, self_window: Optional['Window'] = None) -> bool:
-        if field == 'state':
-            if query == 'active':
-                tab = self.tabref()
-                return tab is not None and tab.active_window is self
-            if query == 'focused':
-                return active_tab is not None and self is active_tab.active_window and last_focused_os_window_id() == self.os_window_id
-            if query == 'needs_attention':
-                return self.needs_attention
-            if query == 'parent_active':
-                tab = self.tabref()
-                if tab is not None:
-                    tm = tab.tab_manager_ref()
-                    return tm is not None and tm.active_tab is tab
-                return False
-            if query == 'parent_focused':
-                return active_tab is not None and self.tabref() is active_tab and last_focused_os_window_id() == self.os_window_id
-            if query == 'self':
-                return self is self_window
-            if query == 'overlay_parent':
-                return self_window is not None and self is self_window.overlay_parent
-            return False
-        if field == 'neighbor':
-            t = get_boss().active_tab
-            if t is None:
-                return False
-            gid: Optional[int] = None
-            if query == 'left':
-                gid = t.neighboring_group_id("left")
-            elif query == 'right':
-                gid = t.neighboring_group_id("right")
-            elif query == 'top':
-                gid = t.neighboring_group_id("top")
-            elif query == 'bottom':
-                gid = t.neighboring_group_id("bottom")
-            return gid is not None and t.windows.active_window_in_group_id(gid) is self
-
-        pat = compile_match_query(query, field not in ('env', 'var'))
-        return self.matches(field, pat)
 
     def set_visible_in_layout(self, val: bool) -> None:
         val = bool(val)

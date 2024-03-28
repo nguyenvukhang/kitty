@@ -2,7 +2,7 @@
 # License: GPL v3 Copyright: 2016, Kovid Goyal <kovid at kovidgoyal.net>
 
 from gettext import gettext as _
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Iterator, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional
 
 from .constants import is_macos
 from .fast_data_types import (
@@ -99,26 +99,12 @@ class Mappings:
         self._push_keyboard_mode(mode)
 
     def matching_key_actions(self, candidates: Iterable[KeyDefinition]) -> List[KeyDefinition]:
-        w = self.get_active_window()
         matches = []
         has_sequence_match = False
         for x in candidates:
-            is_applicable = False
-            if x.options.when_focus_on:
-                try:
-                    if w and w in self.match_windows(x.options.when_focus_on):
-                        is_applicable = True
-                except Exception:
-                    self.clear_keyboard_modes()
-                    self.show_error(_('Invalid key mapping'), _(
-                        'The match expression {0} is not valid for {1}').format(x.options.when_focus_on, '--when-focus-on'))
-                    return []
-            else:
-                is_applicable = True
-            if is_applicable:
-                matches.append(x)
-                if x.is_sequence:
-                    has_sequence_match = True
+            matches.append(x)
+            if x.is_sequence:
+                has_sequence_match = True
         if has_sequence_match:
             last_terminal_idx = -1
             for i, x in enumerate(matches):
@@ -199,9 +185,6 @@ class Mappings:
     # System integration {{{
     def get_active_window(self) -> Optional['Window']:
         return get_boss().active_window
-
-    def match_windows(self, expr: str) -> Iterator['Window']:
-        return get_boss().match_windows(expr)
 
     def show_error(self, title: str, msg: str) -> None:
         return get_boss().show_error(title, msg)
