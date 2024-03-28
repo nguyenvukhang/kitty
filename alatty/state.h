@@ -143,8 +143,6 @@ typedef struct MousePosition {
 typedef struct WindowBarData {
   unsigned width, height;
   uint8_t *buf;
-  PyObject *last_drawn_title_object_id;
-  hyperlink_id_type hyperlink_id_for_title_object;
   bool needs_render;
 } WindowBarData;
 

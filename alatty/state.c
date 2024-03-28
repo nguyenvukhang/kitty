@@ -229,9 +229,7 @@ add_window(id_type os_window_id, id_type tab_id, PyObject *title) {
 static void
 destroy_window(Window *w) {
     Py_CLEAR(w->render_data.screen); Py_CLEAR(w->title);
-    Py_CLEAR(w->title_bar_data.last_drawn_title_object_id);
     free(w->title_bar_data.buf); w->title_bar_data.buf = NULL;
-    Py_CLEAR(w->url_target_bar_data.last_drawn_title_object_id);
     free(w->url_target_bar_data.buf); w->url_target_bar_data.buf = NULL;
     release_gpu_resources_for_window(w);
 }
