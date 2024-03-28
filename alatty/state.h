@@ -70,7 +70,6 @@ typedef struct {
 
   char *default_window_logo;
   ImageAnchorPosition window_logo_position;
-  float background_tint, background_tint_gaps;
 
   bool dynamic_background_opacity;
   float inactive_text_alpha;

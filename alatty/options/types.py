@@ -27,8 +27,6 @@ option_names = (  # {{{
  'background',
  'background_blur',
  'background_opacity',
- 'background_tint',
- 'background_tint_gaps',
  'box_drawing_scale',
  'clear_all_mouse_actions',
  'clear_all_shortcuts',
@@ -157,8 +155,6 @@ class Options:
     background: Color = Color(0, 0, 0)
     background_blur: int = 0
     background_opacity: float = 1.0
-    background_tint: float = 0
-    background_tint_gaps: float = 1.0
     box_drawing_scale: typing.Tuple[float, float, float, float] = (0.001, 1.0, 1.5, 2.0)
     clear_all_mouse_actions: bool = False
     clear_all_shortcuts: bool = False
