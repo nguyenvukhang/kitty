@@ -326,7 +326,6 @@ typedef struct {
     ColorStackEntry *color_stack;
     unsigned int color_stack_idx, color_stack_sz;
     DynamicColors configured, overridden;
-    color_type mark_foregrounds[MARK_MASK+1], mark_backgrounds[MARK_MASK+1];
 } ColorProfile;
 
 typedef struct {

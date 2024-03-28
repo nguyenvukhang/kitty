@@ -262,13 +262,6 @@ copy_color_table_to_buffer(ColorProfile *self, color_type *buf, int offset, size
     size_t i;
     stride = MAX(1u, stride);
     for (i = 0, buf = buf + offset; i < arraysz(self->color_table); i++, buf += stride) *buf = self->color_table[i];
-    // Copy the mark colors
-    for (i = 0; i < arraysz(self->mark_backgrounds); i++) {
-        *buf = self->mark_backgrounds[i]; buf += stride;
-    }
-    for (i = 0; i < arraysz(self->mark_foregrounds); i++) {
-        *buf = self->mark_foregrounds[i]; buf += stride;
-    }
     self->dirty = false;
 }
 
@@ -303,8 +296,7 @@ colorprofile_push_colors(ColorProfile *self, unsigned int idx) {
         push_onto_color_stack_at(self, idx);
         return true;
     }
-    idx -= 1;
-    if (idx < self->color_stack_sz) {
+    if (--idx < self->color_stack_sz) {
         push_onto_color_stack_at(self, idx);
         return true;
     }
@@ -319,8 +311,7 @@ colorprofile_pop_colors(ColorProfile *self, unsigned int idx) {
         memset(self->color_stack + self->color_stack_idx, 0, sizeof(self->color_stack[0]));
         return true;
     }
-    idx -= 1;
-    if (idx < self->color_stack_sz) {
+    if (--idx < self->color_stack_sz) {
         copy_from_color_stack_at(self, idx);
         return true;
     }
