@@ -8,7 +8,7 @@ import subprocess
 
 base = os.path.dirname(os.path.abspath(__file__))
 unframed_src = os.path.join(base, 'alatty.svg')
-framed_src = os.path.join(base, 'alatty-framed.svg')
+framed_src = unframed_src
 
 
 def abspath(x):
