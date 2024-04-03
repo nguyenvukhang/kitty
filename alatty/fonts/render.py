@@ -267,20 +267,3 @@ def render_box_drawing(codepoint: int, cell_width: int, cell_height: int, dpi: f
     buf = CharTexture()
     render_box_char(chr(codepoint), cast(BufType, buf), cell_width, cell_height, dpi)
     return ctypes.addressof(buf), buf
-
-
-def show(outfile: str, width: int, height: int, fmt: int) -> None:
-    import os
-    from base64 import standard_b64encode
-
-    from kittens.tui.images import GraphicsCommand
-
-    cmd = GraphicsCommand()
-    cmd.a = 'T'
-    cmd.f = fmt
-    cmd.s = width
-    cmd.v = height
-    cmd.t = 't'
-    sys.stdout.flush()
-    sys.stdout.buffer.write(cmd.serialize(standard_b64encode(os.path.abspath(outfile).encode())))
-    sys.stdout.buffer.flush()
