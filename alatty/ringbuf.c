@@ -178,36 +178,6 @@ ringbuf_findchr(const struct ringbuf_t *rb, int c, size_t offset)
         return ringbuf_findchr(rb, c, offset + n);
 }
 
-size_t
-ringbuf_memset(ringbuf_t dst, int c, size_t len)
-{
-    const uint8_t *bufend = ringbuf_end(dst);
-    size_t nwritten = 0;
-    size_t count = size_t_min(len, ringbuf_buffer_size(dst));
-    int overflow = count > ringbuf_bytes_free(dst);
-
-    while (nwritten != count) {
-
-        /* don't copy beyond the end of the buffer */
-        assert(bufend > dst->head);
-        size_t n = size_t_min(bufend - dst->head, count - nwritten);
-        memset(dst->head, c, n);
-        dst->head += n;
-        nwritten += n;
-
-        /* wrap? */
-        if (dst->head == bufend)
-            dst->head = dst->buf;
-    }
-
-    if (overflow) {
-        dst->tail = ringbuf_nextp(dst, dst->head);
-        assert(ringbuf_is_full(dst));
-    }
-
-    return nwritten;
-}
-
 void *
 ringbuf_memcpy_into(ringbuf_t dst, const void *src, size_t count)
 {

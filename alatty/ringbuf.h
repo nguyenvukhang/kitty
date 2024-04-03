@@ -116,28 +116,6 @@ size_t
 ringbuf_findchr(const struct ringbuf_t *rb, int c, size_t offset);
 
 /*
- * Beginning at ring buffer dst's head pointer, fill the ring buffer
- * with a repeating sequence of len bytes, each of value c (converted
- * to an unsigned char). len can be as large as you like, but the
- * function will never write more than ringbuf_buffer_size(dst) bytes
- * in a single invocation, since that size will cause all bytes in the
- * ring buffer to be written exactly once each.
- *
- * Note that if len is greater than the number of free bytes in dst,
- * the ring buffer will overflow. When an overflow occurs, the state
- * of the ring buffer is guaranteed to be consistent, including the
- * head and tail pointers; old data will simply be overwritten in FIFO
- * fashion, as needed. However, note that, if calling the function
- * results in an overflow, the value of the ring buffer's tail pointer
- * may be different than it was before the function was called.
- *
- * Returns the actual number of bytes written to dst: len, if
- * len < ringbuf_buffer_size(dst), else ringbuf_buffer_size(dst).
- */
-size_t
-ringbuf_memset(ringbuf_t dst, int c, size_t len);
-
-/*
  * Copy n bytes from a contiguous memory area src into the ring buffer
  * dst. Returns the ring buffer's new head pointer.
  *
