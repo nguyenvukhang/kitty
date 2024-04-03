@@ -36,7 +36,7 @@ from .clipboard import (
     set_primary_selection,
 )
 from .conf.utils import BadLine, KeyAction
-from .config import common_opts_as_dict, prepare_config_file_for_editing
+from .config import common_opts_as_dict
 from .constants import (
     appname,
     cache_dir,
@@ -199,6 +199,8 @@ class DumpCommands:  # {{{
                     safe_print('draw', ''.join(self.draw_dump_buf))
                     self.draw_dump_buf = []
                 safe_print(*a)
+
+
 # }}}
 
 
@@ -232,7 +234,8 @@ class Boss:
         self.child_monitor = ChildMonitor(
             self.on_child_death,
             DumpCommands(args) if args.dump_commands or args.dump_bytes else None,
-            talk_fd, listen_fd,
+            talk_fd,
+            listen_fd,
         )
         set_boss(self)
         self.args = args
@@ -240,6 +243,7 @@ class Boss:
         self.mappings = Mappings(global_shortcuts)
         if is_macos:
             from .fast_data_types import cocoa_set_notification_activated_callback
+
             cocoa_set_notification_activated_callback(notification_activated)
 
     def startup_first_child(self, os_window_id: Optional[int], startup_sessions: Iterable[Session] = ()) -> None:
@@ -281,9 +285,14 @@ class Boss:
             wstate = parse_os_window_state(window_state) if window_state is not None else None
             with startup_notification_handler(do_notify=startup_id is not None, startup_id=startup_id) as pre_show_callback:
                 os_window_id = create_os_window(
-                        initial_window_size_func(size_data, self.cached_values),
-                        pre_show_callback,
-                        wtitle or appname, wname, wclass, wstate, disallow_override_title=bool(wtitle))
+                    initial_window_size_func(size_data, self.cached_values),
+                    pre_show_callback,
+                    wtitle or appname,
+                    wname,
+                    wclass,
+                    wstate,
+                    disallow_override_title=bool(wtitle),
+                )
         else:
             wname = self.args.name or self.args.cls or appname
             wclass = self.args.cls or appname
@@ -292,9 +301,7 @@ class Boss:
         return os_window_id
 
     def list_os_windows(
-        self, self_window: Optional[Window] = None,
-        tab_filter: Optional[Callable[[Tab], bool]] = None,
-        window_filter: Optional[Callable[[Window], bool]] = None
+        self, self_window: Optional[Window] = None, tab_filter: Optional[Callable[[Tab], bool]] = None, window_filter: Optional[Callable[[Window], bool]] = None
     ) -> Iterator[OSWindowDict]:
         with cached_process_data():
             active_tab_manager = self.active_tab_manager
@@ -422,6 +429,7 @@ class Boss:
                     close_action(window)
                 except Exception:
                     import traceback
+
                     traceback.print_exc()
             os_window_id = window.os_window_id
             window.destroy()
@@ -440,6 +448,7 @@ class Boss:
                     removal_action(window)
                 except Exception:
                     import traceback
+
                     traceback.print_exc()
             del window.actions_on_close[:], window.actions_on_removal[:]
 
@@ -464,7 +473,9 @@ class Boss:
     def close_window(self) -> None:
         self.mark_window_for_close()
 
-    @ac('win', '''
+    @ac(
+        'win',
+        '''
     Close window with confirmation
 
     Asks for confirmation before closing the window. If you don't want the
@@ -472,7 +483,8 @@ class Boss:
     (requires :ref:`shell_integration`), use::
 
         map f1 close_window_with_confirmation ignore-shell
-    ''')
+    ''',
+    )
     def close_window_with_confirmation(self, ignore_shell: bool = False) -> None:
         window = self.active_window
         if window is None:
@@ -513,13 +525,14 @@ class Boss:
                     self.mark_os_window_for_close(x.os_window_id)
 
     def confirm(
-        self, msg: str,  # can contain newlines and ANSI formatting
+        self,
+        msg: str,  # can contain newlines and ANSI formatting
         callback: Callable[..., None],  # called with True or False and *args
         *args: Any,  # passed to the callback function
         window: Optional[Window] = None,  # the window associated with the confirmation
         confirm_on_cancel: bool = False,  # on closing window
         confirm_on_accept: bool = True,  # on pressing enter
-        title: str = ''  # window title
+        title: str = '',  # window title
     ) -> Window:
         result: bool = False
 
@@ -534,21 +547,27 @@ class Boss:
         if title:
             cmd += ['--title', title]
         w = self.run_kitten_with_metadata(
-            'ask', cmd, window=window, custom_callback=callback_, action_on_removal=on_popup_overlay_removal,
-            default_data={'response': 'y' if confirm_on_cancel else 'n'})
+            'ask',
+            cmd,
+            window=window,
+            custom_callback=callback_,
+            action_on_removal=on_popup_overlay_removal,
+            default_data={'response': 'y' if confirm_on_cancel else 'n'},
+        )
         assert isinstance(w, Window)
         return w
 
     def choose(
-        self, msg: str,  # can contain newlines and ANSI formatting
+        self,
+        msg: str,  # can contain newlines and ANSI formatting
         callback: Callable[..., None],  # called with the choice or empty string when aborted
-        *choices: str,   # The choices, see the help for the ask kitten for format of a choice
+        *choices: str,  # The choices, see the help for the ask kitten for format of a choice
         window: Optional[Window] = None,  # the window associated with the confirmation
         default: str = '',  # the default choice when the user presses Enter
         hidden_text: str = '',  # text to hide in the message
         hidden_text_placeholder: str = 'HIDDEN_TEXT_PLACEHOLDER',  # placeholder text to insert in to message
         unhide_key: str = 'u',  # key to press to unhide hidden text
-        title: str = '' # window title
+        title: str = '',  # window title
     ) -> Optional[Window]:
         result: str = ''
 
@@ -575,20 +594,26 @@ class Boss:
             callback(result)
 
         ans = self.run_kitten_with_metadata(
-            'ask', cmd, window=window, custom_callback=callback_, input_data=input_data, default_data={'response': ''},
-            action_on_removal=on_popup_overlay_removal
+            'ask',
+            cmd,
+            window=window,
+            custom_callback=callback_,
+            input_data=input_data,
+            default_data={'response': ''},
+            action_on_removal=on_popup_overlay_removal,
         )
         if isinstance(ans, Window):
             return ans
         return None
 
     def get_line(
-        self, msg: str,  # can contain newlines and ANSI formatting
+        self,
+        msg: str,  # can contain newlines and ANSI formatting
         callback: Callable[..., None],  # called with the answer or empty string when aborted
         window: Optional[Window] = None,  # the window associated with the confirmation
         prompt: str = '> ',
         is_password: bool = False,
-        initial_value: str = ''
+        initial_value: str = '',
     ) -> None:
         result: str = ''
 
@@ -622,10 +647,16 @@ class Boss:
             if w in tab:
                 tab.set_active_window(w)
                 return
-        w = self.confirm(ngettext('Are you sure you want to close this tab, it has one window running?',
-                              'Are you sure you want to close this tab, it has {} windows running?', num).format(num),
-            self.handle_close_tab_confirmation, tab.id,
-            window=tab.active_window, title=_('Close tab?'),
+        w = self.confirm(
+            ngettext(
+                'Are you sure you want to close this tab, it has one window running?',
+                'Are you sure you want to close this tab, it has {} windows running?',
+                num,
+            ).format(num),
+            self.handle_close_tab_confirmation,
+            tab.id,
+            window=tab.active_window,
+            title=_('Close tab?'),
         )
         tab.confirm_close_window_id = w.id
 
@@ -686,7 +717,9 @@ class Boss:
             if tm is not None:
                 tm.resize()
 
-    @ac('misc', '''
+    @ac(
+        'misc',
+        '''
         Clear the terminal
 
         See :sc:`reset_terminal <reset_terminal>` for details. For example::
@@ -701,7 +734,8 @@ class Boss:
             map f1 clear_terminal scroll active
             # Clear everything up to the line with the cursor
             map f1 clear_terminal to_cursor active
-        ''')
+        ''',
+    )
     def clear_terminal(self, action: str, only_active: bool) -> None:
         if only_active:
             windows = []
@@ -734,11 +768,14 @@ class Boss:
     def set_font_size(self, new_size: float) -> None:  # legacy
         self.change_font_size(True, None, new_size)
 
-    @ac('win', '''
+    @ac(
+        'win',
+        '''
         Change the font size for the current or all OS Windows
 
         See :ref:`conf-alatty-shortcuts.fonts` for details.
-        ''')
+        ''',
+    )
     def change_font_size(self, all_windows: bool, increment_operation: Optional[str], amt: float) -> None:
         def calc_new_size(old_size: float) -> float:
             new_size = old_size
@@ -816,15 +853,21 @@ class Boss:
         t = self.active_tab
         return None if t is None else t.active_window
 
-    @ac('misc', '''
+    @ac(
+        'misc',
+        '''
     End the current keyboard mode switching to the previous mode.
-    ''')
+    ''',
+    )
     def pop_keyboard_mode(self) -> bool:
         return self.mappings.pop_keyboard_mode()
 
-    @ac('misc', '''
+    @ac(
+        'misc',
+        '''
     Switch to the specified keyboard mode, pushing it onto the stack of keyboard modes.
-    ''')
+    ''',
+    )
     def push_keyboard_mode(self, new_mode: str) -> None:
         self.mappings.push_keyboard_mode(new_mode)
 
@@ -832,8 +875,7 @@ class Boss:
         return self.mappings.dispatch_possible_special_key(ev)
 
     def mouse_event(
-        self, in_tab_bar: bool, window_id: int, action: int, modifiers: int, button: int,
-        currently_pressed_button: int, x: float, y: float
+        self, in_tab_bar: bool, window_id: int, action: int, modifiers: int, button: int, currently_pressed_button: int, x: float, y: float
     ) -> None:
         if self.mouse_handler is not None:
             ev = WindowSystemMouseEvent(in_tab_bar, window_id, action, modifiers, button, currently_pressed_button, x, y)
@@ -877,12 +919,7 @@ class Boss:
                     t.relayout_borders()
                 set_os_window_chrome(w.os_window_id)
 
-    def dispatch_action(
-        self,
-        key_action: KeyAction,
-        window_for_dispatch: Optional[Window] = None,
-        dispatch_type: str = 'KeyPress'
-    ) -> bool:
+    def dispatch_action(self, key_action: KeyAction, window_for_dispatch: Optional[Window] = None, dispatch_type: str = 'KeyPress') -> bool:
 
         def report_match(f: Callable[..., Any]) -> None:
             if self.args.debug_keyboard:
@@ -915,10 +952,12 @@ class Boss:
         return False
 
     def user_menu_action(self, defn: str) -> None:
-        ' Callback from user actions in the macOS global menu bar or other menus '
+        'Callback from user actions in the macOS global menu bar or other menus'
         self.combine(defn)
 
-    @ac('misc', '''
+    @ac(
+        'misc',
+        '''
         Combine multiple actions and map to a single keypress
 
         The syntax is::
@@ -928,7 +967,8 @@ class Boss:
         For example::
 
             map alatty_mod+e combine : new_window : next_layout
-        ''')
+        ''',
+    )
     def combine(self, action_definition: str, window_for_dispatch: Optional[Window] = None, dispatch_type: str = 'KeyPress', raise_error: bool = False) -> bool:
         consumed = False
         if action_definition:
@@ -979,6 +1019,7 @@ class Boss:
                     urls = parse_uri_list(text)
                     if w.at_prompt:
                         import shlex
+
                         text = ' '.join(map(shlex.quote, urls))
                     else:
                         text = '\n'.join(urls)
@@ -1007,10 +1048,15 @@ class Boss:
                     ctab.set_active_window(cw)
                     return
             w = self.confirm(
-                ngettext('Are you sure you want to close this OS window, it has one window running?',
-                         'Are you sure you want to close this OS window, it has {} windows running', num).format(num),
-                self.handle_close_os_window_confirmation, os_window_id,
-                window=tm.active_window, title=_('Close OS window'),
+                ngettext(
+                    'Are you sure you want to close this OS window, it has one window running?',
+                    'Are you sure you want to close this OS window, it has {} windows running',
+                    num,
+                ).format(num),
+                self.handle_close_os_window_confirmation,
+                os_window_id,
+                window=tm.active_window,
+                title=_('Close OS window'),
             )
             tm.confirm_close_window_id = w.id
 
@@ -1061,10 +1107,12 @@ class Boss:
             return
         assert tm is not None
         w = self.confirm(
-            ngettext('Are you sure you want to quit alatty, it has one window running?',
-                     'Are you sure you want to quit alatty, it has {} windows running?', num).format(num),
+            ngettext(
+                'Are you sure you want to quit alatty, it has one window running?', 'Are you sure you want to quit alatty, it has {} windows running?', num
+            ).format(num),
             self.handle_quit_confirmation,
-            window=tm.active_window, title=_('Quit alatty?'),
+            window=tm.active_window,
+            title=_('Quit alatty?'),
         )
         self.quit_confirmation_window_id = w.id
         set_application_quit_request(CLOSE_BEING_CONFIRMED)
@@ -1075,6 +1123,7 @@ class Boss:
 
     def notify_on_os_window_death(self, address: str) -> None:
         import socket
+
         s = socket.socket(family=socket.AF_UNIX)
         with suppress(Exception):
             s.connect(address)
@@ -1114,15 +1163,8 @@ class Boss:
                         bdata = re.sub(br'\x1b\].*?\x1b\\', b'', bdata)
 
             tab.new_special_window(
-                SpecialWindow(cmd, bdata, title or _('History'), overlay_for=window.id, cwd=window.cwd_of_child),
-                copy_colors_from=self.active_window
-                )
-
-    @ac('misc', 'Edit the alatty.conf config file in your favorite text editor')
-    def edit_config_file(self, *a: Any) -> None:
-        confpath = prepare_config_file_for_editing()
-        cmd = [alatty_exe(), '+edit'] + get_editor(get_options()) + [confpath]
-        self.new_os_window(*cmd)
+                SpecialWindow(cmd, bdata, title or _('History'), overlay_for=window.id, cwd=window.cwd_of_child), copy_colors_from=self.active_window
+            )
 
     def run_kitten_with_metadata(
         self,
@@ -1132,10 +1174,11 @@ class Boss:
         window: Optional[Window] = None,
         custom_callback: Optional[Callable[[Dict[str, Any], int, 'Boss'], None]] = None,
         action_on_removal: Optional[Callable[[int, 'Boss'], None]] = None,
-        default_data: Optional[Dict[str, Any]] = None
+        default_data: Optional[Dict[str, Any]] = None,
     ) -> Any:
         orig_args, args = list(args), list(args)
         from kittens.runner import create_kitten_handler
+
         end_kitten = create_kitten_handler(kitten, orig_args)
         is_wrapped = kitten in wrapped_kitten_names()
         if window is None:
@@ -1162,8 +1205,10 @@ class Boss:
                     data = sel.encode('utf-8') if sel else None
                 elif q[0] in ('output', 'first_output', 'last_visited_output'):
                     which = {
-                        'output': CommandOutput.last_run, 'first_output': CommandOutput.first_on_screen,
-                        'last_visited_output': CommandOutput.last_visited}[q[0]]
+                        'output': CommandOutput.last_run,
+                        'first_output': CommandOutput.first_on_screen,
+                        'last_visited_output': CommandOutput.last_visited,
+                    }[q[0]]
                     data = w.cmd_output(which, as_ansi='ansi' in q, add_wrap_markers='screen' in q).encode('utf-8')
                 else:
                     raise ValueError(f'Unknown type_of_input: {type_of_input}')
@@ -1199,7 +1244,7 @@ class Boss:
                     overlay_for=w.id,
                     overlay_behind=end_kitten.has_ready_notification,
                 ),
-                copy_colors_from=w
+                copy_colors_from=w,
             )
             wid = w.id
             overlay_window.actions_on_close.append(partial(self.on_kitten_finish, wid, custom_callback or end_kitten, default_data=default_data))
@@ -1208,8 +1253,10 @@ class Boss:
                 def callback_wrapper(*a: Any) -> None:
                     if action_on_removal is not None:
                         action_on_removal(wid, self)
+
                 overlay_window.actions_on_removal.append(callback_wrapper)
             return overlay_window
+
     _run_kitten = run_kitten_with_metadata
 
     @ac('misc', 'Run the specified kitten. See :doc:`/kittens/custom` for details')
@@ -1220,9 +1267,11 @@ class Boss:
         self.run_kitten_with_metadata(kitten, args)
 
     def on_kitten_finish(
-        self, target_window_id: int, end_kitten: Callable[[Dict[str, Any], int, 'Boss'], None],
+        self,
+        target_window_id: int,
+        end_kitten: Callable[[Dict[str, Any], int, 'Boss'], None],
         source_window: Window,
-        default_data: Optional[Dict[str, Any]] = None
+        default_data: Optional[Dict[str, Any]] = None,
     ) -> None:
         data, source_window.kitten_result = source_window.kitten_result, None
         if data is None:
@@ -1235,7 +1284,8 @@ class Boss:
         self.run_kitten_with_metadata('unicode_input')
 
     @ac(
-        'tab', '''
+        'tab',
+        '''
         Change the title of the active tab interactively, by typing in the new title.
         If you specify an argument to this action then that is used as the title instead of asking for it.
         Use the empty string ("") to reset the title to default. Use a space (" ") to indicate that the
@@ -1249,7 +1299,7 @@ class Boss:
             map f3 set_tab_title ""
             # interactive usage without prefilled prompt
             map f3 set_tab_title " "
-        '''
+        ''',
     )
     def set_tab_title(self, title: Optional[str] = None) -> None:
         tab = self.active_tab
@@ -1264,20 +1314,25 @@ class Boss:
                 prefilled = ''
             self.get_line(
                 _('Enter the new title for this tab below. An empty title will cause the default title to be used.'),
-                tab.set_title, window=tab.active_window, initial_value=prefilled)
+                tab.set_title,
+                window=tab.active_window,
+                initial_value=prefilled,
+            )
 
     def create_special_window_for_show_error(self, title: str, msg: str, overlay_for: Optional[int] = None) -> SpecialWindowInstance:
         ec = sys.exc_info()
         tb = ''
         if ec != (None, None, None):
             import traceback
+
             tb = traceback.format_exc()
         cmd = [kitten_exe(), '__show_error__', '--title', title]
         env = {}
         env['KITTEN_RUNNING_AS_UI'] = '1'
         env['ALATTY_CONFIG_DIRECTORY'] = config_dir
         return SpecialWindow(
-            cmd, override_title=title,
+            cmd,
+            override_title=title,
             stdin=json.dumps({'msg': msg, 'tb': tb}).encode(),
             env=env,
             overlay_for=overlay_for,
@@ -1305,6 +1360,7 @@ class Boss:
             self.dispatch_action(actions.pop(0), window_for_dispatch, dispatch_type)
             if actions:
                 self.drain_actions(actions)
+
         add_timer(callback, 0, False)
 
     def destroy(self) -> None:
@@ -1369,11 +1425,14 @@ class Boss:
     def get_clipboard_buffer(self, buffer_name: str) -> Optional[str]:
         return self.clipboard_buffers.get(buffer_name)
 
-    @ac('cp', '''
+    @ac(
+        'cp',
+        '''
         Copy the selection from the active window to the specified buffer
 
         See :ref:`cpbuf` for details.
-        ''')
+        ''',
+    )
     def copy_to_buffer(self, buffer_name: str) -> None:
         w = self.active_window
         if w is not None and not w.destroyed:
@@ -1386,11 +1445,14 @@ class Boss:
                 else:
                     self.set_clipboard_buffer(buffer_name, text)
 
-    @ac('cp', '''
+    @ac(
+        'cp',
+        '''
         Paste from the specified buffer to the active window
 
         See :ref:`cpbuf` for details.
-        ''')
+        ''',
+    )
     def paste_from_buffer(self, buffer_name: str) -> None:
         if buffer_name == 'clipboard':
             text: Optional[str] = get_clipboard_string()
@@ -1401,11 +1463,14 @@ class Boss:
         if text:
             self.paste_to_active_window(text)
 
-    @ac('tab', '''
+    @ac(
+        'tab',
+        '''
         Go to the specified tab, by number, starting with 1
 
         Zero and negative numbers go to previously active tabs
-        ''')
+        ''',
+    )
     def goto_tab(self, tab_num: int) -> None:
         tm = self.active_tab_manager
         if tm is not None:
@@ -1434,12 +1499,10 @@ class Boss:
         self.new_tab_with_cwd()
         self.set_tab_title("server")
 
-
     prev_tab = previous_tab
 
     def process_stdin_source(
-        self, window: Optional[Window] = None,
-        stdin: Optional[str] = None, copy_pipe_data: Optional[Dict[str, Any]] = None
+        self, window: Optional[Window] = None, stdin: Optional[str] = None, copy_pipe_data: Optional[Dict[str, Any]] = None
     ) -> Tuple[Optional[Dict[str, str]], Optional[bytes]]:
         w = window or self.active_window
         if not w:
@@ -1449,17 +1512,14 @@ class Boss:
         if stdin:
             add_wrap_markers = stdin.endswith('_wrap')
             if add_wrap_markers:
-                stdin = stdin[:-len('_wrap')]
+                stdin = stdin[: -len('_wrap')]
             stdin = data_for_at(w, stdin, add_wrap_markers=add_wrap_markers)
             if stdin is not None:
                 pipe_data = w.pipe_data(stdin, has_wrap_markers=add_wrap_markers) if w else None
                 if pipe_data:
                     if copy_pipe_data is not None:
                         copy_pipe_data.update(pipe_data)
-                    env = {
-                        'ALATTY_PIPE_DATA':
-                        '{scrolled_by}:{cursor_x},{cursor_y}:{lines},{columns}'.format(**pipe_data)
-                    }
+                    env = {'ALATTY_PIPE_DATA': '{scrolled_by}:{cursor_x},{cursor_y}:{lines},{columns}'.format(**pipe_data)}
                 input_data = stdin.encode('utf-8')
         return env, input_data
 
@@ -1470,11 +1530,7 @@ class Boss:
         return data_for_at(window, which, add_wrap_markers=add_wrap_markers)
 
     def special_window_for_cmd(
-        self, cmd: List[str],
-        window: Optional[Window] = None,
-        stdin: Optional[str] = None,
-        cwd_from: Optional[CwdRequest] = None,
-        as_overlay: bool = False
+        self, cmd: List[str], window: Optional[Window] = None, stdin: Optional[str] = None, cwd_from: Optional[CwdRequest] = None, as_overlay: bool = False
     ) -> SpecialWindowInstance:
         w = window or self.active_window
         env, input_data = self.process_stdin_source(w, stdin)
@@ -1498,6 +1554,7 @@ class Boss:
         cwd_from: Optional[CwdRequest] = None,
     ) -> None:
         import subprocess
+
         env = env or None
         if env:
             env_ = default_env().copy()
@@ -1548,8 +1605,7 @@ class Boss:
         cwd_from = CwdRequest(window) if window else None
 
         def create_window() -> SpecialWindowInstance:
-            return self.special_window_for_cmd(
-                cmd, stdin=source, as_overlay=dest == 'overlay', cwd_from=cwd_from)
+            return self.special_window_for_cmd(cmd, stdin=source, as_overlay=dest == 'overlay', cwd_from=cwd_from)
 
         if dest == 'overlay' or dest == 'window':
             tab = self.active_tab
@@ -1649,9 +1705,7 @@ class Boss:
         if args and args[0] == '@':
             args = args[1:]
         if args:
-            return tab.new_special_window(
-                self.args_to_special_window(args, cwd_from=cwd_from),
-                location=location)
+            return tab.new_special_window(self.args_to_special_window(args, cwd_from=cwd_from), location=location)
         else:
             return tab.new_window(cwd_from=cwd_from, location=location)
 
@@ -1666,13 +1720,17 @@ class Boss:
             return self.new_window(*args)
         self._new_window(list(args), cwd_from=CwdRequest(w))
 
-    @ac('misc', '''
+    @ac(
+        'misc',
+        '''
         Launch the specified program in a new window/tab/etc.
 
         See :doc:`launch` for details
-        ''')
+        ''',
+    )
     def launch(self, *args: str) -> None:
         from alatty.launch import launch, parse_launch_args
+
         opts, args_ = parse_launch_args(args)
         launch(self, opts, args_)
 
@@ -1690,6 +1748,7 @@ class Boss:
 
     def apply_new_options(self, opts: Options) -> None:
         from .fonts.box_drawing import set_scale
+
         # Update options storage
         set_options(opts, is_wayland(), self.args.debug_rendering, self.args.debug_font_fallback)
         apply_options_update()
@@ -1698,6 +1757,7 @@ class Boss:
         # Update font data
         set_scale(opts.box_drawing_scale)
         from .fonts.render import set_font_family
+
         set_font_family(opts)
         for os_window_id, tm in self.os_window_map.items():
             if tm is not None:
@@ -1706,10 +1766,12 @@ class Boss:
         # Update key bindings
         if is_macos:
             from .fast_data_types import cocoa_clear_global_shortcuts
+
             cocoa_clear_global_shortcuts()
         self.mappings.update_keymap()
         if is_macos:
             from .fast_data_types import cocoa_recreate_global_menu
+
             cocoa_recreate_global_menu()
         # Update misc options
         for tm in self.all_tab_managers:
@@ -1720,7 +1782,9 @@ class Boss:
             w.refresh(reload_all_gpu_data=True)
         load_shader_programs.recompile_if_needed()
 
-    @ac('misc', '''
+    @ac(
+        'misc',
+        '''
         Reload the config file
 
         If mapped without arguments reloads the default config file, otherwise loads
@@ -1728,10 +1792,12 @@ class Boss:
         config options. For example::
 
             map f5 load_config_file /path/to/some/alatty.conf
-        ''')
+        ''',
+    )
     def load_config_file(self, *paths: str, apply_overrides: bool = True, overrides: Sequence[str] = ()) -> None:
         from .cli import default_config_paths
         from .config import load_config
+
         old_opts = get_options()
         prev_paths = old_opts.all_config_paths or default_config_paths(self.args.config)
         paths = paths or prev_paths
@@ -1754,6 +1820,7 @@ class Boss:
 
     def dbus_notification_callback(self, activated: bool, a: int, b: Union[int, str]) -> None:
         from .notify import dbus_notification_activated, dbus_notification_created
+
         if activated:
             assert isinstance(b, str)
             dbus_notification_activated(a, b)
@@ -1783,10 +1850,7 @@ class Boss:
         self.show_error(_('Errors parsing configuration'), msg)
 
     def _move_window_to(
-        self,
-        window: Optional[Window] = None,
-        target_tab_id: Optional[Union[str, int]] = None,
-        target_os_window_id: Optional[Union[str, int]] = None
+        self, window: Optional[Window] = None, target_tab_id: Optional[Union[str, int]] = None, target_os_window_id: Optional[Union[str, int]] = None
     ) -> None:
         window = window or self.active_window
         if not window:
@@ -1838,11 +1902,14 @@ class Boss:
         self._cleanup_tab_after_window_removal(tab)
         target_tab.make_active()
 
-    @ac('win', '''
+    @ac(
+        'win',
+        '''
         Detach a window, moving it to another tab or OS Window
 
         See :ref:`detaching windows <detach_window>` for details.
-        ''')
+        ''',
+    )
     def detach_window(self, *args: str) -> None:
         if not args or args[0] == 'new':
             return self._move_window_to(target_os_window_id='new')
@@ -1850,11 +1917,14 @@ class Boss:
             where = 'new' if args[0] == 'new-tab' else args[0][4:]
             return self._move_window_to(target_tab_id=where)
 
-    @ac('tab', '''
+    @ac(
+        'tab',
+        '''
         Detach a tab, moving it to another OS Window
 
         See :ref:`detaching windows <detach_window>` for details.
-        ''')
+        ''',
+    )
     def detach_tab(self, *args: str) -> None:
         if not args or args[0] == 'new':
             return self._move_tab_to()
@@ -1862,6 +1932,7 @@ class Boss:
     # Can be called with alatty -o "map f1 send_test_notification"
     def send_test_notification(self) -> None:
         from .notify import notify
+
         now = monotonic()
         ident = f'test-notify-{now}'
         notify(f'Test {now}', f'At: {now}', identifier=ident, subtitle=f'Test subtitle {now}')
@@ -1885,17 +1956,21 @@ class Boss:
             output = '\n'.join(f'{k}={v}' for k, v in env.items())
             self.display_scrollback(w, output, title=_('Current alatty env vars'), report_cursor=False)
 
-    @ac('debug', '''
+    @ac(
+        'debug',
+        '''
         Close all shared SSH connections
 
         See :opt:`share_connections <kitten-ssh.share_connections>` for details.
-        ''')
+        ''',
+    )
     def close_shared_ssh_connections(self) -> None:
         cleanup_ssh_control_masters()
 
     @ac('misc', 'Discard this event completely ignoring it')
     def discard_event(self) -> None:
         pass
+
     mouse_discard_event = discard_event
 
     def on_system_color_scheme_change(self, appearance: int) -> None:

@@ -2083,14 +2083,6 @@ map('Unicode input',
     only='macos',
     )
 
-map('Edit config file',
-    'edit_config_file alatty_mod+f2 edit_config_file',
-    )
-map('Edit config file',
-    'edit_config_file cmd+, edit_config_file',
-    only='macos',
-    )
-
 map('Open the alatty command shell',
     'alatty_shell alatty_mod+escape alatty_shell window',
     long_text='''

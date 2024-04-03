@@ -529,60 +529,6 @@ class PrintHelpForSeq:
 print_help_for_seq = PrintHelpForSeq()
 
 
-def seq_as_rst(
-    seq: OptionSpecSeq,
-    usage: Optional[str],
-    message: Optional[str],
-    appname: Optional[str],
-    heading_char: str = '-'
-) -> str:
-    import textwrap
-    blocks: List[str] = []
-    a = blocks.append
-
-    usage = '[program-to-run ...]' if usage is None else usage
-    optstring = '[options] ' if seq else ''
-    a('.. highlight:: sh')
-    a('.. code-block:: sh')
-    a('')
-    a(f'  {appname} {optstring}{usage}')
-    a('')
-    message = message or default_msg
-    a(prettify_rst(message))
-    a('')
-    if seq:
-        a('Options')
-        a(heading_char * 30)
-    for opt in seq:
-        if isinstance(opt, str):
-            a(opt)
-            a('~' * (len(opt) + 10))
-            continue
-        help_text = opt['help']
-        if help_text == '!':
-            continue  # hidden option
-        defn = '.. option:: '
-        if not opt.get('type', '').startswith('bool-'):
-            val_name = ' <{}>'.format(opt['dest'].upper())
-        else:
-            val_name = ''
-        a(defn + ', '.join(o + val_name for o in sorted(opt['aliases'])))
-        if opt.get('help'):
-            defval = opt.get('default')
-            t = help_text.replace('%default', str(defval)).strip()
-            t = t.replace('#placeholder_for_formatting#', '')
-            a('')
-            a(textwrap.indent(prettify_rst(t), ' ' * 4))
-            if defval is not None:
-                a(textwrap.indent(f'Default: :code:`{defval}`', ' ' * 4))
-            if opt.get('choices'):
-                a(textwrap.indent('Choices: {}'.format(', '.join(f':code:`{c}`' for c in sorted(opt['choices']))), ' ' * 4))
-            a('')
-
-    text = '\n'.join(blocks)
-    return text
-
-
 def as_type_stub(seq: OptionSpecSeq, disabled: OptionSpecSeq, class_name: str, extra_fields: Sequence[str] = ()) -> str:
     from itertools import chain
     ans: List[str] = [f'class {class_name}:']
@@ -891,17 +837,6 @@ type=bool-set
         ))
     ans: str = getattr(options_spec, 'ans')
     return ans
-
-
-def option_spec_as_rst(
-    ospec: Callable[[], str] = options_spec,
-    usage: Optional[str] = None, message: Optional[str] = None, appname: Optional[str] = None,
-    heading_char: str = '-'
-) -> str:
-    options = parse_option_spec(ospec())
-    seq, disabled = options
-    oc = Options(seq, usage, message, appname)
-    return seq_as_rst(oc.seq, oc.usage, oc.message, oc.appname, heading_char=heading_char)
 
 
 T = TypeVar('T')

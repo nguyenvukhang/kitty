@@ -67,21 +67,6 @@ def cached_values_for(name: str) -> Generator[Dict[str, Any], None, None]:
         log_error(f'Failed to save cached values with error: {err}')
 
 
-def commented_out_default_config() -> str:
-    from .options.definition import definition
-    return '\n'.join(definition.as_conf(commented=True))
-
-
-def prepare_config_file_for_editing() -> str:
-    if not os.path.exists(defconf):
-        d = os.path.dirname(defconf)
-        with suppress(FileExistsError):
-            os.makedirs(d)
-        with open(defconf, 'w', encoding='utf-8') as f:
-            f.write(commented_out_default_config())
-    return defconf
-
-
 def finalize_keys(opts: Options, accumulate_bad_lines: Optional[List[BadLine]] = None) -> None:
     defns: List[KeyDefinition] = []
     for d in opts.map:

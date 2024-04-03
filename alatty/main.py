@@ -155,7 +155,7 @@ def set_cocoa_global_shortcuts(opts: Options) -> Dict[str, SingleKey]:
                 parts = tuple(kd.definition.split())
                 func_map[parts].append(single_key)
 
-        for ac in ('new_os_window', 'close_os_window', 'close_tab', 'edit_config_file', 'previous_tab',
+        for ac in ('new_os_window', 'close_os_window', 'close_tab', 'previous_tab',
                    'next_tab', 'new_tab', 'new_window', 'close_window', 'toggle_macos_secure_keyboard_entry', 'toggle_fullscreen',
                    'hide_macos_app', 'hide_macos_other_apps', 'minimize_macos_window', 'quit'):
             val = get_macos_shortcut_for(func_map, ac)

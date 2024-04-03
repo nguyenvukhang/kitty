@@ -183,47 +183,6 @@ class Option:
     def is_color_table_color(self) -> bool:
         return self.name.startswith('color') and self.name[5:].isdigit()
 
-    def as_conf(self, commented: bool = False, level: int = 0, option_group: List['Option'] = []) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        if not self.documented:
-            return ans
-        if option_group:
-            sz = max(len(self.name), max(len(o.name) for o in option_group))
-            a(f'{self.name.ljust(sz)} {self.defval_as_string}'.rstrip())
-            for o in option_group:
-                a(f'{o.name.ljust(sz)} {o.defval_as_string}'.rstrip())
-        else:
-            a(f'{self.name} {self.defval_as_string}'.rstrip())
-        if self.long_text:
-            a('')
-            a(render_block(self.long_text))
-            a('')
-        return ans
-
-    def as_rst(
-        self, conf_name: str, shortcut_slugs: Dict[str, Tuple[str, str]],
-        alatty_mod: str, level: int = 0, option_group: List['Option'] = []
-    ) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        if not self.documented:
-            return ans
-        mopts = [self] + option_group
-        a('.. opt:: ' + ', '.join(f'{conf_name}.{mo.name}' for mo in mopts))
-        if any(mo.defval_as_string for mo in mopts):
-            a('.. code-block:: conf')
-            a('')
-            sz = max(len(x.name) for x in mopts)
-            for mo in mopts:
-                a(('    {:%ds} {}' % sz).format(mo.name, mo.defval_as_string))
-        a('')
-        if self.long_text:
-            a(expand_opt_references(conf_name, self.long_text))
-            a('')
-        return ans
-
-
 class MultiVal:
 
     def __init__(self, val_as_str: str, add_to_default: bool, documented: bool, only: Only) -> None:
@@ -249,54 +208,6 @@ class MultiOption:
     def __iter__(self) -> Iterator[MultiVal]:
         yield from self.items
 
-    def as_conf(self, commented: bool = False, level: int = 0) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        documented = False
-        for k in self.items:
-            if k.documented:
-                documented = True
-                if k.add_to_default:
-                    a(f'{self.name} {k.defval_as_str}'.rstrip())
-                else:
-                    # Comment out multi-options that have no default values
-                    a(f'# {self.name}'.rstrip())
-                if not k.add_to_default and k.defval_as_str:
-                    a('')
-                    a(f'#: E.g. {self.name} {k.defval_as_str}'.rstrip())
-        if self.long_text and documented:
-            a('')
-            a(render_block(self.long_text))
-            a('')
-        return ans
-
-    def as_rst(self, conf_name: str, shortcut_slugs: Dict[str, Tuple[str, str]], alatty_mod: str, level: int = 0) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        a(f'.. opt:: {conf_name}.{self.name}')
-        documented = tuple(x for x in self.items if x.documented)
-        if any(k.defval_as_str for k in documented):
-            defaults = tuple(x for x in documented if x.add_to_default)
-            if defaults:
-                a('.. code-block:: conf')
-                a('')
-                for k in defaults:
-                    a(f'    {self.name:s} {k.defval_as_str}'.rstrip())
-            else:
-                a('')
-                a('Has no default values. Example values are shown below:')
-                a('')
-                a('.. code-block:: conf')
-                a('')
-                for k in self.items:
-                    a(f'    {self.name:s} {k.defval_as_str}'.rstrip())
-        a('')
-        if self.long_text:
-            a(expand_opt_references(conf_name, self.long_text))
-            a('')
-        return ans
-
-
 class Mapping:
     add_to_default: bool
     short_text: str
@@ -313,57 +224,6 @@ class Mapping:
     @property
     def key_text(self) -> str:
         return ''
-
-    def as_conf(self, commented: bool = False, level: int = 0, action_group: List['Mapping'] = []) -> List[str]:
-        ans: List[str] = []
-        if not self.documented:
-            return ans
-        a = ans.append
-        if self.short_text:
-            a(render_block(self.short_text.strip())), a('')
-        for sc in [self] + action_group:
-            if sc.documented:
-                prefix = '' if sc.add_to_default else '#::  E.g. '
-                a(f'{prefix}{sc.setting_name} {sc.parseable_text}')
-        if self.long_text:
-            a(''), a(render_block(self.long_text.strip(), '#::  '))
-        a('')
-        return ans
-
-    def as_rst(
-        self, conf_name: str, shortcut_slugs: Dict[str, Tuple[str, str]],
-        alatty_mod: str, level: int = 0, action_group: List['Mapping'] = []
-    ) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        if not self.documented:
-            return ans
-        if not self.short_text:
-            raise ValueError(f'The shortcut for {self.name} has no short_text')
-        sc_text = f'{conf_name}.{self.short_text}'
-        shortcut_slugs[f'{conf_name}.{self.name}'] = (sc_text, self.key_text.replace('alatty_mod', alatty_mod))
-        a(f'.. shortcut:: {sc_text}')
-        block_started = False
-        for sc in [self] + action_group:
-            if sc.add_to_default and sc.documented:
-                if not block_started:
-                    a('.. code-block:: conf')
-                    a('')
-                    block_started = True
-                suffix = ''
-                if sc.only == 'macos':
-                    suffix = ' 🍎'
-                elif sc.only == 'linux':
-                    suffix = ' 🐧'
-                a(f'    {sc.setting_name} {sc.parseable_text.replace("alatty_mod", alatty_mod)}{suffix}')
-        a('')
-        if self.long_text:
-            a('')
-            a(expand_opt_references(conf_name, self.long_text))
-            a('')
-
-        return ans
-
 
 class ShortcutMapping(Mapping):
     setting_name: str = 'map'
@@ -459,100 +319,6 @@ class Group:
                 yield from x.iter_all_non_groups()
             else:
                 yield x
-
-    def as_rst(self, conf_name: str, shortcut_slugs: Dict[str, Tuple[str, str]], alatty_mod: str = 'alatty_mod', level: int = 0) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        if level:
-            a('')
-            a(f'.. _conf-{conf_name}-{self.name}:')
-            a('')
-            a(self.title)
-            heading_level = '+' if level > 1 else '-'
-            a(heading_level * (len(self.title) + 20))
-            a('')
-            if self.start_text:
-                a(self.start_text)
-                a('')
-        else:
-            ans.extend(('.. default-domain:: conf', ''))
-
-        alatty_mod = self.coalesced_iterator_data.alatty_mod
-        for item in self.iter_with_coalesced_options():
-            if isinstance(item, Option):
-                lines = item.as_rst(conf_name, shortcut_slugs, alatty_mod, option_group=self.coalesced_iterator_data.option_group_for_option(item))
-            elif isinstance(item, Mapping):
-                lines = item.as_rst(conf_name, shortcut_slugs, alatty_mod, level + 1, action_group=self.coalesced_iterator_data.action_group_for_action(item))
-            else:
-                lines = item.as_rst(conf_name, shortcut_slugs, alatty_mod, level + 1)
-            ans.extend(lines)
-
-        if level:
-            if self.end_text:
-                a('')
-                a(self.end_text)
-        return ans
-
-    def as_conf(self, commented: bool = False, level: int = 0) -> List[str]:
-        ans: List[str] = []
-        a = ans.append
-        if level:
-            a('#: ' + self.title + ' {{''{')
-            a('')
-            if self.start_text:
-                a(render_block(self.start_text))
-                a('')
-        else:
-            ans.extend(('# vim:fileencoding=utf-8:foldmethod=marker', ''))
-
-        for item in self.iter_with_coalesced_options():
-            if isinstance(item, Option):
-                lines = item.as_conf(option_group=self.coalesced_iterator_data.option_group_for_option(item))
-            elif isinstance(item, Mapping):
-                lines = item.as_conf(commented, level + 1, action_group=self.coalesced_iterator_data.action_group_for_action(item))
-            else:
-                lines = item.as_conf(commented, level + 1)
-            ans.extend(lines)
-
-        if level:
-            if self.end_text:
-                a('')
-                a(render_block(self.end_text))
-            a('#: }}''}')
-            a('')
-        else:
-            map_groups = []
-            start: Optional[int] = None
-            count: Optional[int] = None
-            for i, line in enumerate(ans):
-                if line.startswith('map ') or line.startswith('mouse_map '):
-                    if start is None:
-                        start = i
-                        count = 1
-                    else:
-                        if count is not None:
-                            count += 1
-                else:
-                    if start is not None and count is not None:
-                        map_groups.append((start, count))
-                        start = count = None
-            for start, count in map_groups:
-                r = range(start, start + count)
-                sz = max(len(ans[i].split(' ', 3)[1]) for i in r)
-                for i in r:
-                    line = ans[i]
-                    parts = line.split(' ', 3)
-                    parts[1] = parts[1].ljust(sz)
-                    ans[i] = ' '.join(parts)
-
-            if commented:
-                ans = [x if x.startswith('#') or not x.strip() else (f'# {x}') for x in ans]
-            else:
-                # Comment out any invalid options that have no value
-                ans = [f'# {x}' if not x.startswith('#') and len(x.strip().split()) == 1 else x for x in ans]
-
-        return ans
-
 
 def resolve_import(name: str, module: Any = None) -> ParserFuncType:
     ans = None
@@ -686,11 +452,3 @@ class Definition:
 
     def add_deprecation(self, parser_name: str, *aliases: str) -> None:
         self.deprecations[self.parser_func(parser_name)] = aliases
-
-    def as_conf(self, commented: bool = False) -> List[str]:
-        self.coalesced_iterator_data.initialize(self.root_group)
-        return self.root_group.as_conf(commented)
-
-    def as_rst(self, conf_name: str, shortcut_slugs: Dict[str, Tuple[str, str]]) -> List[str]:
-        self.coalesced_iterator_data.initialize(self.root_group)
-        return self.root_group.as_rst(conf_name, shortcut_slugs)

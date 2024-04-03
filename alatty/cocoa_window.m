@@ -237,7 +237,6 @@ find_app_name(void) {
     }
 }
 
-PENDING(edit_config_file, PREFERENCES_WINDOW)
 PENDING(new_os_window, NEW_OS_WINDOW)
 PENDING(detach_tab, DETACH_TAB)
 PENDING(close_os_window, CLOSE_OS_WINDOW)
@@ -303,7 +302,7 @@ typedef struct {
     NSEventModifierFlags mods;
 } GlobalShortcut;
 typedef struct {
-    GlobalShortcut new_os_window, close_os_window, close_tab, edit_config_file, reload_config;
+    GlobalShortcut new_os_window, close_os_window, close_tab, reload_config;
     GlobalShortcut previous_tab, next_tab, new_tab, new_window, close_window, reset_terminal, clear_terminal_and_scrollback;
     GlobalShortcut toggle_macos_secure_keyboard_entry, toggle_fullscreen;
     GlobalShortcut hide_macos_app, hide_macos_other_apps, minimize_macos_window, quit;
@@ -318,7 +317,7 @@ cocoa_set_global_shortcut(PyObject *self UNUSED, PyObject *args) {
     if (!PyArg_ParseTuple(args, "siI", &name, &mods, &key)) return NULL;
     GlobalShortcut *gs = NULL;
 #define Q(x) if (strcmp(name, #x) == 0) gs = &global_shortcuts.x
-    Q(new_os_window); else Q(close_os_window); else Q(close_tab); else Q(edit_config_file);
+    Q(new_os_window); else Q(close_os_window); else Q(close_tab);
     else Q(new_tab); else Q(next_tab); else Q(previous_tab);
     else Q(new_window); else Q(close_window); else Q(reset_terminal); else Q(clear_terminal_and_scrollback); else Q(reload_config);
     else Q(toggle_macos_secure_keyboard_entry); else Q(toggle_fullscreen);
@@ -599,7 +598,6 @@ cocoa_create_global_menu(void) {
                        action:@selector(orderFrontStandardAboutPanel:)
                 keyEquivalent:@""];
     [appMenu addItem:[NSMenuItem separatorItem]];
-    MENU_ITEM(appMenu, @"Preferences…", edit_config_file);
     MENU_ITEM(appMenu, @"Reload Preferences", reload_config);
     [appMenu addItem:[NSMenuItem separatorItem]];
 
