@@ -113,7 +113,6 @@ option_names = (  # {{{
  'shell',
  'single_window_margin_width',
  'single_window_padding_width',
- 'startup_session',
  'strip_trailing_spaces',
  'sync_to_monitor',
  'tab_activity_symbol',
@@ -222,7 +221,6 @@ class Options:
     shell: str = '.'
     single_window_margin_width: FloatEdges = FloatEdges(left=-1.0, top=-1.0, right=-1.0, bottom=-1.0)
     single_window_padding_width: FloatEdges = FloatEdges(left=-1.0, top=-1.0, right=-1.0, bottom=-1.0)
-    startup_session: typing.Optional[str] = None
     strip_trailing_spaces: choices_for_strip_trailing_spaces = 'never'
     sync_to_monitor: bool = True
     tab_activity_symbol: str = ''

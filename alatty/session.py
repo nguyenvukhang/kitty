@@ -202,35 +202,7 @@ def create_sessions(
     args: Optional[CLIOptions] = None,
     special_window: Optional['SpecialWindowInstance'] = None,
     cwd_from: Optional['CwdRequest'] = None,
-    respect_cwd: bool = False,
-    default_session: Optional[str] = None,
 ) -> Iterator[Session]:
-    if args and args.session:
-        if args.session == "none":
-            default_session = "none"
-        else:
-            environ: Optional[Mapping[str, str]] = None
-            if isinstance(args.session, PreReadSession):
-                session_data = '' + str(args.session)
-                environ = args.session.associated_environ  # type: ignore
-            else:
-                if args.session == '-':
-                    f = sys.stdin
-                else:
-                    f = open(resolve_custom_file(args.session))
-                with f:
-                    session_data = f.read()
-            yield from parse_session(session_data, opts, environ=environ)
-            return
-    if default_session and default_session != 'none':
-        try:
-            with open(default_session) as f:
-                session_data = f.read()
-        except OSError:
-            log_error(f'Failed to read from session file, ignoring: {default_session}')
-        else:
-            yield from parse_session(session_data, opts)
-            return
     ans = Session()
     current_layout = opts.enabled_layouts[0] if opts.enabled_layouts else 'tall'
     ans.add_tab(opts)
@@ -238,7 +210,6 @@ def create_sessions(
     if special_window is None:
         cmd = args.args if args and args.args else resolved_shell(opts)
         from alatty.tabs import SpecialWindow
-        cwd: Optional[str] = args.directory if respect_cwd and args else None
-        special_window = SpecialWindow(cmd, cwd_from=cwd_from, cwd=cwd, hold=bool(args and args.hold))
+        special_window = SpecialWindow(cmd, cwd_from=cwd_from, hold=bool(args and args.hold))
     ans.add_special_window(special_window)
     yield ans

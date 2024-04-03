@@ -103,7 +103,6 @@ from .typing import TypedDict
 from .utils import (
     cleanup_ssh_control_masters,
     func_name,
-    get_editor,
     get_new_os_window_size,
     is_ok_to_read_image_file,
     is_path_in_temp_dir,
@@ -247,7 +246,7 @@ class Boss:
             cocoa_set_notification_activated_callback(notification_activated)
 
     def startup_first_child(self, os_window_id: Optional[int], startup_sessions: Iterable[Session] = ()) -> None:
-        si = startup_sessions or create_sessions(get_options(), self.args, default_session=get_options().startup_session)
+        si = startup_sessions or create_sessions(get_options(), self.args)
         focused_os_window = wid = 0
         token = os.environ.pop('XDG_ACTIVATION_TOKEN', '')
         with Window.set_ignore_focus_changes_for_new_windows():

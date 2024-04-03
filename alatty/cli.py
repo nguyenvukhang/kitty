@@ -728,16 +728,6 @@ Detach from the controlling terminal, if any. Not available on macOS. On macOS
 use :code:`open -a alatty.app -n` instead.
 
 
---session
-completion=type:file ext:session relative:conf group:"Session files"
-Path to a file containing the startup :italic:`session` (tabs, windows, layout,
-programs). Use - to read from STDIN. See the :file:`README` file for details and
-an example. Environment variables in the file name are expanded,
-relative paths are resolved relative to the alatty configuration directory.
-The special value :code:`none` means no session will be used, even if
-the :opt:`startup_session` option has been specified in alatty.conf.
-
-
 --hold
 type=bool-set
 Remain open, at a shell prompt, after child process exits. Note that this only

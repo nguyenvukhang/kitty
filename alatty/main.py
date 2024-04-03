@@ -183,7 +183,7 @@ def _run_app(opts: Options, args: CLIOptions, bad_lines: Sequence[BadLine] = ())
             set_x11_window_icon()
 
     with cached_values_for(run_app.cached_values_name) as cached_values:
-        startup_sessions = tuple(create_sessions(opts, args, default_session=opts.startup_session))
+        startup_sessions = tuple(create_sessions(opts, args))
         wincls = (startup_sessions[0].os_window_class if startup_sessions else '') or args.cls or appname
         window_state = (args.start_as if args.start_as and args.start_as != 'normal' else None) or (
             getattr(startup_sessions[0], 'os_window_state', None) if startup_sessions else None
