@@ -38,29 +38,10 @@ def preserve_sys_path() -> Generator[None, None, None]:
             sys.path.extend(orig)
 
 
-def import_kitten_main_module(config_dir: str, kitten: str) -> Dict[str, Any]:
-    if kitten.endswith('.py'):
-        with preserve_sys_path():
-            path = path_to_custom_kitten(config_dir, kitten)
-            if os.path.dirname(path):
-                sys.path.insert(0, os.path.dirname(path))
-            with open(path) as f:
-                src = f.read()
-            code = compile(src, path, 'exec')
-            g = {'__name__': 'kitten'}
-            exec(code, g)
-            hr = g.get('handle_result', lambda *a, **kw: None)
-        return {'start': g['main'], 'end': hr}
-
+def create_kitten_handler(kitten: str, orig_args: List[str]) -> Any:
     kitten = resolved_kitten(kitten)
     m = importlib.import_module(f'kittens.{kitten}.main')
-    return {'start': getattr(m, 'main'), 'end': getattr(m, 'handle_result', lambda *a, **k: None)}
-
-
-def create_kitten_handler(kitten: str, orig_args: List[str]) -> Any:
-    from alatty.constants import config_dir
-    kitten = resolved_kitten(kitten)
-    m = import_kitten_main_module(config_dir, kitten)
+    m = {'start': getattr(m, 'main'), 'end': getattr(m, 'handle_result', lambda *a, **k: None)}
     ans = partial(m['end'], [kitten] + orig_args)
     setattr(ans, 'type_of_input', getattr(m['end'], 'type_of_input', None))
     setattr(ans, 'no_ui', getattr(m['end'], 'no_ui', False))
@@ -81,28 +62,7 @@ def launch(args: List[str]) -> None:
 
 def run_kitten(kitten: str, run_name: str = '__main__') -> None:
     import runpy
-    original_kitten_name = kitten
-    kitten = resolved_kitten(kitten)
-    if kitten in all_kitten_names():
-        runpy.run_module(f'kittens.{kitten}.main', run_name=run_name)
-        return
-    # Look for a custom kitten
-    if not kitten.endswith('.py'):
-        kitten += '.py'
-    from alatty.constants import config_dir
-    path = path_to_custom_kitten(config_dir, kitten)
-    if not os.path.exists(path):
-        print('Available builtin kittens:', file=sys.stderr)
-        for kitten in all_kitten_names():
-            print(kitten, file=sys.stderr)
-        raise SystemExit(f'No kitten named {original_kitten_name}')
-    m = runpy.run_path(path, init_globals={'sys': sys, 'os': os}, run_name='__run_kitten__')
-    from alatty.fast_data_types import set_options
-    try:
-        m['main'](sys.argv)
-    finally:
-        set_options(None)
-
+    runpy.run_module(f'kittens.{resolved_kitten(kitten)}.main', run_name=run_name)
 
 @run_once
 def all_kitten_names() -> FrozenSet[str]:
