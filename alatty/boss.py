@@ -25,7 +25,7 @@ from typing import (
 )
 from weakref import WeakValueDictionary
 
-from .child import cached_process_data, default_env, set_default_env
+from .child import default_env, set_default_env
 from .cli_stub import CLIOptions
 from .clipboard import (
     Clipboard,
@@ -59,7 +59,6 @@ from .fast_data_types import (
     SingleKey,
     add_timer,
     apply_options_update,
-    background_opacity_of,
     change_background_opacity,
     cocoa_hide_app,
     cocoa_hide_other_apps,
@@ -101,7 +100,6 @@ from .tabs import SpecialWindow, SpecialWindowInstance, Tab, TabDict, TabManager
 from .types import AsyncResponse, WindowSystemMouseEvent, ac
 from .typing import TypedDict
 from .utils import (
-    cleanup_ssh_control_masters,
     func_name,
     get_new_os_window_size,
     is_ok_to_read_image_file,
@@ -111,7 +109,6 @@ from .utils import (
     macos_version,
     parse_os_window_state,
     parse_uri_list,
-    platform_window_id,
     safe_print,
     startup_notification_handler,
     which,
@@ -1914,17 +1911,6 @@ class Boss:
         if w:
             output = '\n'.join(f'{k}={v}' for k, v in env.items())
             self.display_scrollback(w, output, title=_('Current alatty env vars'), report_cursor=False)
-
-    @ac(
-        'debug',
-        '''
-        Close all shared SSH connections
-
-        See :opt:`share_connections <kitten-ssh.share_connections>` for details.
-        ''',
-    )
-    def close_shared_ssh_connections(self) -> None:
-        cleanup_ssh_control_masters()
 
     @ac('misc', 'Discard this event completely ignoring it')
     def discard_event(self) -> None:

@@ -45,7 +45,6 @@ from .os_window_size import initial_window_size_func
 from .session import create_sessions, get_os_window_sizing_data
 from .shaders import CompileError, load_shader_programs
 from .utils import (
-    cleanup_ssh_control_masters,
     detach,
     get_custom_window_icon,
     log_error,
@@ -391,7 +390,6 @@ def _main() -> None:
         run_app(opts, cli_opts, bad_lines)
     finally:
         glfw_terminate()
-        cleanup_ssh_control_masters()
 
 
 def main() -> None:
