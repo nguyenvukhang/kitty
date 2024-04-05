@@ -220,17 +220,8 @@ def hyperlink_for_url(url: str, text: str) -> str:
     return text
 
 
-def hyperlink_for_path(path: str, text: str) -> str:
-    path = os.path.abspath(path).replace(os.sep, "/")
-    if os.path.isdir(path):
-        path += path.rstrip("/") + "/"
-    return hyperlink_for_url(f'file://{hostname()}{path}', text)
-
-
 @role
 def file(x: str) -> str:
-    if x == 'alatty.conf':
-        x = hyperlink_for_path(os.path.join(config_dir, x), x)
     return x
 
 

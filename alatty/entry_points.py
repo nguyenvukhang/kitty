@@ -7,13 +7,6 @@ import sys
 from typing import List
 
 
-def runpy(args: List[str]) -> None:
-    if len(args) < 2:
-        raise SystemExit('Usage: alatty +runpy "some python code"')
-    sys.argv = ['alatty'] + args[2:]
-    exec(args[1])
-
-
 def hold(args: List[str]) -> None:
     from alatty.constants import kitten_exe
     args = ['kitten', '__hold_till_enter__'] + args[1:]
@@ -72,7 +65,6 @@ entry_points = {
 }
 namespaced_entry_points = {k: v for k, v in entry_points.items() if k[0] not in '+@'}
 namespaced_entry_points['hold'] = hold
-# namespaced_entry_points['runpy'] = runpy
 namespaced_entry_points['launch'] = launch
 namespaced_entry_points['kitten'] = run_kitten
 

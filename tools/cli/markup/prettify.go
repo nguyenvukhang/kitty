@@ -4,8 +4,6 @@ package markup
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 	"unicode"
 
@@ -86,20 +84,6 @@ func (self *Context) hyperlink_for_url(url string, text string) string {
 	return self.Url(url, text)
 }
 
-func (self *Context) hyperlink_for_path(path string, text string) string {
-	if !fmt_ctx.AllowEscapeCodes {
-		return text
-	}
-	path = strings.ReplaceAll(utils.Abspath(path), string(os.PathSeparator), "/")
-	fi, err := os.Stat(path)
-	if err == nil && fi.IsDir() {
-		path = strings.TrimSuffix(path, "/") + "/"
-	}
-	host := utils.Hostname()
-	url := "file://" + host + path
-	return self.hyperlink_for_url(url, text)
-}
-
 func Text_and_target(x string) (text string, target string) {
 	parts := strings.SplitN(x, "<", 2)
 	text = strings.TrimSpace(parts[0])
@@ -129,12 +113,6 @@ func (self *Context) Prettify(text string) string {
 	return ReplaceAllRSTRoles(text, func(group Rst_format_match) string {
 		val := group.Payload
 		switch group.Role {
-		case "file":
-			if val == "alatty.conf" && self.fmt_ctx.AllowEscapeCodes {
-				path := filepath.Join(utils.ConfigDir(), val)
-				val = self.hyperlink_for_path(path, val)
-			}
-			return val
 		case "env", "envvar":
 			return self.ref_hyperlink(val, "envvar-")
 		case "iss":
