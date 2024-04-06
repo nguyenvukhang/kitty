@@ -18,7 +18,7 @@ from alatty.options.utils import (
     store_multiple, tab_activity_symbol, tab_bar_edge,
     tab_bar_margin_height, tab_bar_min_tabs, tab_fade, tab_separator,
     tab_title_template, titlebar_color, to_cursor_shape, to_font_size, to_layout_names, to_modifiers,
-    url_prefixes, visual_window_select_characters, window_border_width, window_size
+    visual_window_select_characters, window_border_width, window_size
 )
 
 
@@ -382,9 +382,6 @@ class Parser:
 
     def url_excluded_characters(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['url_excluded_characters'] = python_string(val)
-
-    def url_prefixes(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['url_prefixes'] = url_prefixes(val)
 
     def visual_window_select_characters(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['visual_window_select_characters'] = visual_window_select_characters(val)

@@ -86,10 +86,6 @@ typedef struct {
   MouseShape pointer_shape_when_grabbed;
   MouseShape default_pointer_shape;
   MouseShape pointer_shape_when_dragging;
-  struct {
-    UrlPrefix *values;
-    size_t num, max_prefix_len;
-  } url_prefixes;
   char_type *url_excluded_characters;
   bool tab_bar_hidden;
   double font_size;

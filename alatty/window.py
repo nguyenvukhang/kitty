@@ -1084,14 +1084,6 @@ class Window:
             text = load_paste_filter()(text)
             if not text:
                 return
-        if 'quote-urls-at-prompt' in opts.paste_actions and self.at_prompt:
-            prefixes = '|'.join(opts.url_prefixes)
-            m = re.match(f'({prefixes}):(.+)', text)
-            if m is not None:
-                scheme, rest = m.group(1), m.group(2)
-                if rest.startswith('//') or scheme in ('mailto', 'irc'):
-                    import shlex
-                    text = shlex.quote(text)
         if 'replace-dangerous-control-codes' in opts.paste_actions:
             text = replace_control_codes(text)
         if 'replace-newline' in opts.paste_actions:

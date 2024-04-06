@@ -313,13 +313,6 @@ is too much effort.
 '''
     )
 
-opt('url_prefixes', 'file ftp ftps gemini git gopher http https irc ircs alatty mailto news sftp ssh',
-    option_type='url_prefixes', ctype='!url_prefixes',
-    long_text='''
-The set of URL prefixes to look for when detecting a URL under the mouse cursor.
-'''
-    )
-
 opt('url_excluded_characters', '',
     option_type='python_string', ctype='!url_excluded_characters',
     long_text='''

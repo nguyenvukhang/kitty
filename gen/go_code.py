@@ -186,7 +186,6 @@ def generate_constants() -> str:
         assert m is not None
         placeholder_char = int(m.group(1), 16)
     dp = ", ".join(map(lambda x: f'"{serialize_as_go_string(x)}"', kc.default_pager_for_help))
-    url_prefixes = ','.join(f'"{x}"' for x in Options.url_prefixes)
     option_names = '``'
     return f'''\
 package alatty
@@ -208,13 +207,12 @@ var FunctionalKeyNameAliases = map[string]string{serialize_go_dict(functional_ke
 var CharacterKeyNameAliases = map[string]string{serialize_go_dict(character_key_name_aliases)}
 var ConfigModMap = map[string]uint16{serialize_go_dict(config_mod_map)}
 var AlattyConfigDefaults = struct {{
-Term, Select_by_word_characters, Url_excluded_characters, Shell string
+Term, Select_by_word_characters, Shell string
 Wheel_scroll_multiplier int
-Url_prefixes []string
 }}{{
-Term: "{Options.term}", Url_prefixes: []string{{ {url_prefixes} }},
+Term: "{Options.term}",
 Select_by_word_characters: `{Options.select_by_word_characters}`, Wheel_scroll_multiplier: {Options.wheel_scroll_multiplier},
-Shell: "{Options.shell}", Url_excluded_characters: "{Options.url_excluded_characters}",
+Shell: "{Options.shell}",
 }}
 const OptionNames = {option_names}
 '''  # }}}

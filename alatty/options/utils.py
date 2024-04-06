@@ -477,10 +477,6 @@ def scrollback_pager_history_size(x: str) -> int:
     return min(ans, 4096 * 1024 * 1024 - 1)
 
 
-def url_prefixes(x: str) -> Tuple[str, ...]:
-    return tuple(a.lower() for a in x.replace(',', ' ').split())
-
-
 def copy_on_select(raw: str) -> str:
     q = raw.lower()
     # boolean values special cased for backwards compat

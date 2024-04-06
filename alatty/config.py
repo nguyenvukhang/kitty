@@ -169,7 +169,6 @@ def load_config(*paths: str, overrides: Optional[Iterable[str]] = None, accumula
 
 class AlattyCommonOpts(TypedDict):
     select_by_word_characters: str
-    url_prefixes: Tuple[str, ...]
 
 
 def common_opts_as_dict(opts: Optional[Options] = None) -> AlattyCommonOpts:
@@ -177,5 +176,4 @@ def common_opts_as_dict(opts: Optional[Options] = None) -> AlattyCommonOpts:
         opts = defaults
     return {
         'select_by_word_characters': opts.select_by_word_characters,
-        'url_prefixes': opts.url_prefixes,
     }
