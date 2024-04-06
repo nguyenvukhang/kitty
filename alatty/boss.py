@@ -287,7 +287,6 @@ class Boss:
                     wname,
                     wclass,
                     wstate,
-                    disallow_override_title=bool(wtitle),
                 )
         else:
             wname = self.args.name or self.args.cls or appname

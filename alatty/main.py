@@ -193,7 +193,7 @@ def _run_app(opts: Options, args: CLIOptions, bad_lines: Sequence[BadLine] = ())
                     run_app.initial_window_size_func(get_os_window_sizing_data(opts, startup_sessions[0] if startup_sessions else None), cached_values),
                     pre_show_callback,
                     "Alatty", args.name or args.cls or appname,
-                    wincls, wstate, load_all_shaders, disallow_override_title=bool(args.title))
+                    wincls, wstate, load_all_shaders)
         boss = Boss(opts, args, cached_values, global_shortcuts)
         boss.start(window_id, startup_sessions)
         if bad_lines or boss.misc_config_errors:

@@ -483,7 +483,6 @@ def create_os_window(
     load_programs: Optional[Callable[[bool], None]] = None,
     x: Optional[int] = None,
     y: Optional[int] = None,
-    disallow_override_title: bool = False,
 ) -> int:
     pass
 

@@ -241,7 +241,6 @@ typedef struct {
   double logical_dpi_x, logical_dpi_y, font_sz_in_pts;
   bool mouse_button_pressed[32];
   PyObject *window_title;
-  bool disallow_title_changes, title_is_overriden;
   bool viewport_size_dirty, viewport_updated_at_least_once;
   monotonic_t viewport_resized_at;
   LiveResizeInfo live_resize;

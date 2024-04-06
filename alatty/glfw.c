@@ -1025,12 +1025,12 @@ native_window_handle(GLFWwindow *w) {
 
 static PyObject*
 create_os_window(PyObject UNUSED *self, PyObject *args, PyObject *kw) {
-    int x = INT_MIN, y = INT_MIN, window_state = WINDOW_NORMAL, disallow_override_title = 0;
+    int x = INT_MIN, y = INT_MIN, window_state = WINDOW_NORMAL;
     char *title, *wm_class_class, *wm_class_name;
     PyObject *optional_window_state = NULL, *load_programs = NULL, *get_window_size, *pre_show_callback, *optional_x = NULL, *optional_y = NULL;
-    static const char* kwlist[] = {"get_window_size", "pre_show_callback", "title", "wm_class_name", "wm_class_class", "window_state", "load_programs", "x", "y", "disallow_override_title", NULL};
-    if (!PyArg_ParseTupleAndKeywords(args, kw, "OOsss|OOOOp", (char**)kwlist,
-        &get_window_size, &pre_show_callback, &title, &wm_class_name, &wm_class_class, &optional_window_state, &load_programs, &optional_x, &optional_y, &disallow_override_title)) return NULL;
+    static const char* kwlist[] = {"get_window_size", "pre_show_callback", "title", "wm_class_name", "wm_class_class", "window_state", "load_programs", "x", "y", NULL};
+    if (!PyArg_ParseTupleAndKeywords(args, kw, "OOsss|OOOO", (char**)kwlist,
+        &get_window_size, &pre_show_callback, &title, &wm_class_name, &wm_class_class, &optional_window_state, &load_programs, &optional_x, &optional_y)) return NULL;
     if (optional_window_state && optional_window_state != Py_None) { if (!PyLong_Check(optional_window_state)) { PyErr_SetString(PyExc_TypeError, "window_state must be an int"); return NULL; } window_state = (int) PyLong_AsLong(optional_window_state); }
     if (optional_x && optional_x != Py_None) { if (!PyLong_Check(optional_x)) { PyErr_SetString(PyExc_TypeError, "x must be an int"); return NULL;} x = (int)PyLong_AsLong(optional_x); }
     if (optional_y && optional_y != Py_None) { if (!PyLong_Check(optional_y)) { PyErr_SetString(PyExc_TypeError, "y must be an int"); return NULL;} y = (int)PyLong_AsLong(optional_y); }
@@ -1160,7 +1160,6 @@ create_os_window(PyObject UNUSED *self, PyObject *args, PyObject *kw) {
     }
     OSWindow *w = add_os_window();
     w->handle = glfw_window;
-    w->disallow_title_changes = disallow_override_title;
     update_os_window_references();
     for (size_t i = 0; i < global_state.num_os_windows; i++) {
         // On some platforms (macOS) newly created windows don't get the initial focus in event
