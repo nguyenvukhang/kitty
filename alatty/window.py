@@ -8,7 +8,7 @@ import weakref
 from collections import deque
 from contextlib import contextmanager
 from enum import Enum, IntEnum, auto
-from functools import lru_cache, partial
+from functools import partial
 from gettext import gettext as _
 from itertools import chain
 from time import monotonic
@@ -94,7 +94,6 @@ from .utils import (
     path_from_osc7_url,
     sanitize_control_codes,
     sanitize_for_bracketed_paste,
-    sanitize_title,
 )
 
 MatchPatternType = Union[Pattern[str], Tuple[Pattern[str], Optional[Pattern[str]]]]
@@ -142,29 +141,6 @@ class CwdRequest:
             if self.request_type is CwdRequestType.last_reported or window.at_prompt:
                 return reported_cwd
         return window.get_cwd_of_child(oldest=self.request_type is CwdRequestType.oldest) or ''
-
-
-def process_title_from_child(title: str, is_base64: bool) -> str:
-    if is_base64:
-        from base64 import standard_b64decode
-        try:
-            title = standard_b64decode(title).decode('utf-8', 'replace')
-        except Exception:
-            title = 'undecodeable title'
-    return sanitize_title(title)
-
-
-@lru_cache(maxsize=64)
-def compile_match_query(exp: str, is_simple: bool = True) -> MatchPatternType:
-    if is_simple:
-        pat: MatchPatternType = re.compile(exp)
-    else:
-        kp, vp = exp.partition('=')[::2]
-        if vp:
-            pat = re.compile(kp), re.compile(vp)
-        else:
-            pat = re.compile(kp), None
-    return pat
 
 
 class WindowDict(TypedDict):
