@@ -334,9 +334,6 @@ def load_watch_modules(watchers: Iterable[str]) -> Optional[Watchers]:
         w = m.get('on_set_user_var')
         if callable(w):
             ans.on_set_user_var.append(w)
-        w = m.get('on_title_change')
-        if callable(w):
-            ans.on_title_change.append(w)
         w = m.get('on_cmd_startstop')
         if callable(w):
             ans.on_cmd_startstop.append(w)

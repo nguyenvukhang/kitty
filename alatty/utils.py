@@ -129,10 +129,6 @@ def ceil_int(x: float) -> int:
     return int(math.ceil(x))
 
 
-def sanitize_title(x: str) -> str:
-    return re.sub(r'\s+', ' ', re.sub(r'[\0-\x19\x80-\x9f]', '', x))
-
-
 def color_as_int(val: Color) -> int:
     return int(val) & 0xFFFFFF
 

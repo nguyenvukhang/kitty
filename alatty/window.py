@@ -206,7 +206,6 @@ class Watchers:
     on_close: List[Watcher]
     on_focus_change: List[Watcher]
     on_set_user_var: List[Watcher]
-    on_title_change: List[Watcher]
     on_cmd_startstop: List[Watcher]
 
     def __init__(self) -> None:
@@ -214,7 +213,6 @@ class Watchers:
         self.on_close = []
         self.on_focus_change = []
         self.on_set_user_var = []
-        self.on_title_change = []
         self.on_cmd_startstop = []
 
     def add(self, others: 'Watchers') -> None:
@@ -226,12 +224,11 @@ class Watchers:
         merge(self.on_close, others.on_close)
         merge(self.on_focus_change, others.on_focus_change)
         merge(self.on_set_user_var, others.on_set_user_var)
-        merge(self.on_title_change, others.on_title_change)
         merge(self.on_cmd_startstop, others.on_cmd_startstop)
 
     def clear(self) -> None:
         del self.on_close[:], self.on_resize[:], self.on_focus_change[:]
-        del self.on_set_user_var[:], self.on_title_change[:], self.on_cmd_startstop[:]
+        del self.on_set_user_var[:], self.on_cmd_startstop[:]
 
     def copy(self) -> 'Watchers':
         ans = Watchers()
@@ -239,14 +236,13 @@ class Watchers:
         ans.on_resize = self.on_resize[:]
         ans.on_focus_change = self.on_focus_change[:]
         ans.on_set_user_var = self.on_set_user_var[:]
-        ans.on_title_change = self.on_title_change[:]
         ans.on_cmd_startstop = self.on_cmd_startstop[:]
         return ans
 
     @property
     def has_watchers(self) -> bool:
         return bool(self.on_close or self.on_resize or self.on_focus_change
-                    or self.on_set_user_var or self.on_title_change or self.on_cmd_startstop)
+                    or self.on_set_user_var or self.on_cmd_startstop)
 
 
 def call_watchers(windowref: Callable[[], Optional['Window']], which: str, data: Dict[str, Any]) -> None:
