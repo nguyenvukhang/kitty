@@ -6,7 +6,7 @@ import os
 import re
 import string
 import sys
-from contextlib import contextmanager, suppress
+from contextlib import suppress
 from functools import lru_cache
 from time import monotonic
 from typing import (
@@ -40,7 +40,7 @@ from .constants import (
 from .fast_data_types import WINDOW_FULLSCREEN, WINDOW_MAXIMIZED, WINDOW_MINIMIZED, WINDOW_NORMAL, Color, Shlex, get_options, open_tty
 from .rgb import to_color
 from .types import run_once
-from .typing import PopenType, Socket, StartupCtx
+from .typing import PopenType, StartupCtx
 
 if TYPE_CHECKING:
     from .fast_data_types import OSWindowSize
@@ -105,10 +105,12 @@ def alatty_ansi_sanitizer_pat() -> 're.Pattern[str]':
 def platform_window_id(os_window_id: int) -> Optional[int]:
     if is_macos:
         from .fast_data_types import cocoa_window_id
+
         with suppress(Exception):
             return cocoa_window_id(os_window_id)
     if not is_wayland():
         from .fast_data_types import x11_window_id
+
         with suppress(Exception):
             return x11_window_id(os_window_id)
     return None
@@ -116,6 +118,7 @@ def platform_window_id(os_window_id: int) -> Optional[int]:
 
 def log_error(*a: Any, **k: str) -> None:
     from .fast_data_types import log_error_string
+
     output = getattr(log_error, 'redirect', log_error_string)
     with suppress(Exception):
         msg = k.get('sep', ' ').join(map(str, a)) + k.get('end', '').replace('\0', '')
@@ -131,7 +134,7 @@ def sanitize_title(x: str) -> str:
 
 
 def color_as_int(val: Color) -> int:
-    return int(val) & 0xffffff
+    return int(val) & 0xFFFFFF
 
 
 def color_from_int(val: int) -> Color:
@@ -143,7 +146,7 @@ def parse_color_set(raw: str) -> Generator[Tuple[int, Optional[int]], None, None
     lp = len(parts)
     if lp % 2 != 0:
         return
-    for c_, spec in [parts[i:i + 2] for i in range(0, len(parts), 2)]:
+    for c_, spec in [parts[i : i + 2] for i in range(0, len(parts), 2)]:
         try:
             c = int(c_)
             if c < 0 or c > 255:
@@ -153,7 +156,7 @@ def parse_color_set(raw: str) -> Generator[Tuple[int, Optional[int]], None, None
             else:
                 q = to_color(spec)
                 if q is not None:
-                    yield c, int(q) & 0xffffff
+                    yield c, int(q) & 0xFFFFFF
         except Exception:
             continue
 
@@ -171,6 +174,7 @@ def read_screen_size(fd: int = -1) -> ScreenSize:
     import array
     import fcntl
     import termios
+
     buf = array.array('H', [0, 0, 0, 0])
     if fd < 0:
         fd = sys.stdout.fileno()
@@ -202,11 +206,7 @@ def screen_size_function(fd: Optional[int] = None) -> ScreenSizeGetter:
     return ScreenSizeGetter(fd)
 
 
-def base64_encode(
-    integer: int,
-    chars: str = string.ascii_uppercase + string.ascii_lowercase + string.digits +
-    '+/'
-) -> str:
+def base64_encode(integer: int, chars: str = string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/') -> str:
     ans = ''
     while True:
         integer, remainder = divmod(integer, 64)
@@ -216,9 +216,11 @@ def base64_encode(
     return ans
 
 
-def open_cmd(cmd: Union[Iterable[str], List[str]], arg: Union[None, Iterable[str], str] = None,
-             cwd: Optional[str] = None, extra_env: Optional[Dict[str, str]] = None) -> 'PopenType[bytes]':
+def open_cmd(
+    cmd: Union[Iterable[str], List[str]], arg: Union[None, Iterable[str], str] = None, cwd: Optional[str] = None, extra_env: Optional[Dict[str, str]] = None
+) -> 'PopenType[bytes]':
     import subprocess
+
     if arg is not None:
         cmd = list(cmd)
         if isinstance(arg, str):
@@ -230,17 +232,19 @@ def open_cmd(cmd: Union[Iterable[str], List[str]], arg: Union[None, Iterable[str
         env = os.environ.copy()
         env.update(extra_env)
     return subprocess.Popen(
-        tuple(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=cwd or None,
-        preexec_fn=clear_handled_signals, env=env)
+        tuple(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=cwd or None, preexec_fn=clear_handled_signals, env=env
+    )
 
 
 def init_startup_notification_x11(window_handle: int, startup_id: Optional[str] = None) -> Optional['StartupCtx']:
     # https://specifications.freedesktop.org/startup-notification-spec/startup-notification-latest.txt
     from alatty.fast_data_types import init_x11_startup_notification
+
     sid = startup_id or os.environ.pop('DESKTOP_STARTUP_ID', None)  # ensure child processes don't get this env var
     if not sid:
         return None
     from .fast_data_types import x11_display
+
     display = x11_display()
     if not display:
         return None
@@ -249,6 +253,7 @@ def init_startup_notification_x11(window_handle: int, startup_id: Optional[str] 
 
 def end_startup_notification_x11(ctx: 'StartupCtx') -> None:
     from alatty.fast_data_types import end_x11_startup_notification
+
     end_x11_startup_notification(ctx)
 
 
@@ -266,9 +271,11 @@ def init_startup_notification(window_handle: Optional[int], startup_id: Optional
                 raise e
             log_error(
                 f'{e}. This has two main effects:',
-                'There will be no startup feedback and when using --single-instance, alatty windows may start on an incorrect desktop/workspace.')
+                'There will be no startup feedback and when using --single-instance, alatty windows may start on an incorrect desktop/workspace.',
+            )
     except Exception:
         import traceback
+
         traceback.print_exc()
     return None
 
@@ -282,6 +289,7 @@ def end_startup_notification(ctx: Optional['StartupCtx']) -> None:
         end_startup_notification_x11(ctx)
     except Exception:
         import traceback
+
         traceback.print_exc()
 
 
@@ -308,40 +316,13 @@ class startup_notification_handler:
             end_startup_notification(self.ctx)
 
 
-def remove_socket_file(s: 'Socket', path: Optional[str] = None, is_dir: Optional[Callable[[str], None]] = None) -> None:
-    with suppress(OSError):
-        s.close()
-    if path:
-        with suppress(OSError):
-            if is_dir:
-                is_dir(path)
-            else:
-                os.unlink(path)
-
-
-def unix_socket_directories() -> Iterator[str]:
-    import tempfile
-    home = os.path.expanduser('~')
-    candidates = [tempfile.gettempdir(), home]
-    if is_macos:
-        from .fast_data_types import user_cache_dir
-        candidates = [user_cache_dir(), '/Library/Caches']
-    for loc in candidates:
-        if os.access(loc, os.W_OK | os.R_OK | os.X_OK):
-            yield loc
-
-
-def unix_socket_paths(name: str, ext: str = '.lock') -> Generator[str, None, None]:
-    home = os.path.expanduser('~')
-    for loc in unix_socket_directories():
-        filename = ('.' if loc == home else '') + name + ext
-        yield os.path.join(loc, filename)
-
-
 def parse_os_window_state(state: str) -> int:
     return {
-        'normal': WINDOW_NORMAL, 'maximized': WINDOW_MAXIMIZED, 'minimized': WINDOW_MINIMIZED,
-        'fullscreen': WINDOW_FULLSCREEN, 'fullscreened':WINDOW_FULLSCREEN
+        'normal': WINDOW_NORMAL,
+        'maximized': WINDOW_MAXIMIZED,
+        'minimized': WINDOW_MINIMIZED,
+        'fullscreen': WINDOW_FULLSCREEN,
+        'fullscreened': WINDOW_FULLSCREEN,
     }[state]
 
 
@@ -372,12 +353,14 @@ class TTYIO:
 
     def __exit__(self, *a: Any) -> None:
         from .fast_data_types import close_tty
+
         close_tty(self.tty_fd, self.original_termios)
 
     def wait_till_read_available(self) -> bool:
         if self.read_with_timeout:
             raise ValueError('Cannot wait when TTY is set to read with timeout')
         import select
+
         rd = select.select([self.tty_fd], [], [])[0]
         return bool(rd)
 
@@ -402,43 +385,9 @@ class TTYIO:
                 break
 
 
-def set_echo(fd: int = -1, on: bool = False) -> Tuple[int, List[Union[int, List[Union[bytes, int]]]]]:
-    import termios
-    if fd < 0:
-        fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
-    new = termios.tcgetattr(fd)
-    if on:
-        new[3] |= termios.ECHO
-    else:
-        new[3] &= ~termios.ECHO
-    termios.tcsetattr(fd, termios.TCSADRAIN, new)
-    return fd, old
-
-
-@contextmanager
-def no_echo(fd: int = -1) -> Iterator[None]:
-    import termios
-    fd, old = set_echo(fd)
-    try:
-        yield
-    finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old)
-
-
-def natsort_ints(iterable: Iterable[str]) -> List[str]:
-
-    def convert(text: str) -> Union[int, str]:
-        return int(text) if text.isdigit() else text
-
-    def alphanum_key(key: str) -> Tuple[Union[int, str], ...]:
-        return tuple(map(convert, re.split(r'(\d+)', key)))
-
-    return sorted(iterable, key=alphanum_key)
-
-
 def get_hostname(fallback: str = '') -> str:
     import socket
+
     try:
         return socket.gethostname() or fallback
     except Exception:
@@ -447,6 +396,7 @@ def get_hostname(fallback: str = '') -> str:
 
 def resolve_editor_cmd(editor: str, shell_env: Mapping[str, str]) -> Optional[str]:
     import shlex
+
     editor_cmd = list(shlex_split(editor))
     editor_exe = (editor_cmd or ('',))[0]
     if editor_exe and os.path.isabs(editor_exe):
@@ -464,6 +414,7 @@ def resolve_editor_cmd(editor: str, shell_env: Mapping[str, str]) -> Optional[st
             return patched(q)
     elif 'PATH' in shell_env:
         import shutil
+
         q = shutil.which(editor_exe, path=shell_env['PATH'])
         if q:
             return patched(q)
@@ -501,6 +452,7 @@ def get_editor(opts: Optional[Options] = None, path_to_edit: str = '', line_numb
         except RuntimeError:
             # we are in a kitten
             from .cli import create_default_opts
+
             opts = create_default_opts()
     if opts.editor == '.':
         ans = get_editor_from_env_vars()
@@ -556,9 +508,12 @@ def resolved_shell(opts: Optional[Options] = None) -> List[str]:
             env['HOME'] = os.path.expanduser('~')
         if 'USER' not in os.environ:
             import pwd
+
             env['USER'] = pwd.getpwuid(os.geteuid()).pw_name
+
         def expand(x: str) -> str:
             return expandvars(x, env)
+
         ans = list(map(expand, shlex_split(q)))
     return ans
 
@@ -579,6 +534,7 @@ def system_paths_on_macos() -> Tuple[str, ...]:
                     if os.path.isdir(line):
                         seen.add(line)
                         entries.append(line)
+
     try:
         files = os.listdir('/etc/paths.d')
     except FileNotFoundError:
@@ -650,9 +606,11 @@ def read_shell_environment(opts: Optional[Options] = None) -> Dict[str, str]:
     ans: Optional[Dict[str, str]] = getattr(read_shell_environment, 'ans', None)
     if ans is None:
         from .child import openpty
+
         ans = {}
         setattr(read_shell_environment, 'ans', ans)
         import subprocess
+
         shell = resolved_shell(opts)
         master, slave = openpty()
         os.set_blocking(master, False)
@@ -662,14 +620,15 @@ def read_shell_environment(opts: Optional[Options] = None) -> Dict[str, str]:
             shell += ['-i']
         try:
             p = subprocess.Popen(
-                shell + ['-c', 'env'], stdout=slave, stdin=slave, stderr=slave, start_new_session=True, close_fds=True,
-                preexec_fn=clear_handled_signals)
+                shell + ['-c', 'env'], stdout=slave, stdin=slave, stderr=slave, start_new_session=True, close_fds=True, preexec_fn=clear_handled_signals
+            )
         except FileNotFoundError:
             log_error('Could not find shell to read environment')
             return ans
         with os.fdopen(master, 'rb') as stdout, os.fdopen(slave, 'wb'):
             raw = b''
             from time import monotonic
+
             start_time = monotonic()
             while monotonic() - start_time < 1.5:
                 try:
@@ -703,8 +662,9 @@ def read_shell_environment(opts: Optional[Options] = None) -> Dict[str, str]:
 
 
 def parse_uri_list(text: str) -> Generator[str, None, None]:
-    ' Get paths from file:// URLs '
+    'Get paths from file:// URLs'
     from urllib.parse import unquote, urlparse
+
     for line in text.splitlines():
         if not line or line.startswith('#'):
             continue
@@ -743,6 +703,7 @@ def get_new_os_window_size(
 def get_all_processes() -> Iterable[int]:
     if is_macos:
         from alatty.fast_data_types import get_all_processes as f
+
         yield from f()
     else:
         for c in os.listdir('/proc'):
@@ -763,6 +724,7 @@ def hold_till_enter() -> None:
     import subprocess
 
     from .constants import kitten_exe
+
     subprocess.Popen([kitten_exe(), '__hold_till_enter__']).wait()
 
 
@@ -771,6 +733,7 @@ def path_from_osc7_url(url: str) -> str:
         return '/' + url.split('/', 3)[-1]
     if url.startswith('file://'):
         from urllib.parse import unquote, urlparse
+
         return unquote(urlparse(url).path)
     return ''
 
@@ -779,6 +742,7 @@ def path_from_osc7_url(url: str) -> str:
 def macos_version() -> Tuple[int, ...]:
     # platform.mac_ver does not work thanks to Apple's stupid "hardening", so just use sw_vers
     import subprocess
+
     try:
         o = subprocess.check_output(['sw_vers', '-productVersion'], stderr=subprocess.STDOUT).decode()
     except Exception:
@@ -789,6 +753,7 @@ def macos_version() -> Tuple[int, ...]:
 @lru_cache(maxsize=2)
 def less_version(less_exe: str = 'less') -> int:
     import subprocess
+
     o = subprocess.check_output([less_exe, '-V'], stderr=subprocess.STDOUT).decode()
     m = re.match(r'less (\d+)', o)
     if m is None:
@@ -812,8 +777,10 @@ def cmdline_for_hold(cmd: Sequence[str] = (), opts: Optional['Options'] = None) 
             opts = get_options()
     if opts is None:
         from .options.types import defaults
+
         opts = defaults
     import shlex
+
     shell = shlex.join(resolved_shell(opts))
     return [kitten_exe(), 'run-shell', f'--shell={shell}', '--env=ALATTY_HOLD=1'] + list(cmd)
 
