@@ -125,19 +125,6 @@ def log_error(*a: Any, **k: str) -> None:
         output(msg)
 
 
-@contextmanager
-def suppress_error_logging() -> Iterator[None]:
-    before = getattr(log_error, 'redirect', suppress_error_logging)
-    setattr(log_error, 'redirect', lambda *a: None)
-    try:
-        yield
-    finally:
-        if before is suppress_error_logging:
-            delattr(log_error, 'redirect')
-        else:
-            setattr(log_error, 'redirect', before)
-
-
 def ceil_int(x: float) -> int:
     return int(math.ceil(x))
 
