@@ -457,7 +457,6 @@ class Window:
         tab: TabType,
         child: ChildType,
         args: CLIOptions,
-        override_title: Optional[str] = None,
         copy_colors_from: Optional['Window'] = None,
         watchers: Optional[Watchers] = None,
     ):
@@ -483,7 +482,6 @@ class Window:
         self.last_reported_pty_size = (-1, -1, -1, -1)
         self.needs_attention = False
         self.ignore_focus_changes = self.initial_ignore_focus_changes
-        self.override_title = override_title
         self.default_title = os.path.basename(child.argv[0] or appname)
         self.child_title = self.default_title
         self.title_stack: Deque[str] = deque(maxlen=10)
@@ -574,7 +572,7 @@ class Window:
 
     @property
     def title(self) -> str:
-        return self.override_title or self.child_title
+        return self.child_title
 
     def __repr__(self) -> str:
         return f'Window(title={self.title}, id={self.id})'

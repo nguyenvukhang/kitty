@@ -277,8 +277,7 @@ def tab_for_window(boss: Boss, opts: LaunchCLIOptions, target_tab: Optional[Tab]
             oswid = boss.add_os_window(
                 wclass=opts.os_window_class,
                 wname=opts.os_window_name,
-                window_state=opts.os_window_state,
-                override_title=opts.os_window_title or None)
+                window_state=opts.os_window_state)
             tm = boss.os_window_map[oswid]
         tab = tm.new_tab(empty_tab=True, location=opts.location)
         if opts.tab_title:
@@ -345,7 +344,6 @@ class LaunchKwds(TypedDict):
     cwd_from: Optional[CwdRequest]
     cwd: Optional[str]
     location: Optional[str]
-    override_title: Optional[str]
     copy_colors_from: Optional[Window]
     cmd: Optional[List[str]]
     overlay_for: Optional[int]
@@ -410,7 +408,6 @@ def _launch(
         'cwd_from': None,
         'cwd': None,
         'location': None,
-        'override_title': opts.window_title or None,
         'copy_colors_from': None,
         'cmd': None,
         'overlay_for': None,

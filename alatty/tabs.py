@@ -78,7 +78,6 @@ class TabDict(TypedDict):
 class SpecialWindowInstance(NamedTuple):
     cmd: Optional[List[str]]
     stdin: Optional[bytes]
-    override_title: Optional[str]
     cwd_from: Optional[CwdRequest]
     cwd: Optional[str]
     overlay_for: Optional[int]
@@ -91,7 +90,6 @@ class SpecialWindowInstance(NamedTuple):
 def SpecialWindow(
     cmd: Optional[List[str]],
     stdin: Optional[bytes] = None,
-    override_title: Optional[str] = None,
     cwd_from: Optional[CwdRequest] = None,
     cwd: Optional[str] = None,
     overlay_for: Optional[int] = None,
@@ -100,7 +98,7 @@ def SpecialWindow(
     overlay_behind: bool = False,
     hold: bool = False,
 ) -> SpecialWindowInstance:
-    return SpecialWindowInstance(cmd, stdin, override_title, cwd_from, cwd, overlay_for, env, watchers, overlay_behind, hold)
+    return SpecialWindowInstance(cmd, stdin, cwd_from, cwd, overlay_for, env, watchers, overlay_behind, hold)
 
 
 def add_active_id_to_history(items: Deque[int], item_id: int, maxlen: int = 64) -> None:
@@ -469,7 +467,6 @@ class Tab:  # {{{
         use_shell: bool = True,
         cmd: Optional[List[str]] = None,
         stdin: Optional[bytes] = None,
-        override_title: Optional[str] = None,
         cwd_from: Optional[CwdRequest] = None,
         cwd: Optional[str] = None,
         overlay_for: Optional[int] = None,
@@ -487,7 +484,7 @@ class Tab:  # {{{
             hold=hold,
         )
         window = Window(
-            self, child, self.args, override_title=override_title,
+            self, child, self.args,
             copy_colors_from=copy_colors_from, watchers=watchers,
         )
         # Must add child before laying out so that resize_pty succeeds
@@ -503,7 +500,6 @@ class Tab:  # {{{
     ) -> Window:
         return self.new_window(
             use_shell=False, cmd=special_window.cmd, stdin=special_window.stdin,
-            override_title=special_window.override_title,
             cwd_from=special_window.cwd_from, cwd=special_window.cwd, overlay_for=special_window.overlay_for,
             env=special_window.env, location=location, copy_colors_from=copy_colors_from,
             watchers=special_window.watchers, overlay_behind=special_window.overlay_behind,
