@@ -80,57 +80,16 @@ func ReplaceAllRSTRoles(str string, repl func(Rst_format_match) string) string {
 	return utils.ReplaceAll(utils.MustCompile(":(?P<role>[a-z]+):(?:(?:`(?P<payload>[^`]+)`)|(?:'(?P<payload>[^']+)'))"), str, rf)
 }
 
-func (self *Context) hyperlink_for_url(url string, text string) string {
-	return self.Url(url, text)
-}
-
-func Text_and_target(x string) (text string, target string) {
-	parts := strings.SplitN(x, "<", 2)
-	text = strings.TrimSpace(parts[0])
-	target = strings.TrimRight(parts[len(parts)-1], ">")
-	return
-}
-
 type Rst_format_match struct {
 	Role, Payload string
-}
-
-func (self *Context) link(x string) string {
-	text, url := Text_and_target(x)
-	return self.hyperlink_for_url(url, text)
-}
-
-func (self *Context) ref_hyperlink(x string, prefix string) string {
-	text, target := Text_and_target(x)
-	url := "alatty+doc://" + utils.Hostname() + "/#ref=" + prefix + target
-	text = ReplaceAllRSTRoles(text, func(group Rst_format_match) string {
-		return group.Payload
-	})
-	return self.hyperlink_for_url(url, text)
 }
 
 func (self *Context) Prettify(text string) string {
 	return ReplaceAllRSTRoles(text, func(group Rst_format_match) string {
 		val := group.Payload
 		switch group.Role {
-		case "env", "envvar":
-			return self.ref_hyperlink(val, "envvar-")
-		case "iss":
-			return self.ref_hyperlink(val, "issues-")
-		case "pull":
-			return self.ref_hyperlink(val, "pull-")
-		case "disc":
-			return self.ref_hyperlink(val, "discussions-")
-		case "ref":
-			return self.ref_hyperlink(val, "")
-		case "ac":
-			return self.ref_hyperlink(val, "action-")
-		case "term":
-			return self.ref_hyperlink(val, "term-")
 		case "code":
 			return self.Code(Remove_backslash_escapes(val))
-		case "link":
-			return self.link(val)
 		case "option":
 			idx := strings.LastIndex(val, "--")
 			if idx < 0 {
