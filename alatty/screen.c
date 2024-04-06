@@ -578,7 +578,7 @@ draw_combining_char(Screen *self, char_type ch) {
             CPUCell *cpu_cell = self->linebuf->line->cpu_cells + xpos;
             GPUCell *gpu_cell = self->linebuf->line->gpu_cells + xpos;
             if (gpu_cell->attrs.width != 2 && cpu_cell->cc_idx[0] == VS16 && is_emoji_presentation_base(cpu_cell->ch)) {
-                if (self->cursor->x <= self->columns - 1) line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, 0);
+                if (self->cursor->x <= self->columns - 1) line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor);
                 gpu_cell->attrs.width = 2;
                 if (xpos == self->columns - 1) move_widened_char(self, cpu_cell, gpu_cell, xpos, ypos);
                 else self->cursor->x++;
@@ -640,10 +640,10 @@ draw_codepoint(Screen *self, char_type och, bool from_input_stream) {
     if (self->modes.mIRM) {
         line_right_shift(self->linebuf->line, self->cursor->x, char_width);
     }
-    line_set_char(self->linebuf->line, self->cursor->x, ch, char_width, self->cursor, 0);
+    line_set_char(self->linebuf->line, self->cursor->x, ch, char_width, self->cursor);
     self->cursor->x++;
     if (char_width == 2) {
-        line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor, 0);
+        line_set_char(self->linebuf->line, self->cursor->x, 0, 0, self->cursor);
         self->cursor->x++;
     }
     self->is_dirty = true;
@@ -2610,7 +2610,7 @@ screen_draw_overlay_line(Screen *self) {
         // When the cursor is on the second cell of a full-width character for whatever reason,
         // make sure the first character in the overlay is visible.
         GPUCell *g = self->linebuf->line->gpu_cells + (xstart - 1);
-        if (g->attrs.width > 1) line_set_char(self->linebuf->line, xstart - 1, 0, 0, NULL, 0);
+        if (g->attrs.width > 1) line_set_char(self->linebuf->line, xstart - 1, 0, 0, NULL);
     }
     index_type before;
     const int kind = PyUnicode_KIND(self->overlay_line.overlay_text);
@@ -2631,7 +2631,7 @@ screen_draw_overlay_line(Screen *self) {
                 if (len > 0) {
                     // When the last character is full width and only half moved out, make sure the next character is visible.
                     GPUCell *g = self->linebuf->line->gpu_cells + (len - 1);
-                    if (g->attrs.width > 1) line_set_char(self->linebuf->line, len - 1, 0, 0, NULL, 0);
+                    if (g->attrs.width > 1) line_set_char(self->linebuf->line, len - 1, 0, 0, NULL);
                 }
             }
             self->cursor->x = len;

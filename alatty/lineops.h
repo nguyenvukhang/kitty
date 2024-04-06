@@ -32,7 +32,7 @@ clear_chars_in_line(CPUCell *cpu_cells, GPUCell *gpu_cells, index_type xnum, cha
     // Clear only the char part of each cell, the rest must have been cleared by a memset or similar
     if (ch) {
         const CellAttrs empty = {.width=1};
-        for (index_type i = 0; i < xnum; i++) { cpu_cells[i].ch = ch; cpu_cells[i].hyperlink_id = 0; gpu_cells[i].attrs = empty; }
+        for (index_type i = 0; i < xnum; i++) { cpu_cells[i].ch = ch; gpu_cells[i].attrs = empty; }
     }
 }
 
@@ -67,7 +67,6 @@ left_shift_line(Line *line, index_type at, index_type num) {
     const CellAttrs zero = {{0}};
     if (at < line->xnum && line->gpu_cells[at].attrs.width != 1) {
         line->cpu_cells[at].ch = BLANK_CHAR;
-        line->cpu_cells[at].hyperlink_id = 0;
         line->gpu_cells[at].attrs = BLANK_CHAR ? empty : zero;
         clear_sprite_position(line->gpu_cells[at]);
     }
@@ -85,7 +84,7 @@ typedef Line*(get_line_func)(void *, int);
 void line_clear_text(Line *self, unsigned int at, unsigned int num, char_type ch);
 void line_apply_cursor(Line *self, Cursor *cursor, unsigned int at, unsigned int num, bool clear_char);
 char_type line_get_char(Line *self, index_type at);
-void line_set_char(Line *, unsigned int , uint32_t , unsigned int , Cursor *, hyperlink_id_type);
+void line_set_char(Line *, unsigned int , uint32_t , unsigned int , Cursor *);
 void line_right_shift(Line *, unsigned int , unsigned int );
 void line_add_combining_char(Line *, uint32_t , unsigned int );
 bool line_as_ansi(Line *self, ANSIBuf *output, const GPUCell**, index_type start_at, index_type stop_before, char_type prefix_char) __attribute__((nonnull));

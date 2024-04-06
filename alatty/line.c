@@ -327,7 +327,6 @@ set_text(Line* self, PyObject *args) {
 
     for (index_type i = cursor->x; offset < limit && i < self->xnum; i++, offset++) {
         self->cpu_cells[i].ch = (PyUnicode_READ(kind, buf, offset));
-        self->cpu_cells[i].hyperlink_id = 0;
         self->gpu_cells[i].attrs = attrs;
         self->gpu_cells[i].fg = fg;
         self->gpu_cells[i].bg = bg;
@@ -363,7 +362,6 @@ line_clear_text(Line *self, unsigned int at, unsigned int num, char_type ch) {
     const uint16_t width = ch ? 1 : 0;
     for (index_type i = at; i < MIN(self->xnum, at + num); i++) {
         self->cpu_cells[i].ch = ch; memset(self->cpu_cells[i].cc_idx, 0, sizeof(self->cpu_cells[i].cc_idx));
-        self->cpu_cells[i].hyperlink_id = 0;
         self->gpu_cells[i].attrs.width = width;
     }
 }
@@ -387,7 +385,6 @@ line_apply_cursor(Line *self, Cursor *cursor, unsigned int at, unsigned int num,
     for (index_type i = at; i < self->xnum && i < at + num; i++) {
         if (clear_char) {
             self->cpu_cells[i].ch = BLANK_CHAR;
-            self->cpu_cells[i].hyperlink_id = 0;
             memset(self->cpu_cells[i].cc_idx, 0, sizeof(self->cpu_cells[i].cc_idx));
             self->gpu_cells[i].attrs = attrs;
             clear_sprite_position(self->gpu_cells[i]);
@@ -419,7 +416,6 @@ void line_right_shift(Line *self, unsigned int at, unsigned int num) {
     // Check if a wide character was split at the right edge
     if (self->gpu_cells[self->xnum - 1].attrs.width != 1) {
         self->cpu_cells[self->xnum - 1].ch = BLANK_CHAR;
-        self->cpu_cells[self->xnum - 1].hyperlink_id = 0;
         self->gpu_cells[self->xnum - 1].attrs = (CellAttrs){.width=BLANK_CHAR ? 1 : 0};
         clear_sprite_position(self->gpu_cells[self->xnum - 1]);
     }
@@ -488,7 +484,7 @@ line_get_char(Line *self, index_type at) {
 }
 
 void
-line_set_char(Line *self, unsigned int at, uint32_t ch, unsigned int width, Cursor *cursor, hyperlink_id_type hyperlink_id) {
+line_set_char(Line *self, unsigned int at, uint32_t ch, unsigned int width, Cursor *cursor) {
     GPUCell *g = self->gpu_cells + at;
     if (cursor == NULL) {
         g->attrs.width = width;
@@ -499,25 +495,7 @@ line_set_char(Line *self, unsigned int at, uint32_t ch, unsigned int width, Curs
         g->decoration_fg = cursor->decoration_fg & COL_MASK;
     }
     self->cpu_cells[at].ch = ch;
-    self->cpu_cells[at].hyperlink_id = hyperlink_id;
     memset(self->cpu_cells[at].cc_idx, 0, sizeof(self->cpu_cells[at].cc_idx));
-}
-
-static PyObject*
-set_char(Line *self, PyObject *args) {
-#define set_char_doc "set_char(at, ch, width=1, cursor=None, hyperlink_id=0) -> Set the character at the specified cell. If cursor is not None, also set attributes from that cursor."
-    unsigned int at, width=1;
-    int ch;
-    Cursor *cursor = NULL;
-    unsigned int hyperlink_id = 0;
-
-    if (!PyArg_ParseTuple(args, "IC|IO!I", &at, &ch, &width, &Cursor_Type, &cursor, &hyperlink_id)) return NULL;
-    if (at >= self->xnum) {
-        PyErr_SetString(PyExc_ValueError, "Out of bounds");
-        return NULL;
-    }
-    line_set_char(self, at, ch, width, cursor, hyperlink_id);
-    Py_RETURN_NONE;
 }
 
 static PyObject*
@@ -738,7 +716,6 @@ static PyMethodDef methods[] = {
     METHOD(copy_char, METH_VARARGS)
     METHOD(right_shift, METH_VARARGS)
     METHOD(left_shift, METH_VARARGS)
-    METHOD(set_char, METH_VARARGS)
     METHOD(set_attribute, METH_VARARGS)
     METHOD(as_ansi, METH_NOARGS)
     METHOD(width, METH_O)

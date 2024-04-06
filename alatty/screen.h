@@ -152,10 +152,6 @@ typedef struct {
     } last_visited_prompt;
     PyObject *last_reported_cwd;
     struct {
-        hyperlink_id_type id;
-        index_type x, y;
-    } current_hyperlink_under_mouse;
-    struct {
         uint8_t stack[16], count;
     } main_pointer_shape_stack, alternate_pointer_shape_stack;
 } Screen;

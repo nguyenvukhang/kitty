@@ -54,7 +54,6 @@ static inline void cleanup_decref(PyObject **p) { Py_CLEAR(*p); }
 typedef unsigned long long id_type;
 typedef uint32_t char_type;
 typedef uint32_t color_type;
-typedef uint16_t hyperlink_id_type;
 typedef int key_type;
 #define HYPERLINK_MAX_NUMBER UINT16_MAX
 typedef uint16_t combining_type;
@@ -216,7 +215,6 @@ static_assert(sizeof(GPUCell) == 20, "Fix the ordering of GPUCell");
 
 typedef struct {
     char_type ch;
-    hyperlink_id_type hyperlink_id;
     combining_type cc_idx[3];
 } CPUCell;
 static_assert(sizeof(CPUCell) == 12, "Fix the ordering of CPUCell");

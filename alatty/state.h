@@ -30,11 +30,6 @@ typedef enum AdjustmentUnit {
   PERCENT = 1,
   PIXEL = 2
 } AdjustmentUnit;
-typedef enum UnderlineHyperlinks {
-  UNDERLINE_ON_HOVER = 0,
-  UNDERLINE_ALWAYS = 1,
-  UNDERLINE_NEVER = 2
-} UnderlineHyperlinks;
 
 struct MenuItem {
   const char **location;
