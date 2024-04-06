@@ -1149,8 +1149,7 @@ class Window:
             msg = ''
             if len(btext) > 16 * 1024:
                 msg = _('Pasting very large amounts of text ({} bytes) can be slow.').format(len(btext))
-                get_boss().confirm(msg + _(' Are you sure?'), partial(self.handle_large_paste_confirmation, btext), window=self, title=_(
-                'Allow large paste?'))
+                get_boss().confirm(msg + _(' Are you sure?'), partial(self.handle_large_paste_confirmation, btext), window=self)
                 return
         self.paste_text(btext)
 

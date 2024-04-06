@@ -388,6 +388,8 @@ dispatch_osc(Screen *screen, PyObject DUMP_UNUSED *dump_callback) {
             START_DISPATCH
             DISPATCH_OSC_WITH_CODE(set_dynamic_color);
             END_DISPATCH
+        case 133:
+              break;
         case 52: case -52: case 5522:
             START_DISPATCH
             DISPATCH_OSC_WITH_CODE(clipboard_control);

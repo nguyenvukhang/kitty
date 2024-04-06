@@ -467,8 +467,6 @@ class Boss:
             callback(result, *args)
 
         cmd = ['--type=yesno', '--message', msg, '--default', 'y' if confirm_on_accept else 'n']
-        if title:
-            cmd += ['--title', title]
         w = self.run_kitten_with_metadata(
             'ask',
             cmd,
@@ -579,7 +577,6 @@ class Boss:
             self.handle_close_tab_confirmation,
             tab.id,
             window=tab.active_window,
-            title=_('Close tab?'),
         )
         tab.confirm_close_window_id = w.id
 
@@ -979,7 +976,6 @@ class Boss:
                 self.handle_close_os_window_confirmation,
                 os_window_id,
                 window=tm.active_window,
-                title=_('Close OS window'),
             )
             tm.confirm_close_window_id = w.id
 
@@ -1035,7 +1031,6 @@ class Boss:
             ).format(num),
             self.handle_quit_confirmation,
             window=tm.active_window,
-            title=_('Quit alatty?'),
         )
         self.quit_confirmation_window_id = w.id
         set_application_quit_request(CLOSE_BEING_CONFIRMED)

@@ -4,13 +4,11 @@ package ask
 
 import (
 	"fmt"
-	"io"
 	"alatty/tools/cli/markup"
 	"alatty/tools/tui/loop"
 	"alatty/tools/utils"
 	"alatty/tools/utils/style"
 	"alatty/tools/wcswidth"
-	"os"
 	"regexp"
 	"strings"
 	"unicode"
@@ -77,25 +75,7 @@ func GetChoices(o *Options) (response string, err error) {
     response_on_accept = "y"
   }
 	message := o.Message
-	hidden_text_start_pos := -1
-	hidden_text_end_pos := -1
-	hidden_text := ""
 	m := markup.New(true)
-	replacement_text := fmt.Sprintf("Press %s or click to show", m.Green(o.UnhideKey))
-	replacement_range := Range{-1, -1, -1}
-	if message != "" && o.HiddenTextPlaceholder != "" {
-		hidden_text_start_pos = strings.Index(message, o.HiddenTextPlaceholder)
-		if hidden_text_start_pos > -1 {
-			raw, err := io.ReadAll(os.Stdin)
-			if err != nil {
-				return "", fmt.Errorf("Failed to read hidden text from STDIN: %w", err)
-			}
-			hidden_text = strings.TrimRightFunc(utils.UnsafeBytesToString(raw), unicode.IsSpace)
-			hidden_text_end_pos = hidden_text_start_pos + len(replacement_text)
-			suffix := message[hidden_text_start_pos+len(o.HiddenTextPlaceholder):]
-			message = message[:hidden_text_start_pos] + replacement_text + suffix
-		}
-	}
 
 	draw_long_text := func(screen_width int, text string, msg_lines []string) []string {
 		if screen_width < 3 {
@@ -257,13 +237,6 @@ func GetChoices(o *Options) (response string, err error) {
 		y = max(0, (y/2)-2)
 		lp.QueueWriteString(strings.Repeat("\r\n", y))
 		for _, line := range msg_lines {
-			if replacement_text != "" {
-				idx := strings.Index(line, replacement_text)
-				if idx > -1 {
-					x := wcswidth.Stringwidth(line[:idx])
-					replacement_range = Range{x, x + wcswidth.Stringwidth(replacement_text), y}
-				}
-			}
 			lp.Println(line)
 			y++
 		}
@@ -275,19 +248,8 @@ func GetChoices(o *Options) (response string, err error) {
 		return nil
 	}
 
-	unhide := func() {
-		if hidden_text != "" && message != "" {
-			message = message[:hidden_text_start_pos] + hidden_text + message[hidden_text_end_pos:]
-			hidden_text = ""
-			_ = draw_screen()
-		}
-	}
-
 	lp.OnInitialize = func() (string, error) {
 		lp.SetCursorVisible(false)
-		if o.Title != "" {
-			lp.SetWindowTitle(o.Title)
-		}
 		return "", draw_screen()
 	}
 
@@ -301,8 +263,6 @@ func GetChoices(o *Options) (response string, err error) {
 		if allowed.Has(text) {
 			response = text
 			lp.Quit(0)
-		} else if hidden_text != "" && text == o.UnhideKey {
-			unhide()
 		} else if o.Type == "yesno" {
 			lp.Quit(1)
 		}
@@ -346,9 +306,6 @@ func GetChoices(o *Options) (response string, err error) {
 				response = on_letter
 				lp.Quit(0)
 				return nil
-			}
-			if hidden_text != "" && replacement_range.has_point(ev.Cell.X, ev.Cell.Y) {
-				unhide()
 			}
 		}
 		return nil
