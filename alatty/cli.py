@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # License: GPL v3 Copyright: 2017, Kovid Goyal <kovid at kovidgoyal.net>
 
-import os
 import re
 import sys
 from collections import deque
@@ -9,7 +8,7 @@ from typing import Any, Callable, Dict, FrozenSet, Iterator, List, Match, Option
 
 from .cli_stub import CLIOptions
 from .conf.utils import resolve_config
-from .constants import appname, clear_handled_signals, config_dir, default_pager_for_help, defconf, is_macos, str_version
+from .constants import appname, clear_handled_signals, default_pager_for_help, defconf, is_macos, str_version
 from .fast_data_types import wcswidth
 from .options.types import Options as AlattyOpts
 from .types import run_once
@@ -769,14 +768,6 @@ The current {appname} version.
 --dump-commands
 type=bool-set
 Output commands received from child process to STDOUT.
-
-
---replay-commands
-Replay previously dumped commands. Specify the path to a dump file previously
-created by :option:`{appname} --dump-commands`. You
-can open a new alatty window to replay the commands with::
-
-    {appname} sh -c "{appname} --replay-commands /path/to/dump/file; read"
 
 
 --dump-bytes

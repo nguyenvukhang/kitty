@@ -45,7 +45,6 @@ from .os_window_size import initial_window_size_func
 from .session import create_sessions, get_os_window_sizing_data
 from .shaders import CompileError, load_shader_programs
 from .utils import (
-    detach,
     get_custom_window_icon,
     log_error,
     parse_os_window_state,
@@ -354,15 +353,6 @@ def _main() -> None:
     usage = msg = appname = None
     cli_opts, rest = parse_args(args=args, result_class=CLIOptions, usage=usage, message=msg, appname=appname)
     cli_opts.args = rest
-    if cli_opts.detach:
-        if cli_opts.session == '-':
-            from .session import PreReadSession
-            cli_opts.session = PreReadSession(sys.stdin.read(), os.environ)
-        detach()
-    if cli_opts.replay_commands:
-        from alatty.client import main as client_main
-        client_main(cli_opts.replay_commands)
-        return
     bad_lines: List[BadLine] = []
     opts = create_opts(cli_opts, accumulate_bad_lines=bad_lines)
     setup_environment(opts, cli_opts)

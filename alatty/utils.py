@@ -36,9 +36,7 @@ from .constants import (
     is_macos,
     is_wayland,
     kitten_exe,
-    runtime_dir,
     shell_path,
-    ssh_control_master_template,
 )
 from .fast_data_types import WINDOW_FULLSCREEN, WINDOW_MAXIMIZED, WINDOW_MINIMIZED, WINDOW_NORMAL, Color, Shlex, get_options, open_tty
 from .rgb import to_color
@@ -117,11 +115,6 @@ def platform_window_id(os_window_id: int) -> Optional[int]:
         with suppress(Exception):
             return x11_window_id(os_window_id)
     return None
-
-
-def safe_print(*a: Any, **k: Any) -> None:
-    with suppress(Exception):
-        print(*a, **k)
 
 
 def log_error(*a: Any, **k: str) -> None:
@@ -225,21 +218,6 @@ def screen_size_function(fd: Optional[int] = None) -> ScreenSizeGetter:
     return ScreenSizeGetter(fd)
 
 
-def fit_image(width: int, height: int, pwidth: int, pheight: int) -> Tuple[int, int]:
-    from math import floor
-    if height > pheight:
-        corrf = pheight / float(height)
-        width, height = floor(corrf * width), pheight
-    if width > pwidth:
-        corrf = pwidth / float(width)
-        width, height = pwidth, floor(corrf * height)
-    if height > pheight:
-        corrf = pheight / float(height)
-        width, height = floor(corrf * width), pheight
-
-    return int(width), int(height)
-
-
 def base64_encode(
     integer: int,
     chars: str = string.ascii_uppercase + string.ascii_lowercase + string.digits +
@@ -281,18 +259,6 @@ def open_cmd(cmd: Union[Iterable[str], List[str]], arg: Union[None, Iterable[str
     return subprocess.Popen(
         tuple(cmd), stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, cwd=cwd or None,
         preexec_fn=clear_handled_signals, env=env)
-
-
-def detach(fork: bool = True, setsid: bool = True, redirect: bool = True) -> None:
-    if fork:
-        # Detach from the controlling process.
-        if os.fork() != 0:
-            raise SystemExit(0)
-    if setsid:
-        os.setsid()
-    if redirect:
-        from .fast_data_types import redirect_std_streams
-        redirect_std_streams(os.devnull)
 
 
 def init_startup_notification_x11(window_handle: int, startup_id: Optional[str] = None) -> Optional['StartupCtx']:

@@ -128,26 +128,6 @@ def cache_dir() -> str:
     return candidate
 
 
-@run_once
-def runtime_dir() -> str:
-    if 'ALATTY_RUNTIME_DIRECTORY' in os.environ:
-        candidate = os.path.abspath(os.environ['ALATTY_RUNTIME_DIRECTORY'])
-    elif is_macos:
-        from .fast_data_types import user_cache_dir
-        candidate = user_cache_dir()
-    elif 'XDG_RUNTIME_DIR' in os.environ:
-        candidate = os.path.abspath(os.environ['XDG_RUNTIME_DIR'])
-    else:
-        candidate = f'/run/user/{os.geteuid()}'
-        if not os.path.isdir(candidate) or not os.access(candidate, os.X_OK | os.W_OK | os.R_OK):
-            candidate = os.path.join(cache_dir(), 'run')
-    os.makedirs(candidate, exist_ok=True)
-    import stat
-    if stat.S_IMODE(os.stat(candidate).st_mode) != 0o700:
-        os.chmod(candidate, 0o700)
-    return candidate
-
-
 def wakeup_io_loop() -> None:
     from .fast_data_types import get_boss
     b = get_boss()
@@ -163,10 +143,6 @@ except KeyError:
     with suppress(Exception):
         print('Failed to read login shell via getpwuid() for current user, falling back to /bin/sh', file=sys.stderr)
     shell_path = '/bin/sh'
-# Keep this short as it is limited to 103 bytes on macOS
-# https://github.com/ansible/ansible/issues/11536#issuecomment-153030743
-ssh_control_master_template = 'kssh-{alatty_pid}-{ssh_placeholder}'
-
 
 def glfw_path(module: str) -> str:
     prefix = 'alatty.' if getattr(sys, 'frozen', False) else ''

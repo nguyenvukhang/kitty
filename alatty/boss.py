@@ -109,7 +109,6 @@ from .utils import (
     macos_version,
     parse_os_window_state,
     parse_uri_list,
-    safe_print,
     startup_notification_handler,
     which,
 )
@@ -171,35 +170,6 @@ def data_for_at(w: Optional[Window], arg: str, add_wrap_markers: bool = False) -
     return None
 
 
-class DumpCommands:  # {{{
-
-    def __init__(self, args: CLIOptions):
-        self.draw_dump_buf: List[str] = []
-        if args.dump_bytes:
-            self.dump_bytes_to = open(args.dump_bytes, 'wb')
-
-    def __call__(self, *a: Any) -> None:
-        if a:
-            if a[0] == 'draw':
-                if a[1] is None:
-                    if self.draw_dump_buf:
-                        safe_print('draw', ''.join(self.draw_dump_buf))
-                        self.draw_dump_buf = []
-                else:
-                    self.draw_dump_buf.append(a[1])
-            elif a[0] == 'bytes':
-                self.dump_bytes_to.write(a[1])
-                self.dump_bytes_to.flush()
-            else:
-                if self.draw_dump_buf:
-                    safe_print('draw', ''.join(self.draw_dump_buf))
-                    self.draw_dump_buf = []
-                safe_print(*a)
-
-
-# }}}
-
-
 class Boss:
 
     def __init__(
@@ -229,7 +199,7 @@ class Boss:
         self.listening_on = ''
         self.child_monitor = ChildMonitor(
             self.on_child_death,
-            DumpCommands(args) if args.dump_commands or args.dump_bytes else None,
+            None,
             talk_fd,
             listen_fd,
         )
