@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # License: GPL v3 Copyright: 2016, Kovid Goyal <kovid at kovidgoyal.net>
 
-import atexit
 import math
 import os
 import re
@@ -44,8 +43,6 @@ from .types import run_once
 from .typing import PopenType, Socket, StartupCtx
 
 if TYPE_CHECKING:
-    import tarfile
-
     from .fast_data_types import OSWindowSize
     from .options.types import Options
 else:
@@ -791,37 +788,6 @@ def get_all_processes() -> Iterable[int]:
                 yield int(c)
 
 
-def is_alatty_gui_cmdline(*cmd: str) -> bool:
-    if not cmd:
-        return False
-    if os.path.basename(cmd[0]) != 'alatty':
-        return False
-    if len(cmd) == 1:
-        return True
-    s = cmd[1][:1]
-    if s == '@':
-        return False
-    if s == '+':
-        if cmd[1] == '+':
-            return len(cmd) > 2 and cmd[2] == 'open'
-        return cmd[1] == '+open'
-    return True
-
-
-def reload_conf_in_all_kitties() -> None:
-    import signal
-
-    from alatty.child import cmdline_of_pid
-
-    for pid in get_all_processes():
-        try:
-            cmd = cmdline_of_pid(pid)
-        except Exception:
-            continue
-        if cmd and is_alatty_gui_cmdline(*cmd):
-            os.kill(pid, signal.SIGUSR1)
-
-
 @run_once
 def control_codes_pat() -> 'Pattern[str]':
     return re.compile('[\x00-\x09\x0b-\x1f\x7f-\x9f]')
@@ -868,29 +834,6 @@ def less_version(less_exe: str = 'less') -> int:
     return int(m.group(1))
 
 
-def is_pid_alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
-        return False
-    except Exception:
-        pass
-    return True
-
-
-def safer_fork() -> int:
-    pid = os.fork()
-    if pid:
-        # master
-        import ssl
-        ssl.RAND_add(os.urandom(32), 0.0)
-    else:
-        # child
-        import atexit
-        atexit._clear()
-    return pid
-
-
 def sanitize_for_bracketed_paste(text: bytes) -> bytes:
     pat = re.compile(b'(?:(?:\033\\\x5b)|(?:\x9b))201~')
     while True:
@@ -899,25 +842,6 @@ def sanitize_for_bracketed_paste(text: bytes) -> bytes:
             break
         text = new_text
     return text
-
-
-def extract_all_from_tarfile_safely(tf: 'tarfile.TarFile', dest: str) -> None:
-    # Ensure that all extracted items are within dest
-
-    def is_within_directory(directory: str, target: str) -> bool:
-        abs_directory = os.path.abspath(directory)
-        abs_target = os.path.abspath(target)
-        prefix = os.path.commonprefix((abs_directory, abs_target))
-        return prefix == abs_directory
-
-    def safe_extract(tar: 'tarfile.TarFile', path: str = ".", numeric_owner: bool = False) -> None:
-        for member in tar.getmembers():
-            member_path = os.path.join(path, member.name)
-            if not is_within_directory(path, member_path):
-                raise ValueError(f'Attempted path traversal in tar file: {member.name}')
-        tar.extractall(path, tar.getmembers(), numeric_owner=numeric_owner)
-
-    safe_extract(tf, dest)
 
 
 def cmdline_for_hold(cmd: Sequence[str] = (), opts: Optional['Options'] = None) -> List[str]:
