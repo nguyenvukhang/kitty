@@ -410,42 +410,6 @@ linebuf_copy_line_to(LineBuf *self, Line *line, index_type where) {
     self->line_attrs[where].has_dirty_text = true;
 }
 
-static PyObject*
-as_ansi(LineBuf *self, PyObject *callback) {
-#define as_ansi_doc "as_ansi(callback) -> The contents of this buffer as ANSI escaped text. callback is called with each successive line."
-    Line l = {.xnum=self->xnum};
-    // remove trailing empty lines
-    index_type ylimit = self->ynum - 1;
-    const GPUCell *prev_cell = NULL;
-    ANSIBuf output = {0};
-    do {
-        init_line(self, (&l), self->line_map[ylimit]);
-        line_as_ansi(&l, &output, &prev_cell, 0, l.xnum, 0);
-        if (output.len) break;
-        ylimit--;
-    } while(ylimit > 0);
-
-    for(index_type i = 0; i <= ylimit; i++) {
-        bool output_newline = !linebuf_line_ends_with_continuation(self, i);
-        init_line(self, (&l), self->line_map[i]);
-        line_as_ansi(&l, &output, &prev_cell, 0, l.xnum, 0);
-        if (output_newline) {
-            ensure_space_for(&output, buf, Py_UCS4, output.len + 1, capacity, 2048, false);
-            output.buf[output.len++] = 10; // 10 = \n
-        }
-        PyObject *ans = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, output.buf, output.len);
-        if (ans == NULL) { PyErr_NoMemory(); goto end; }
-        PyObject *ret = PyObject_CallFunctionObjArgs(callback, ans, NULL);
-        Py_CLEAR(ans);
-        if (ret == NULL) goto end;
-        Py_CLEAR(ret);
-    }
-end:
-    free(output.buf);
-    if (PyErr_Occurred()) return NULL;
-    Py_RETURN_NONE;
-}
-
 static Line*
 get_line(void *x, int y) {
     LineBuf *self = (LineBuf*)x;
@@ -493,7 +457,6 @@ static PyMethodDef methods[] = {
     METHOD(create_line_copy, METH_O)
     METHOD(rewrap, METH_VARARGS)
     METHOD(clear, METH_NOARGS)
-    METHOD(as_ansi, METH_O)
     METHODB(as_text, METH_VARARGS),
     METHOD(set_attribute, METH_VARARGS)
     METHOD(set_continued, METH_VARARGS)

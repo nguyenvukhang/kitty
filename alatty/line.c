@@ -239,17 +239,6 @@ line_as_ansi(Line *self, ANSIBuf *output, const GPUCell** prev_cell, index_type 
 }
 
 static PyObject*
-as_ansi(Line* self, PyObject *a UNUSED) {
-#define as_ansi_doc "Return the line's contents with ANSI (SGR) escape codes for formatting"
-    const GPUCell *prev_cell = NULL;
-    ANSIBuf output = {0};
-    line_as_ansi(self, &output, &prev_cell, 0, self->xnum, 0);
-    PyObject *ans = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, output.buf, output.len);
-    free(output.buf);
-    return ans;
-}
-
-static PyObject*
 __repr__(Line* self) {
     PyObject *s = line_as_unicode(self, false);
     if (s == NULL) return NULL;
@@ -713,7 +702,6 @@ static PyMethodDef methods[] = {
     METHOD(right_shift, METH_VARARGS)
     METHOD(left_shift, METH_VARARGS)
     METHOD(set_attribute, METH_VARARGS)
-    METHOD(as_ansi, METH_NOARGS)
     METHOD(width, METH_O)
     METHOD(sprite_at, METH_O)
 

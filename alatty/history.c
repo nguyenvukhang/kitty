@@ -339,32 +339,6 @@ push(HistoryBuf *self, PyObject *args) {
     Py_RETURN_NONE;
 }
 
-static PyObject*
-as_ansi(HistoryBuf *self, PyObject *callback) {
-#define as_ansi_doc "as_ansi(callback) -> The contents of this buffer as ANSI escaped text. callback is called with each successive line."
-    Line l = {.xnum=self->xnum};
-    const GPUCell *prev_cell = NULL;
-    ANSIBuf output = {0};
-    for(unsigned int i = 0; i < self->count; i++) {
-        init_line(self, i, &l);
-        line_as_ansi(&l, &output, &prev_cell, 0, l.xnum, 0);
-        if (!l.gpu_cells[l.xnum - 1].attrs.next_char_was_wrapped) {
-            ensure_space_for(&output, buf, Py_UCS4, output.len + 1, capacity, 2048, false);
-            output.buf[output.len++] = '\n';
-        }
-        PyObject *ans = PyUnicode_FromKindAndData(PyUnicode_4BYTE_KIND, output.buf, output.len);
-        if (ans == NULL) { PyErr_NoMemory(); goto end; }
-        PyObject *ret = PyObject_CallFunctionObjArgs(callback, ans, NULL);
-        Py_CLEAR(ans);
-        if (ret == NULL) goto end;
-        Py_CLEAR(ret);
-    }
-end:
-    free(output.buf);
-    if (PyErr_Occurred()) return NULL;
-    Py_RETURN_NONE;
-}
-
 static Line*
 get_line(HistoryBuf *self, index_type y, Line *l) { init_line(self, index_of(self, self->count - y - 1), l); return l; }
 
@@ -536,7 +510,6 @@ static PyObject* rewrap(HistoryBuf *self, PyObject *args);
 
 static PyMethodDef methods[] = {
     METHOD(line, METH_O)
-    METHOD(as_ansi, METH_O)
     METHODB(pagerhist_write, METH_O),
     METHODB(pagerhist_rewrap, METH_O),
     METHODB(pagerhist_as_text, METH_VARARGS),
