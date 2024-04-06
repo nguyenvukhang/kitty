@@ -9,7 +9,7 @@ from contextlib import contextmanager, suppress
 from functools import partial
 from gettext import gettext as _
 from gettext import ngettext
-from time import monotonic, sleep
+from time import sleep
 from typing import (
     Any,
     Callable,
@@ -1844,14 +1844,6 @@ class Boss:
         if not args or args[0] == 'new':
             return self._move_tab_to()
 
-    # Can be called with alatty -o "map f1 send_test_notification"
-    def send_test_notification(self) -> None:
-        from .notify import notify
-
-        now = monotonic()
-        ident = f'test-notify-{now}'
-        notify(f'Test {now}', f'At: {now}', identifier=ident, subtitle=f'Test subtitle {now}')
-
     def notification_activated(self, identifier: str, window_id: int, focus: bool, report: bool) -> None:
         w = self.window_id_map.get(window_id)
         if w is None:
@@ -1860,16 +1852,6 @@ class Boss:
             self.set_active_window(w, switch_os_window_if_needed=True)
         if report:
             w.report_notification_activated(identifier)
-
-    @ac('debug', 'Show the environment variables that the alatty process sees')
-    def show_alatty_env_vars(self) -> None:
-        w = self.active_window
-        env = os.environ.copy()
-        if is_macos and env.get('LC_CTYPE') == 'UTF-8' and not getattr(sys, 'alatty_run_data').get('lc_ctype_before_python'):
-            del env['LC_CTYPE']
-        if w:
-            output = '\n'.join(f'{k}={v}' for k, v in env.items())
-            self.display_scrollback(w, output, title=_('Current alatty env vars'), report_cursor=False)
 
     @ac('misc', 'Discard this event completely ignoring it')
     def discard_event(self) -> None:
