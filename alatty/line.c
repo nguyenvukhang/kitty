@@ -694,9 +694,6 @@ as_text_generic(PyObject *args, void *container, get_line_func get_line, index_t
 }
 
 // Boilerplate {{{
-static PyObject*
-copy_char(Line* self, PyObject *args);
-#define copy_char_doc "copy_char(src, to, dest) -> Copy the character at src to to the character dest in the line `to`"
 
 static PyObject *
 richcmp(PyObject *obj1, PyObject *obj2, int op);
@@ -713,7 +710,6 @@ static PyMethodDef methods[] = {
     METHOD(cursor_from, METH_VARARGS)
     METHOD(apply_cursor, METH_VARARGS)
     METHOD(clear_text, METH_VARARGS)
-    METHOD(copy_char, METH_VARARGS)
     METHOD(right_shift, METH_VARARGS)
     METHOD(left_shift, METH_VARARGS)
     METHOD(set_attribute, METH_VARARGS)
@@ -748,16 +744,3 @@ Line *alloc_line(void) {
 RICHCMP(Line)
 INIT_TYPE(Line)
 // }}}
-
-static PyObject*
-copy_char(Line* self, PyObject *args) {
-    unsigned int src, dest;
-    Line *to;
-    if (!PyArg_ParseTuple(args, "IO!I", &src, &Line_Type, &to, &dest)) return NULL;
-    if (src >= self->xnum || dest >= to->xnum) {
-        PyErr_SetString(PyExc_ValueError, "Out of bounds");
-        return NULL;
-    }
-    COPY_CELL(self, src, to, dest);
-    Py_RETURN_NONE;
-}
