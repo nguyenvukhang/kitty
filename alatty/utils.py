@@ -844,14 +844,6 @@ def parse_uri_list(text: str) -> Generator[str, None, None]:
             yield unquote(purl.path)
 
 
-class SSHConnectionData(NamedTuple):
-    binary: str
-    hostname: str
-    port: Optional[int] = None
-    identity_file: str = ''
-    extra_args: Tuple[Tuple[str, str], ...] = ()
-
-
 def get_new_os_window_size(
     metrics: 'OSWindowSize', width: int, height: int, unit: str, incremental: bool = False, has_window_scaling: bool = True
 ) -> Tuple[int, int]:
