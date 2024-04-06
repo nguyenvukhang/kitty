@@ -87,7 +87,6 @@ from .terminfo import get_capabilities
 from .types import MouseEvent, OverlayType, WindowGeometry, ac, run_once
 from .typing import BossType, ChildType, EdgeLiteral, TabType, TypedDict
 from .utils import (
-    key_val_matcher,
     alatty_ansi_sanitizer_pat,
     log_error,
     open_cmd,

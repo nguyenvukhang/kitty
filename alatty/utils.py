@@ -341,31 +341,6 @@ def unix_socket_paths(name: str, ext: str = '.lock') -> Generator[str, None, Non
         yield os.path.join(loc, filename)
 
 
-def random_unix_socket() -> 'Socket':
-    import shutil
-    import socket
-    import stat
-    import tempfile
-
-    from alatty.fast_data_types import random_unix_socket as rus
-    try:
-        fd = rus()
-    except OSError:
-        for path in unix_socket_directories():
-            ans = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM, proto=0)
-            tdir = tempfile.mkdtemp(prefix='.alatty-', dir=path)
-            atexit.register(remove_socket_file, ans, tdir, shutil.rmtree)
-            path = os.path.join(tdir, 's')
-            ans.bind(path)
-            os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
-            break
-    else:
-        ans = socket.socket(family=socket.AF_UNIX, type=socket.SOCK_STREAM, proto=0, fileno=fd)
-    ans.set_inheritable(False)
-    ans.setblocking(False)
-    return ans
-
-
 def parse_os_window_state(state: str) -> int:
     return {
         'normal': WINDOW_NORMAL, 'maximized': WINDOW_MAXIMIZED, 'minimized': WINDOW_MINIMIZED,
