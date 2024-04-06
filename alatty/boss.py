@@ -102,7 +102,6 @@ from .typing import TypedDict
 from .utils import (
     func_name,
     get_new_os_window_size,
-    is_ok_to_read_image_file,
     is_path_in_temp_dir,
     less_version,
     log_error,
@@ -1739,9 +1738,6 @@ class Boss:
         if is_path_in_temp_dir(path):
             with suppress(FileNotFoundError):
                 os.remove(path)
-
-    def is_ok_to_read_image_file(self, path: str, fd: int) -> bool:
-        return is_ok_to_read_image_file(path, fd)
 
     def dbus_notification_callback(self, activated: bool, a: int, b: Union[int, str]) -> None:
         from .notify import dbus_notification_activated, dbus_notification_created
