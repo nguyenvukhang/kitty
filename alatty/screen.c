@@ -901,8 +901,6 @@ set_mode_from_const(Screen *self, unsigned int mode, bool val) {
         case SAVE_CURSOR:
             screen_save_cursor(self);
             break;
-        case TOGGLE_ALT_SCREEN_1:
-        case TOGGLE_ALT_SCREEN_2:
         case ALTERNATE_SCREEN:
             if (val && self->linebuf == self->main_linebuf) screen_toggle_screen_buffer(self, mode == ALTERNATE_SCREEN, mode == ALTERNATE_SCREEN);
             else if (!val && self->linebuf != self->main_linebuf) screen_toggle_screen_buffer(self, mode == ALTERNATE_SCREEN, mode == ALTERNATE_SCREEN);
@@ -3523,12 +3521,6 @@ is_main_linebuf(Screen *self, PyObject *a UNUSED) {
 }
 
 static PyObject*
-toggle_alt_screen(Screen *self, PyObject *a UNUSED) {
-    screen_toggle_screen_buffer(self, true, true);
-    Py_RETURN_NONE;
-}
-
-static PyObject*
 send_escape_code_to_child(Screen *self, PyObject *args) {
     int code;
     PyObject *O;
@@ -3769,7 +3761,6 @@ static PyMethodDef methods[] = {
     MND(is_rectangle_select, METH_NOARGS)
     MND(scroll, METH_VARARGS)
     MND(send_escape_code_to_child, METH_VARARGS)
-    MND(toggle_alt_screen, METH_NOARGS)
     MND(reset_callbacks, METH_NOARGS)
     MND(paste, METH_O)
     MND(paste_bytes, METH_O)

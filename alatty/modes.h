@@ -72,8 +72,6 @@
 #define SAVE_CURSOR (1048 << 5)
 
 // Alternate screen buffer
-#define TOGGLE_ALT_SCREEN_1 (47 << 5)
-#define TOGGLE_ALT_SCREEN_2 (1047 << 5)
 #define ALTERNATE_SCREEN  (1049 << 5)
 
 // Bracketed paste mode
