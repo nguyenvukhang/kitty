@@ -519,24 +519,6 @@ def get_editor(opts: Optional[Options] = None, path_to_edit: str = '', line_numb
     return ans
 
 
-def is_path_in_temp_dir(path: str) -> bool:
-    if not path:
-        return False
-
-    def abspath(x: Optional[str]) -> str:
-        if x:
-            x = os.path.abspath(os.path.realpath(x))
-        return x or ''
-
-    import tempfile
-    path = abspath(path)
-    candidates = frozenset(map(abspath, ('/tmp', '/dev/shm', os.environ.get('TMPDIR', None), tempfile.gettempdir())))
-    for q in candidates:
-        if q and path.startswith(q):
-            return True
-    return False
-
-
 def resolve_abs_or_config_path(path: str, env: Optional[Mapping[str, str]] = None, conf_dir: Optional[str] = None) -> str:
     path = os.path.expanduser(path)
     path = expandvars(path, env or {})

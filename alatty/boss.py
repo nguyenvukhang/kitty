@@ -102,7 +102,6 @@ from .typing import TypedDict
 from .utils import (
     func_name,
     get_new_os_window_size,
-    is_path_in_temp_dir,
     less_version,
     log_error,
     macos_version,
@@ -1733,11 +1732,6 @@ class Boss:
         if bad_lines:
             self.show_bad_config_lines(bad_lines)
         self.apply_new_options(opts)
-
-    def safe_delete_temp_file(self, path: str) -> None:
-        if is_path_in_temp_dir(path):
-            with suppress(FileNotFoundError):
-                os.remove(path)
 
     def dbus_notification_callback(self, activated: bool, a: int, b: Union[int, str]) -> None:
         from .notify import dbus_notification_activated, dbus_notification_created
