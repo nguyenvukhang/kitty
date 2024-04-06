@@ -2023,49 +2023,6 @@ clipboard_control(Screen *self, int code, PyObject *data) {
     else { CALLBACK("clipboard_control", "OO", data, Py_None);}
 }
 
-static void
-parse_prompt_mark(Screen *self, PyObject *parts, PromptKind *pk) {
-    for (Py_ssize_t i = 0; i < PyList_GET_SIZE(parts); i++) {
-        PyObject *token = PyList_GET_ITEM(parts, i);
-        if (PyUnicode_CompareWithASCIIString(token, "k=s") == 0) *pk = SECONDARY_PROMPT;
-        else if (PyUnicode_CompareWithASCIIString(token, "redraw=0") == 0) self->prompt_settings.redraws_prompts_at_all = 0;
-    }
-}
-
-void
-shell_prompt_marking(Screen *self, PyObject *data) {
-    if (PyUnicode_READY(data) != 0) { PyErr_Clear(); return; }
-    if (PyUnicode_GET_LENGTH(data) > 0 && self->cursor->y < self->lines) {
-        Py_UCS4 ch = PyUnicode_READ_CHAR(data, 0);
-        switch (ch) {
-            case 'A': {
-                PromptKind pk = PROMPT_START;
-                self->prompt_settings.redraws_prompts_at_all = 1;
-                if (PyUnicode_FindChar(data, ';', 0, PyUnicode_GET_LENGTH(data), 1)) {
-                    RAII_PyObject(sep, PyUnicode_FromString(";"));
-                    if (sep) {
-                        RAII_PyObject(parts, PyUnicode_Split(data, sep, -1));
-                        if (parts) parse_prompt_mark(self, parts, &pk);
-                    }
-                }
-                if (PyErr_Occurred()) PyErr_Print();
-                self->linebuf->line_attrs[self->cursor->y].prompt_kind = pk;
-                if (pk == PROMPT_START)
-                    CALLBACK("cmd_output_marking", "O", Py_False);
-            } break;
-            case 'C':
-                self->linebuf->line_attrs[self->cursor->y].prompt_kind = OUTPUT_START;
-                CALLBACK("cmd_output_marking", "O", Py_True);
-                break;
-        }
-    }
-    if (global_state.debug_rendering) {
-        fprintf(stderr, "prompt_marking: x=%d y=%d op=", self->cursor->x, self->cursor->y);
-        PyObject_Print(data, stderr, 0);
-        fprintf(stderr, "\n");
-    }
-}
-
 void
 set_color_table_color(Screen *self, unsigned int code, PyObject *color) {
     if (color == NULL) { CALLBACK("set_color_table_color", "Is", code, ""); }

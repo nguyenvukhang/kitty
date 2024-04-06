@@ -232,17 +232,6 @@ def base64_encode(
     return ans
 
 
-def command_for_open(program: Union[str, List[str]] = 'default') -> List[str]:
-    if isinstance(program, str):
-        from .conf.utils import to_cmdline
-        program = to_cmdline(program)
-    if program == ['default']:
-        cmd = ['open'] if is_macos else ['xdg-open']
-    else:
-        cmd = program
-    return cmd
-
-
 def open_cmd(cmd: Union[Iterable[str], List[str]], arg: Union[None, Iterable[str], str] = None,
              cwd: Optional[str] = None, extra_env: Optional[Dict[str, str]] = None) -> 'PopenType[bytes]':
     import subprocess
