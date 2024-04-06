@@ -945,14 +945,6 @@ def extract_all_from_tarfile_safely(tf: 'tarfile.TarFile', dest: str) -> None:
     safe_extract(tf, dest)
 
 
-def is_png(path: str) -> bool:
-    if path:
-        with suppress(Exception), open(path, 'rb') as f:
-            header = f.read(8)
-            return header.startswith(b'\211PNG\r\n\032\n')
-    return False
-
-
 def cmdline_for_hold(cmd: Sequence[str] = (), opts: Optional['Options'] = None) -> List[str]:
     if opts is None:
         with suppress(RuntimeError):
@@ -985,21 +977,7 @@ def get_custom_window_icon() -> Union[Tuple[float, str], Tuple[None, None]]:
     return None, None
 
 
-def key_val_matcher(items: Iterable[Tuple[str, str]], key_pat: 're.Pattern[str]', val_pat: Optional['re.Pattern[str]']) -> bool:
-    for key, val in items:
-        if key_pat.search(key) is not None and (
-                val_pat is None or val_pat.search(val) is not None):
-            return True
-    return False
-
-
 def shlex_split(text: str) -> Iterator[str]:
     s = Shlex(text)
     while (q := s.next_word())[0] > -1:
         yield q[1]
-
-
-def shlex_split_with_positions(text: str) -> Iterator[Tuple[int, str]]:
-    s = Shlex(text)
-    while (q := s.next_word())[0] > -1:
-        yield q

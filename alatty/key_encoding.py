@@ -214,31 +214,6 @@ class KeyEvent(NamedTuple):
     caps_lock: bool = False
     num_lock: bool = False
 
-    def matches(self, spec: Union[str, ParsedShortcut], types: int = EventType.PRESS | EventType.REPEAT) -> bool:
-        mods = self.mods_without_locks
-        if not self.type & types:
-            return False
-        if isinstance(spec, str):
-            spec = parse_shortcut(spec)
-        if (mods, self.key) == spec:
-            return True
-        is_shifted = bool(self.shifted_key and self.shift)
-        if is_shifted and (mods & ~SHIFT, self.shifted_key) == spec:
-            return True
-        return False
-
-    def matches_without_mods(self, spec: Union[str, ParsedShortcut], types: int = EventType.PRESS | EventType.REPEAT) -> bool:
-        if not self.type & types:
-            return False
-        if isinstance(spec, str):
-            spec = parse_shortcut(spec)
-        return self.key == spec[1]
-
-    def matches_text(self, text: str, case_sensitive: bool = False) -> bool:
-        if case_sensitive:
-            return self.text == text
-        return self.text.lower() == text.lower()
-
     @property
     def is_release(self) -> bool:
         return self.type is EventType.RELEASE

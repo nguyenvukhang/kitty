@@ -46,18 +46,6 @@ def get_shortcut(keymap: KeyMap, ev: KeyEvent) -> Optional[List[KeyDefinition]]:
     return ans
 
 
-def shortcut_matches(s: SingleKey, ev: KeyEvent) -> bool:
-    mods = ev.mods & mod_mask
-    smods = s.mods & mod_mask
-    if s.is_native:
-        return s.key == ev.native_key and smods == mods
-    if s.key == ev.key and mods == smods:
-        return True
-    if ev.shifted_key and mods & GLFW_MOD_SHIFT and (mods & ~GLFW_MOD_SHIFT) == smods and ev.shifted_key == s.key:
-        return True
-    return False
-
-
 class Mappings:
 
     ' Manage all keyboard mappings '

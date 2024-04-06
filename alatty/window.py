@@ -653,29 +653,6 @@ class Window:
     def has_running_program(self) -> bool:
         return not self.at_prompt
 
-    def matches(self, field: str, pat: MatchPatternType) -> bool:
-        if isinstance(pat, tuple):
-            if field == 'env':
-                return key_val_matcher(self.child.environ.items(), *pat)
-            if field == 'var':
-                return key_val_matcher(self.user_vars.items(), *pat)
-            return False
-
-        if field in ('id', 'window_id'):
-            return pat.pattern == str(self.id)
-        if field == 'pid':
-            return pat.pattern == str(self.child.pid)
-        if field == 'title':
-            return pat.search(self.override_title or self.title) is not None
-        if field in 'cwd':
-            return pat.search(self.child.current_cwd or self.child.cwd) is not None
-        if field == 'cmdline':
-            for x in self.child.cmdline:
-                if pat.search(x) is not None:
-                    return True
-            return False
-        return False
-
     def set_visible_in_layout(self, val: bool) -> None:
         val = bool(val)
         if val is not self.is_visible_in_layout:
