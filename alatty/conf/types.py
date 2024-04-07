@@ -2,12 +2,9 @@
 # License: GPLv3 Copyright: 2021, Kovid Goyal <kovid at kovidgoyal.net>
 
 import builtins
-import re
-import textwrap
 import typing
-from functools import lru_cache
 from importlib import import_module
-from typing import Any, Callable, Dict, Iterable, Iterator, List, Match, Optional, Set, Tuple, Union, cast
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Set, Tuple, Union, cast
 
 import alatty.conf.utils as generic_parsers
 
@@ -24,92 +21,6 @@ class Unset:
 
 unset = Unset()
 ParserFuncType = Callable[[str], Any]
-
-
-def expand_opt_references(conf_name: str, text: str) -> str:
-    conf_name += '.'
-
-    def expand(m: 'Match[str]') -> str:
-        ref = m.group(1)
-        if '<' not in ref and '.' not in ref:
-            # full ref
-            return f':opt:`{ref} <{conf_name}{ref}>`'
-        return str(m.group())
-
-    return re.sub(r':opt:`(.+?)`', expand, text)
-
-
-def remove_markup(text: str) -> str:
-    def extract(m: 'Match[str]') -> Tuple[str, str]:
-        parts = m.group(2).split('<')
-        t = parts[0].strip()
-        q = parts[-1].rstrip('>')
-        return t, q
-
-    def sub(m: 'Match[str]') -> str:
-        key = m.group(1)
-        if key in ('term', 'option'):
-            t, _ = extract(m)
-            return t
-        if key in ('ac', 'opt'):
-            t, q = extract(m)
-            return f'{t} {q}' if q and q != t else t
-        if key == 'code':
-            return m.group(2).replace('\\\\', '\\')
-
-        return str(m.group(2))
-
-    return re.sub(r':([a-zA-Z0-9]+):`(.+?)`', sub, text, flags=re.DOTALL)
-
-
-def strip_inline_literal(text: str) -> str:
-    return re.sub(r'``([^`]+)``', r'`\1`', text, flags=re.DOTALL)
-
-
-def iter_blocks(lines: Iterable[str]) -> Iterator[Tuple[List[str], int]]:
-    current_block: List[str] = []
-    prev_indent = 0
-    for line in lines:
-        indent_size = len(line) - len(line.lstrip())
-        if indent_size != prev_indent or not line:
-            if current_block:
-                yield current_block, prev_indent
-            current_block = []
-        prev_indent = indent_size
-        if not line:
-            yield [''], 100
-        else:
-            current_block.append(line)
-    if current_block:
-        yield current_block, indent_size
-
-
-@lru_cache(maxsize=8)
-def block_wrapper(comment_symbol: str) -> textwrap.TextWrapper:
-    return textwrap.TextWrapper(
-            initial_indent=comment_symbol, subsequent_indent=comment_symbol, width=70, break_long_words=False
-        )
-
-
-def wrapped_block(lines: Iterable[str], comment_symbol: str = '#: ') -> Iterator[str]:
-    wrapper = block_wrapper(comment_symbol)
-    for block, indent_size in iter_blocks(lines):
-        if indent_size > 0:
-            for line in block:
-                if not line:
-                    yield line
-                else:
-                    yield comment_symbol + line
-        else:
-            for line in wrapper.wrap('\n'.join(block)):
-                yield line
-
-
-def render_block(text: str, comment_symbol: str = '#: ') -> str:
-    text = remove_markup(text)
-    text = strip_inline_literal(text)
-    lines = text.splitlines()
-    return '\n'.join(wrapped_block(lines, comment_symbol))
 
 
 class CoalescedIteratorData:
@@ -302,11 +213,6 @@ class Group:
     def __len__(self) -> int:
         return len(self.items)
 
-    def iter_with_coalesced_options(self) -> Iterator[GroupItem]:
-        for item in self:
-            if id(item) not in self.coalesced_iterator_data.coalesced:
-                yield item
-
     def iter_all(self) -> Iterator[GroupItem]:
         for x in self:
             yield x
@@ -369,18 +275,6 @@ class Definition:
 
     def iter_all_non_groups(self) -> Iterator[NonGroups]:
         yield from self.root_group.iter_all_non_groups()
-
-    def iter_all_options(self) -> Iterator[Union[Option, MultiOption]]:
-        for x in self.iter_all_non_groups():
-            if isinstance(x, (Option, MultiOption)):
-                yield x
-
-    def iter_all_maps(self, which: str = 'map') -> Iterator[Union[ShortcutMapping, MouseMapping]]:
-        for x in self.iter_all_non_groups():
-            if isinstance(x, ShortcutMapping) and which in ('map', '*'):
-                yield x
-            elif isinstance(x, MouseMapping) and which in ('mouse_map', '*'):
-                yield x
 
     def parser_func(self, name: str) -> ParserFuncType:
         ans = getattr(builtins, name, None)

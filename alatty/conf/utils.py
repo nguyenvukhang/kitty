@@ -399,44 +399,8 @@ class KeyAction(NamedTuple):
         return ans
 
 
-def parse_kittens_func_args(action: str, args_funcs: Dict[str, KeyFunc[Tuple[str, Any]]]) -> KeyAction:
-    parts = action.strip().split(' ', 1)
-    func = parts[0]
-    if len(parts) == 1:
-        return KeyAction(func, ())
-    rest = parts[1]
-
-    try:
-        parser = args_funcs[func]
-    except KeyError as e:
-        raise KeyError(
-            f'Unknown action: {func}. Check if map action: {action} is valid'
-        ) from e
-
-    try:
-        func, args = parser(func, rest)
-    except Exception:
-        raise ValueError(f'Unknown key action: {action}')
-
-    if not isinstance(args, (list, tuple)):
-        args = (args, )
-
-    return KeyAction(func, tuple(args))
-
-
 KittensKeyDefinition = Tuple[ParsedShortcut, KeyAction]
 KittensKeyMap = Dict[ParsedShortcut, KeyAction]
-
-
-def parse_kittens_key(
-    val: str, funcs_with_args: Dict[str, KeyFunc[Tuple[str, Any]]]
-) -> Optional[KittensKeyDefinition]:
-    from ..key_encoding import parse_shortcut
-    sc, action = val.partition(' ')[::2]
-    if not sc or not action:
-        return None
-    ans = parse_kittens_func_args(action, funcs_with_args)
-    return parse_shortcut(sc), ans
 
 
 def uniq(vals: Iterable[T]) -> List[T]:
