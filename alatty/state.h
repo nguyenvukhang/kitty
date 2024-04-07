@@ -81,7 +81,6 @@ typedef struct {
   MouseShape pointer_shape_when_grabbed;
   MouseShape default_pointer_shape;
   MouseShape pointer_shape_when_dragging;
-  char_type *url_excluded_characters;
   bool tab_bar_hidden;
   double font_size;
   struct {

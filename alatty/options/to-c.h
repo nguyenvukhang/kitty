@@ -172,12 +172,6 @@ list_of_chars(PyObject *chars) {
 }
 
 static void
-url_excluded_characters(PyObject *chars, Options *opts) {
-    free(opts->url_excluded_characters);
-    opts->url_excluded_characters = list_of_chars(chars);
-}
-
-static void
 select_by_word_characters(PyObject *chars, Options *opts) {
     free(opts->select_by_word_characters);
     opts->select_by_word_characters = list_of_chars(chars);
@@ -214,7 +208,7 @@ static void
 free_allocs_in_options(Options *opts) {
     free_menu_map(opts);
 #define F(x) free(opts->x); opts->x = NULL;
-    F(select_by_word_characters); F(url_excluded_characters); F(select_by_word_characters_forward);
+    F(select_by_word_characters); F(select_by_word_characters_forward);
     F(default_window_logo);
 #undef F
 }

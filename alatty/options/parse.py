@@ -380,9 +380,6 @@ class Parser:
     def touch_scroll_multiplier(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['touch_scroll_multiplier'] = float(val)
 
-    def url_excluded_characters(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
-        ans['url_excluded_characters'] = python_string(val)
-
     def visual_window_select_characters(self, val: str, ans: typing.Dict[str, typing.Any]) -> None:
         ans['visual_window_select_characters'] = visual_window_select_characters(val)
 
