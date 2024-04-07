@@ -7,12 +7,6 @@ import sys
 from typing import List
 
 
-def hold(args: List[str]) -> None:
-    from alatty.constants import kitten_exe
-    args = ['kitten', '__hold_till_enter__'] + args[1:]
-    os.execvp(kitten_exe(), args)
-
-
 def launch(args: List[str]) -> None:
     import runpy
     sys.argv = args[1:]
@@ -64,7 +58,6 @@ entry_points = {
     '+': namespaced,
 }
 namespaced_entry_points = {k: v for k, v in entry_points.items() if k[0] not in '+@'}
-namespaced_entry_points['hold'] = hold
 namespaced_entry_points['launch'] = launch
 namespaced_entry_points['kitten'] = run_kitten
 
