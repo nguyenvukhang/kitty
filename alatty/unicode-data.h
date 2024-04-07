@@ -1,6 +1,5 @@
 #pragma once
 #include "data-types.h"
-#include "state.h"
 // START_KNOWN_MARKS
 static const combining_type VS15 = 1364, VS16 = 1365;
 // END_KNOWN_MARKS
@@ -16,16 +15,6 @@ bool is_P_category(char_type);
 bool is_non_rendered_char(char_type);
 char_type codepoint_for_mark(combining_type m);
 combining_type mark_for_codepoint(char_type c);
-
-static inline bool
-is_excluded_from_url(uint32_t ch) {
-    if (OPT(url_excluded_characters)) {
-        for (const char_type *p = OPT(url_excluded_characters); *p; p++) {
-            if (ch == *p) return true;
-        }
-    }
-    return false;
-}
 
 static inline bool
 is_url_legal_char(uint32_t ch) {
@@ -59,11 +48,6 @@ is_url_legal_char(uint32_t ch) {
             return true;
     }
     END_ALLOW_CASE_RANGE
-}
-
-static inline bool
-is_url_char(uint32_t ch) {
-    return is_url_legal_char(ch) && !is_excluded_from_url(ch);
 }
 
 static inline bool
