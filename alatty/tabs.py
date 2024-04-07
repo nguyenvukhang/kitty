@@ -9,10 +9,8 @@ from contextlib import suppress
 from operator import attrgetter
 from typing import (
     Any,
-    Callable,
     Deque,
     Dict,
-    Generator,
     Iterable,
     Iterator,
     List,
@@ -31,7 +29,6 @@ from .constants import appname
 from .fast_data_types import (
     add_tab,
     attach_window,
-    current_focused_os_window_id,
     detach_window,
     get_boss,
     get_options,

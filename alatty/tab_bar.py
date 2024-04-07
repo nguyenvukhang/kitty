@@ -3,7 +3,7 @@
 
 import os
 import re
-from functools import lru_cache, partial, wraps
+from functools import lru_cache, wraps
 from string import Formatter as StringFormatter
 from typing import (
     Any,
@@ -34,7 +34,7 @@ from .fast_data_types import (
 )
 from .rgb import color_as_sgr, color_from_int, to_color
 from .types import WindowGeometry, run_once
-from .typing import EdgeLiteral, PowerlineStyle
+from .typing import EdgeLiteral
 from .utils import color_as_int, log_error, sgr_sanitizer_pat
 
 
