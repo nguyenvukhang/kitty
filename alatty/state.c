@@ -987,31 +987,6 @@ PYWRAP0(wakeup_main_loop) {
     Py_RETURN_NONE;
 }
 
-static void
-destroy_mock_window(PyObject *capsule) {
-    Window *w = PyCapsule_GetPointer(capsule, "Window");
-    if (w) {
-        destroy_window(w);
-        PyMem_Free(w);
-    }
-}
-
-static PyObject*
-pycreate_mock_window(PyObject *self UNUSED, PyObject *args) {
-    Screen *screen;
-    PyObject *title = NULL;
-    if (!PyArg_ParseTuple(args, "O|U", &screen, &title)) return NULL;
-    Window *w = PyMem_Calloc(sizeof(Window), 1);
-    if (!w) return NULL;
-    Py_INCREF(screen);
-    PyObject *ans = PyCapsule_New(w, "Window", destroy_mock_window);
-    if (ans != NULL) {
-        initialize_window(w, title, false);
-        w->render_data.screen = screen;
-    }
-    return ans;
-}
-
 static bool
 move_cursor_to_mouse_if_in_prompt(id_type os_window_id, id_type tab_id, id_type window_id) {
     bool moved = false;
@@ -1139,7 +1114,6 @@ static PyMethodDef module_methods[] = {
     MW(get_boss, METH_NOARGS),
     MW(apply_options_update, METH_NOARGS),
     MW(patch_global_colors, METH_VARARGS),
-    MW(create_mock_window, METH_VARARGS),
     MW(destroy_global_data, METH_NOARGS),
     MW(wakeup_main_loop, METH_NOARGS),
 

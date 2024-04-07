@@ -382,11 +382,6 @@ distance(double x1, double y1, double x2, double y2) {
     return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
-static void
-clear_click_queue(Window *w, int button) {
-    if (0 <= button && button <= (ssize_t)arraysz(w->click_queues)) w->click_queues[button].length = 0;
-}
-
 #define N(n) (q->clicks[q->length - n])
 
 static double
@@ -964,54 +959,9 @@ test_encode_mouse(PyObject *self UNUSED, PyObject *args) {
     return PyUnicode_FromStringAndSize(mouse_event_buf, sz);
 }
 
-static PyObject*
-mock_mouse_selection(PyObject *self UNUSED, PyObject *args) {
-    PyObject *capsule;
-    int button, code;
-    if (!PyArg_ParseTuple(args, "O!ii", &PyCapsule_Type, &capsule, &button, &code)) return NULL;
-    Window *w = PyCapsule_GetPointer(capsule, "Window");
-    if (!w) return NULL;
-    mouse_selection(w, code, button);
-    Py_RETURN_NONE;
-}
-
-static PyObject*
-send_mock_mouse_event_to_window(PyObject *self UNUSED, PyObject *args) {
-    PyObject *capsule;
-    int button, modifiers, is_release, clear_clicks, in_left_half_of_cell;
-    unsigned int x, y;
-    if (!PyArg_ParseTuple(args, "O!iipIIpp", &PyCapsule_Type, &capsule, &button, &modifiers, &is_release, &x, &y, &clear_clicks, &in_left_half_of_cell)) return NULL;
-    Window *w = PyCapsule_GetPointer(capsule, "Window");
-    if (!w) return NULL;
-    if (clear_clicks) clear_click_queue(w, button);
-    bool mouse_cell_changed = x != w->mouse_pos.cell_x || y != w->mouse_pos.cell_y || w->mouse_pos.in_left_half_of_cell != in_left_half_of_cell;
-    w->mouse_pos.global_x = 10 * x; w->mouse_pos.global_y = 20 * y;
-    w->mouse_pos.cell_x = x; w->mouse_pos.cell_y = y;
-    w->mouse_pos.in_left_half_of_cell = in_left_half_of_cell;
-    static int last_button_pressed = GLFW_MOUSE_BUTTON_LEFT;
-    if (button < 0) {
-        if (button == -2) do_drag_scroll(w, true);
-        else if (button == -3) do_drag_scroll(w, false);
-        else handle_mouse_movement_in_alatty(w, last_button_pressed, mouse_cell_changed);
-    } else {
-        if (global_state.active_drag_in_window && is_release && button == global_state.active_drag_button) {
-            end_drag(w);
-        } else {
-            dispatch_mouse_event(w, button, is_release ? -1 : 1, modifiers, false);
-            if (!is_release) {
-                last_button_pressed = button;
-                add_press(w, button, modifiers);
-            }
-        }
-    }
-    Py_RETURN_NONE;
-}
-
 static PyMethodDef module_methods[] = {
     {"send_mouse_event", (PyCFunction)(void (*) (void))(send_mouse_event), METH_VARARGS | METH_KEYWORDS, NULL},
     METHODB(test_encode_mouse, METH_VARARGS),
-    METHODB(send_mock_mouse_event_to_window, METH_VARARGS),
-    METHODB(mock_mouse_selection, METH_VARARGS),
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
