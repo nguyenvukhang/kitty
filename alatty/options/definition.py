@@ -1582,20 +1582,6 @@ option applied.
 # shortcuts.clipboard {{{
 agr('shortcuts.clipboard', 'Clipboard')
 
-map('Copy to clipboard',
-    'copy_to_clipboard alatty_mod+c copy_to_clipboard',
-    long_text='''
-There is also a :ac:`copy_or_interrupt` action that can be optionally mapped
-to :kbd:`Ctrl+C`. It will copy only if there is a selection and send an
-interrupt otherwise. Similarly, :ac:`copy_and_clear_or_interrupt` will copy
-and clear the selection or send an interrupt if there is no selection.
-'''
-    )
-map('Copy to clipboard',
-    'copy_to_clipboard cmd+c copy_to_clipboard',
-    only='macos',
-    )
-
 map('Paste from clipboard',
     'paste_from_clipboard alatty_mod+v paste_from_clipboard',
     )

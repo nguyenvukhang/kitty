@@ -1161,18 +1161,6 @@ class Window:
     def paste(self, text: str) -> None:
         self.paste_with_actions(text)
 
-    @ac('cp', 'Copy the selected text from the active window to the clipboard')
-    def copy_to_clipboard(self) -> None:
-        text = self.text_for_selection()
-        if text:
-            set_clipboard_string(text)
-
-    @ac('cp', 'Copy the selected text from the active window to the clipboard with ANSI formatting codes')
-    def copy_ansi_to_clipboard(self) -> None:
-        text = self.text_for_selection(as_ansi=True)
-        if text:
-            set_clipboard_string(text)
-
     def encoded_key(self, key_event: KeyEvent) -> bytes:
         return encode_key_for_tty(
             key=key_event.key, shifted_key=key_event.shifted_key, alternate_key=key_event.alternate_key,
