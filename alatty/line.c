@@ -39,12 +39,6 @@ cell_text(CPUCell *cell) {
     return ans;
 }
 
-// URL detection {{{
-
-#define MIN_URL_LEN 5
-
-// }}}
-
 static PyObject*
 text_at(Line* self, Py_ssize_t xval) {
 #define text_at_doc "[x] -> Return the text in the specified cell"

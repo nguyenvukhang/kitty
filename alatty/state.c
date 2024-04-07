@@ -230,7 +230,6 @@ static void
 destroy_window(Window *w) {
     Py_CLEAR(w->render_data.screen); Py_CLEAR(w->title);
     free(w->title_bar_data.buf); w->title_bar_data.buf = NULL;
-    free(w->url_target_bar_data.buf); w->url_target_bar_data.buf = NULL;
     release_gpu_resources_for_window(w);
 }
 

@@ -151,7 +151,7 @@ typedef struct {
   ClickQueue click_queues[8];
   monotonic_t last_drag_scroll_at;
   uint32_t last_special_key_pressed;
-  WindowBarData title_bar_data, url_target_bar_data;
+  WindowBarData title_bar_data;
 } Window;
 
 typedef struct {
