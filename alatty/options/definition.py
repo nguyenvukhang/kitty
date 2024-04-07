@@ -1814,11 +1814,6 @@ be switched directly without displaying the overlay. You can change the overlay
 characters and their order with option :opt:`visual_window_select_characters`.
 '''
     )
-map('Visually swap window with another', 'swap_with_window alatty_mod+f8 swap_with_window',
-    long_text='''
-Works like :ac:`focus_visible_window` above, but swaps the window.
-'''
-    )
 egr()  # }}}
 
 

@@ -93,7 +93,7 @@ class Borders:
         draw_borders = bw > 0 and draw_window_borders
         active_group = all_windows.active_group
 
-        for i, wg in enumerate(groups):
+        for wg in groups:
             window_bg = wg.default_bg
             window_bg = (window_bg << 8) | BorderColor.window_bg
             if draw_borders and not draw_minimal_borders:

@@ -608,14 +608,6 @@ class Tab:  # {{{
             if self.current_layout.move_window_to_group(self.windows, neighbor):
                 self.relayout()
 
-    def swap_active_window_with(self, window_id: int) -> None:
-        group = self.windows.group_for_window(window_id)
-        if group is not None:
-            w = self.active_window
-            if w is not None and w.id != window_id:
-                if self.current_layout.move_window_to_group(self.windows, group.id):
-                    self.relayout()
-
     @property
     def all_window_ids_except_active_window(self) -> Set[int]:
         all_window_ids = {w.id for w in self}
@@ -634,13 +626,6 @@ class Tab:  # {{{
                 tab.set_active_window(window)
 
         get_boss().visual_window_select_action(self, callback, 'Choose window to switch to', only_window_ids=self.all_window_ids_except_active_window)
-
-    @ac('win', 'Swap the current window with another window in the current tab, selected visually. See :opt:`visual_window_select_characters`')
-    def swap_with_window(self) -> None:
-        def callback(tab: Optional[Tab], window: Optional[Window]) -> None:
-            if tab and window:
-                tab.swap_active_window_with(window.id)
-        get_boss().visual_window_select_action(self, callback, 'Choose window to swap with', only_window_ids=self.all_window_ids_except_active_window)
 
     @ac('win', 'Move active window to the top (make it the first window)')
     def move_window_to_top(self) -> None:
