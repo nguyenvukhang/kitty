@@ -1143,59 +1143,6 @@ def macos_info_plist() -> bytes:
         },
     ]
 
-    url_schemes = [
-        {
-            'CFBundleURLName': 'File URL',
-            'CFBundleURLSchemes': ['file'],
-        },
-        {
-            'CFBundleURLName': 'FTP URL',
-            'CFBundleURLSchemes': ['ftp', 'ftps'],
-        },
-        {
-            'CFBundleURLName': 'Gemini URL',
-            'CFBundleURLSchemes': ['gemini'],
-        },
-        {
-            'CFBundleURLName': 'Git URL',
-            'CFBundleURLSchemes': ['git'],
-        },
-        {
-            'CFBundleURLName': 'Gopher URL',
-            'CFBundleURLSchemes': ['gopher'],
-        },
-        {
-            'CFBundleURLName': 'HTTP URL',
-            'CFBundleURLSchemes': ['http', 'https'],
-        },
-        {
-            'CFBundleURLName': 'IRC URL',
-            'CFBundleURLSchemes': ['irc', 'irc6', 'ircs'],
-        },
-        {
-            'CFBundleURLName': 'alatty URL',
-            'CFBundleURLSchemes': ['alatty'],
-            'LSHandlerRank': 'Owner',
-            'LSIsAppleDefaultForScheme': True,
-        },
-        {
-            'CFBundleURLName': 'Mail Address URL',
-            'CFBundleURLSchemes': ['mailto'],
-        },
-        {
-            'CFBundleURLName': 'News URL',
-            'CFBundleURLSchemes': ['news', 'nntp'],
-        },
-        {
-            'CFBundleURLName': 'SSH and SFTP URL',
-            'CFBundleURLSchemes': ['ssh', 'sftp'],
-        },
-        {
-            'CFBundleURLName': 'Telnet URL',
-            'CFBundleURLSchemes': ['telnet'],
-        },
-    ]
-
     services = [
         {
             'NSMenuItem': {'default': f'New {appname} Tab Here'},
@@ -1253,7 +1200,6 @@ def macos_info_plist() -> bytes:
         NSRequiresAquaSystemAppearance='NO',
         # Document and URL Types
         CFBundleDocumentTypes=docs,
-        CFBundleURLTypes=url_schemes,
         # Services
         NSServices=services,
         # Calendar and Reminders
