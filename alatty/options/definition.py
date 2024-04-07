@@ -1704,21 +1704,6 @@ jumped to or the last clicked position. Requires :ref:`shell integration
 '''
     )
 
-map('Browse scrollback buffer in pager',
-    'show_scrollback alatty_mod+h show_scrollback',
-    long_text='''
-You can pipe the contents of the current screen and history buffer as
-:file:`STDIN` to an arbitrary program using :option:`launch --stdin-source`.
-For example, the following opens the scrollback buffer in less in an
-:term:`overlay` window::
-
-    map f1 launch --stdin-source=@screen_scrollback --stdin-add-formatting --type=overlay less +G -R
-
-For more details on piping screen and buffer contents to external programs,
-see :doc:`launch`.
-'''
-    )
-
 egr()  # }}}
 
 
