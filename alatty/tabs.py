@@ -53,14 +53,6 @@ from .window import CwdRequest, Watchers, Window, WindowDict
 from .window_list import WindowList
 
 
-class TabMouseEvent(NamedTuple):
-    button: int
-    modifiers: int
-    action: int
-    at: float
-    tab_idx: Optional[int]
-
-
 class TabDict(TypedDict):
     id: int
     is_focused: bool
@@ -712,7 +704,6 @@ class TabManager:  # {{{
     def __init__(self, os_window_id: int, args: CLIOptions, wm_class: str, wm_name: str, startup_session: Optional[SessionType] = None):
         self.os_window_id = os_window_id
         self.wm_class = wm_class
-        self.recent_mouse_events: Deque[TabMouseEvent] = deque()
         self.wm_name = wm_name
         self.last_active_tab_id = None
         self.args = args
