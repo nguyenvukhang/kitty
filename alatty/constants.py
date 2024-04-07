@@ -182,18 +182,6 @@ def running_in_alatty(set_val: Optional[bool] = None) -> bool:
     return bool(getattr(running_in_alatty, 'ans', False))
 
 
-def list_alatty_resources(package: str = 'alatty') -> Iterator[str]:
-    try:
-        if sys.version_info[:2] < (3, 10):
-            raise ImportError("importlib.resources.files() doesn't work with frozen builds on python 3.9")
-        from importlib.resources import files
-    except ImportError:
-        from importlib.resources import contents
-        return iter(contents(package))
-    else:
-        return (path.name for path in files(package).iterdir())
-
-
 def read_alatty_resource(name: str, package_name: str = 'alatty') -> bytes:
     try:
         if sys.version_info[:2] < (3, 10):

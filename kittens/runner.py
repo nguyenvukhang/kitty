@@ -5,37 +5,13 @@
 import importlib
 import os
 import sys
-from contextlib import contextmanager
 from functools import partial
-from typing import Any, Dict, FrozenSet, Generator, List
-
-from alatty.constants import list_alatty_resources
-from alatty.types import run_once
-from alatty.utils import resolve_abs_or_config_path
-
-aliases = {'url_hints': 'hints'}
+from typing import Any, List
 
 def resolved_kitten(k: str) -> str:
-    ans = aliases.get(k, k)
-    head, tail = os.path.split(ans)
+    head, tail = os.path.split(k)
     tail = tail.replace('-', '_')
     return os.path.join(head, tail)
-
-
-def path_to_custom_kitten(config_dir: str, kitten: str) -> str:
-    path = resolve_abs_or_config_path(kitten, conf_dir=config_dir)
-    return os.path.abspath(path)
-
-
-@contextmanager
-def preserve_sys_path() -> Generator[None, None, None]:
-    orig = sys.path[:]
-    try:
-        yield
-    finally:
-        if sys.path != orig:
-            del sys.path[:]
-            sys.path.extend(orig)
 
 
 def create_kitten_handler(kitten: str, orig_args: List[str]) -> Any:
@@ -63,14 +39,6 @@ def launch(args: List[str]) -> None:
 def run_kitten(kitten: str, run_name: str = '__main__') -> None:
     import runpy
     runpy.run_module(f'kittens.{resolved_kitten(kitten)}.main', run_name=run_name)
-
-@run_once
-def all_kitten_names() -> FrozenSet[str]:
-    ans = []
-    for name in list_alatty_resources('kittens'):
-        if '__' not in name and '.' not in name and name != 'tui':
-            ans.append(name)
-    return frozenset(ans)
 
 
 def get_kitten_cli_docs(kitten: str) -> Any:

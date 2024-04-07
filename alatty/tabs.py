@@ -641,18 +641,6 @@ class Tab:  # {{{
     def move_window_backward(self) -> None:
         self.move_window(-1)
 
-    def list_windows(self, self_window: Optional[Window] = None, window_filter: Optional[Callable[[Window], bool]] = None) -> Generator[WindowDict, None, None]:
-        active_window = self.active_window
-        for w in self:
-            if window_filter is None or window_filter(w):
-                yield w.as_dict(
-                    is_active=w is active_window,
-                    is_focused=w.os_window_id == current_focused_os_window_id() and w is active_window,
-                    is_self=w is self_window)
-
-    def list_groups(self) -> List[Dict[str, Any]]:
-        return [g.as_simple_dict() for g in self.windows.groups]
-
     def __iter__(self) -> Iterator[Window]:
         return iter(self.windows)
 
@@ -841,30 +829,6 @@ class TabManager:  # {{{
 
     def __len__(self) -> int:
         return len(self.tabs)
-
-    def list_tabs(
-        self, self_window: Optional[Window] = None,
-        tab_filter: Optional[Callable[[Tab], bool]] = None,
-        window_filter: Optional[Callable[[Window], bool]] = None
-    ) -> Generator[TabDict, None, None]:
-        active_tab = self.active_tab
-        for tab in self:
-            if tab_filter is None or tab_filter(tab):
-                windows = list(tab.list_windows(self_window, window_filter))
-                if windows:
-                    yield {
-                        'id': tab.id,
-                        'is_focused': tab is active_tab and tab.os_window_id == current_focused_os_window_id(),
-                        'is_active': tab is active_tab,
-                        'title': tab.name or tab.title,
-                        'layout': str(tab.current_layout.name),
-                        'layout_state': tab.current_layout.layout_state(),
-                        'layout_opts': tab.current_layout.layout_opts.serialized(),
-                        'enabled_layouts': tab.enabled_layouts,
-                        'windows': windows,
-                        'groups': tab.list_groups(),
-                        'active_window_history': list(tab.windows.active_window_history),
-                    }
 
     @property
     def active_tab(self) -> Optional[Tab]:
