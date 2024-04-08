@@ -20,11 +20,6 @@ import (
 
 var _ = fmt.Print
 
-func StringToBool(x string) bool {
-	x = strings.ToLower(x)
-	return x == "y" || x == "yes" || x == "true"
-}
-
 type ConfigLine struct {
 	Src_file, Line string
 	Line_number    int

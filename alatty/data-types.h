@@ -408,4 +408,3 @@ void scroll_event(double, double, int, int);
 void on_key_input(GLFWkeyevent *ev);
 SPRITE_MAP_HANDLE alloc_sprite_map(unsigned int, unsigned int);
 SPRITE_MAP_HANDLE free_sprite_map(SPRITE_MAP_HANDLE);
-void log_event(const char *format, ...) __attribute__((format(printf, 1, 2)));
