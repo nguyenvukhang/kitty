@@ -97,7 +97,7 @@ from .os_window_size import initial_window_size_func
 from .session import Session, create_sessions, get_os_window_sizing_data
 from .shaders import load_shader_programs
 from .tabs import SpecialWindow, SpecialWindowInstance, Tab, TabDict, TabManager
-from .types import AsyncResponse, WindowSystemMouseEvent, ac
+from .types import AsyncResponse, WindowSystemMouseEvent
 from .typing import TypedDict
 from .utils import (
     func_name,
@@ -304,7 +304,6 @@ class Boss:
         startup_session = next(create_sessions(get_options(), special_window=sw, cwd_from=cwd_from))
         return self.add_os_window(startup_session)
 
-    @ac('win', 'New OS Window')
     def new_os_window(self, *args: str) -> None:
         self._new_os_window(args)
 
@@ -315,7 +314,6 @@ class Boss:
             return t.active_window_for_cwd
         return None
 
-    @ac('win', 'New OS Window with the same working directory as the currently active window')
     def new_os_window_with_cwd(self, *args: str) -> None:
         w = self.active_window_for_cwd
         self._new_os_window(args, CwdRequest(w))
@@ -408,22 +406,9 @@ class Boss:
         if window:
             self.child_monitor.mark_for_close(window.id)
 
-    @ac('win', 'Close the currently active window')
     def close_window(self) -> None:
         self.mark_window_for_close()
 
-    @ac(
-        'win',
-        '''
-    Close window with confirmation
-
-    Asks for confirmation before closing the window. If you don't want the
-    confirmation when the window is sitting at a shell prompt
-    (requires :ref:`shell_integration`), use::
-
-        map f1 close_window_with_confirmation ignore-shell
-    ''',
-    )
     def close_window_with_confirmation(self, ignore_shell: bool = False) -> None:
         window = self.active_window
         if window is None:
@@ -440,7 +425,6 @@ class Boss:
         if allowed:
             self.mark_window_for_close(window_id)
 
-    @ac('tab', 'Close the current tab')
     def close_tab(self, tab: Optional[Tab] = None) -> None:
         tab = tab or self.active_tab
         if tab:
@@ -593,27 +577,21 @@ class Boss:
         for window in tab:
             self.mark_window_for_close(window)
 
-    @ac('win', 'Toggle the fullscreen status of the active OS Window')
     def toggle_fullscreen(self, os_window_id: int = 0) -> None:
         toggle_fullscreen(os_window_id)
 
-    @ac('win', 'Toggle the maximized status of the active OS Window')
     def toggle_maximized(self, os_window_id: int = 0) -> None:
         toggle_maximized(os_window_id)
 
-    @ac('misc', 'Toggle macOS secure keyboard entry')
     def toggle_macos_secure_keyboard_entry(self) -> None:
         toggle_secure_input()
 
-    @ac('misc', 'Hide macOS alatty application')
     def hide_macos_app(self) -> None:
         cocoa_hide_app()
 
-    @ac('misc', 'Hide macOS other applications')
     def hide_macos_other_apps(self) -> None:
         cocoa_hide_other_apps()
 
-    @ac('misc', 'Minimize macOS window')
     def minimize_macos_window(self) -> None:
         osw_id = current_os_window()
         if osw_id is not None:
@@ -635,25 +613,6 @@ class Boss:
             if tm is not None:
                 tm.resize()
 
-    @ac(
-        'misc',
-        '''
-        Clear the terminal
-
-        See :sc:`reset_terminal <reset_terminal>` for details. For example::
-
-            # Reset the terminal
-            map f1 clear_terminal reset active
-            # Clear the terminal screen by erasing all contents
-            map f1 clear_terminal clear active
-            # Clear the terminal scrollback by erasing it
-            map f1 clear_terminal scrollback active
-            # Scroll the contents of the screen into the scrollback
-            map f1 clear_terminal scroll active
-            # Clear everything up to the line with the cursor
-            map f1 clear_terminal to_cursor active
-        ''',
-    )
     def clear_terminal(self, action: str, only_active: bool) -> None:
         if only_active:
             windows = []
@@ -686,14 +645,6 @@ class Boss:
     def set_font_size(self, new_size: float) -> None:  # legacy
         self.change_font_size(True, None, new_size)
 
-    @ac(
-        'win',
-        '''
-        Change the font size for the current or all OS Windows
-
-        See :ref:`conf-alatty-shortcuts.fonts` for details.
-        ''',
-    )
     def change_font_size(self, all_windows: bool, increment_operation: Optional[str], amt: float) -> None:
         def calc_new_size(old_size: float) -> float:
             new_size = old_size
@@ -771,21 +722,9 @@ class Boss:
         t = self.active_tab
         return None if t is None else t.active_window
 
-    @ac(
-        'misc',
-        '''
-    End the current keyboard mode switching to the previous mode.
-    ''',
-    )
     def pop_keyboard_mode(self) -> bool:
         return self.mappings.pop_keyboard_mode()
 
-    @ac(
-        'misc',
-        '''
-    Switch to the specified keyboard mode, pushing it onto the stack of keyboard modes.
-    ''',
-    )
     def push_keyboard_mode(self, new_mode: str) -> None:
         self.mappings.push_keyboard_mode(new_mode)
 
@@ -873,20 +812,6 @@ class Boss:
         'Callback from user actions in the macOS global menu bar or other menus'
         self.combine(defn)
 
-    @ac(
-        'misc',
-        '''
-        Combine multiple actions and map to a single keypress
-
-        The syntax is::
-
-            map key combine <separator> action1 <separator> action2 <separator> action3 ...
-
-        For example::
-
-            map alatty_mod+e combine : new_window : next_layout
-        ''',
-    )
     def combine(self, action_definition: str, window_for_dispatch: Optional[Window] = None, dispatch_type: str = 'KeyPress', raise_error: bool = False) -> bool:
         consumed = False
         if action_definition:
@@ -943,7 +868,6 @@ class Boss:
                         text = '\n'.join(urls)
                 w.paste_text(text)
 
-    @ac('win', 'Close the currently active OS Window')
     def close_os_window(self) -> None:
         tm = self.active_tab_manager
         if tm is not None:
@@ -999,7 +923,6 @@ class Boss:
 
     quit_confirmation_window_id: int = 0
 
-    @ac('win', 'Quit, closing all windows')
     def quit(self, *args: Any) -> None:
         tm = self.active_tab
         num = 0
@@ -1173,7 +1096,6 @@ class Boss:
                 overlay_window.actions_on_removal.append(callback_wrapper)
             return overlay_window
 
-    @ac('misc', 'Run the specified kitten. See :doc:`/kittens/custom` for details')
     def kitten(self, kitten: str, *kargs: str) -> None:
         self.run_kitten_with_metadata(kitten, kargs)
 
@@ -1193,28 +1115,9 @@ class Boss:
         if data is not None:
             end_kitten(data, target_window_id, self)
 
-    @ac('misc', 'Input an arbitrary unicode character. See :doc:`/kittens/unicode_input` for details.')
     def input_unicode_character(self) -> None:
         self.run_kitten_with_metadata('unicode_input')
 
-    @ac(
-        'tab',
-        '''
-        Change the title of the active tab interactively, by typing in the new title.
-        If you specify an argument to this action then that is used as the title instead of asking for it.
-        Use the empty string ("") to reset the title to default. Use a space (" ") to indicate that the
-        prompt should not be pre-filled. For example::
-
-            # interactive usage
-            map f1 set_tab_title
-            # set a specific title
-            map f2 set_tab_title some title
-            # reset to default
-            map f3 set_tab_title ""
-            # interactive usage without prefilled prompt
-            map f3 set_tab_title " "
-        ''',
-    )
     def set_tab_title(self, title: Optional[str] = None) -> None:
         tab = self.active_tab
         if tab:
@@ -1251,7 +1154,6 @@ class Boss:
             overlay_for=overlay_for,
         )
 
-    @ac('misc', 'Show an error message with the specified title and text')
     def show_error(self, title: str, msg: str) -> None:
         tab = self.active_tab
         w = self.active_window
@@ -1263,7 +1165,6 @@ class Boss:
         if tab:
             tab.set_active_window(window_id)
 
-    @ac('misc', 'Sleep for the specified time period. Suffix can be s for seconds, m, for minutes, h for hours and d for days. The time can be fractional.')
     def sleep(self, sleep_time: float = 1.0) -> None:
         sleep(sleep_time)
 
@@ -1291,7 +1192,6 @@ class Boss:
             if w is not None:
                 w.paste_with_actions(text)
 
-    @ac('cp', 'Paste from the clipboard to the active window')
     def paste_from_clipboard(self) -> None:
         text = get_clipboard_string()
         self.paste_to_active_window(text)
@@ -1302,7 +1202,6 @@ class Boss:
     def current_primary_selection_or_clipboard(self) -> str:
         return get_primary_selection() if supports_primary_selection else get_clipboard_string()
 
-    @ac('cp', 'Paste from the primary selection, if present, otherwise the clipboard to the active window')
     def paste_from_selection(self) -> None:
         text = self.current_primary_selection_or_clipboard()
         self.paste_to_active_window(text)
@@ -1338,14 +1237,6 @@ class Boss:
     def get_clipboard_buffer(self, buffer_name: str) -> Optional[str]:
         return self.clipboard_buffers.get(buffer_name)
 
-    @ac(
-        'cp',
-        '''
-        Copy the selection from the active window to the specified buffer
-
-        See :ref:`cpbuf` for details.
-        ''',
-    )
     def copy_to_buffer(self, buffer_name: str) -> None:
         w = self.active_window
         if w is not None and not w.destroyed:
@@ -1358,14 +1249,6 @@ class Boss:
                 else:
                     self.set_clipboard_buffer(buffer_name, text)
 
-    @ac(
-        'cp',
-        '''
-        Paste from the specified buffer to the active window
-
-        See :ref:`cpbuf` for details.
-        ''',
-    )
     def paste_from_buffer(self, buffer_name: str) -> None:
         if buffer_name == 'clipboard':
             text: Optional[str] = get_clipboard_string()
@@ -1376,14 +1259,6 @@ class Boss:
         if text:
             self.paste_to_active_window(text)
 
-    @ac(
-        'tab',
-        '''
-        Go to the specified tab, by number, starting with 1
-
-        Zero and negative numbers go to previously active tabs
-        ''',
-    )
     def goto_tab(self, tab_num: int) -> None:
         tm = self.active_tab_manager
         if tm is not None:
@@ -1395,13 +1270,11 @@ class Boss:
             return tm.set_active_tab(tab)
         return False
 
-    @ac('tab', 'Make the next tab active')
     def next_tab(self) -> None:
         tm = self.active_tab_manager
         if tm is not None:
             tm.next_tab()
 
-    @ac('tab', 'Make the previous tab active')
     def previous_tab(self) -> None:
         tm = self.active_tab_manager
         if tm is not None:
@@ -1587,11 +1460,9 @@ class Boss:
             args = args[1:]
         self._new_tab(args, as_neighbor=as_neighbor, cwd_from=cwd_from)
 
-    @ac('tab', 'Create a new tab')
     def new_tab(self, *args: str) -> None:
         self._create_tab(list(args))
 
-    @ac('tab', 'Create a new tab with working directory for the window in it set to the same as the active window')
     def new_tab_with_cwd(self, *args: str) -> None:
         self._create_tab(list(args), cwd_from=CwdRequest(self.active_window_for_cwd))
 
@@ -1622,38 +1493,26 @@ class Boss:
         else:
             return tab.new_window(cwd_from=cwd_from, location=location)
 
-    @ac('win', 'Create a new window')
     def new_window(self, *args: str) -> None:
         self._new_window(list(args))
 
-    @ac('win', 'Create a new window with working directory same as that of the active window')
     def new_window_with_cwd(self, *args: str) -> None:
         w = self.active_window_for_cwd
         if w is None:
             return self.new_window(*args)
         self._new_window(list(args), cwd_from=CwdRequest(w))
 
-    @ac(
-        'misc',
-        '''
-        Launch the specified program in a new window/tab/etc.
-
-        See :doc:`launch` for details
-        ''',
-    )
     def launch(self, *args: str) -> None:
         from alatty.launch import launch, parse_launch_args
 
         opts, args_ = parse_launch_args(args)
         launch(self, opts, args_)
 
-    @ac('tab', 'Move the active tab forward')
     def move_tab_forward(self) -> None:
         tm = self.active_tab_manager
         if tm is not None:
             tm.move_tab(1)
 
-    @ac('tab', 'Move the active tab backward')
     def move_tab_backward(self) -> None:
         tm = self.active_tab_manager
         if tm is not None:
@@ -1695,18 +1554,6 @@ class Boss:
             w.refresh(reload_all_gpu_data=True)
         load_shader_programs.recompile_if_needed()
 
-    @ac(
-        'misc',
-        '''
-        Reload the config file
-
-        If mapped without arguments reloads the default config file, otherwise loads
-        the specified config files, in order. Loading a config file *replaces* all
-        config options. For example::
-
-            map f5 load_config_file /path/to/some/alatty.conf
-        ''',
-    )
     def load_config_file(self, *paths: str, apply_overrides: bool = True, overrides: Sequence[str] = ()) -> None:
         from .cli import default_config_paths
         from .config import load_config
@@ -1807,14 +1654,6 @@ class Boss:
         self._cleanup_tab_after_window_removal(tab)
         target_tab.make_active()
 
-    @ac(
-        'win',
-        '''
-        Detach a window, moving it to another tab or OS Window
-
-        See :ref:`detaching windows <detach_window>` for details.
-        ''',
-    )
     def detach_window(self, *args: str) -> None:
         if not args or args[0] == 'new':
             return self._move_window_to(target_os_window_id='new')
@@ -1822,14 +1661,6 @@ class Boss:
             where = 'new' if args[0] == 'new-tab' else args[0][4:]
             return self._move_window_to(target_tab_id=where)
 
-    @ac(
-        'tab',
-        '''
-        Detach a tab, moving it to another OS Window
-
-        See :ref:`detaching windows <detach_window>` for details.
-        ''',
-    )
     def detach_tab(self, *args: str) -> None:
         if not args or args[0] == 'new':
             return self._move_tab_to()
@@ -1843,7 +1674,6 @@ class Boss:
         if report:
             w.report_notification_activated(identifier)
 
-    @ac('misc', 'Discard this event completely ignoring it')
     def discard_event(self) -> None:
         pass
 

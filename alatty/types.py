@@ -3,7 +3,7 @@
 
 from enum import Enum
 from functools import update_wrapper
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Iterator, NamedTuple, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Callable, Dict, Generic, Iterator, NamedTuple, Tuple, TypeVar, Union
 
 if TYPE_CHECKING:
     from alatty.fast_data_types import SingleKey
@@ -180,25 +180,3 @@ def modmap() -> Dict[str, int]:
     return {'ctrl': GLFW_MOD_CONTROL, 'shift': GLFW_MOD_SHIFT, ('opt' if is_macos else 'alt'): GLFW_MOD_ALT,
             ('cmd' if is_macos else 'super'): GLFW_MOD_SUPER, 'hyper': GLFW_MOD_HYPER, 'meta': GLFW_MOD_META,
             'caps_lock': GLFW_MOD_CAPS_LOCK, 'num_lock': GLFW_MOD_NUM_LOCK}
-
-
-if TYPE_CHECKING:
-    from typing import Literal
-    ActionGroup = Literal['cp', 'sc', 'win', 'tab', 'mouse', 'mk', 'lay', 'misc', 'debug']
-else:
-    ActionGroup = str
-
-
-class ActionSpec(NamedTuple):
-    group: str
-    doc: str
-
-
-def ac(group: ActionGroup, doc: str) -> Callable[[_T], _T]:
-    def w(f: _T) -> _T:
-        setattr(f, 'action_spec', ActionSpec(group, doc))
-        return f
-    return w
-
-
-DecoratedFunc = TypeVar('DecoratedFunc', bound=Callable[..., Any])

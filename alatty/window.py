@@ -84,7 +84,7 @@ from .notify import (
 from .options.types import Options
 from .rgb import to_color
 from .terminfo import get_capabilities
-from .types import MouseEvent, OverlayType, WindowGeometry, ac, run_once
+from .types import MouseEvent, OverlayType, WindowGeometry, run_once
 from .typing import BossType, ChildType, EdgeLiteral, TabType, TypedDict
 from .utils import (
     alatty_ansi_sanitizer_pat,
@@ -664,11 +664,6 @@ class Window:
     def close(self) -> None:
         get_boss().mark_window_for_close(self)
 
-    @ac('misc', '''
-        Send the specified text to the active window
-
-        See :sc:`send_text <send_text>` for details.
-        ''')
     def send_text(self, *args: str) -> bool:
         mode = keyboard_mode_name(self.screen)
         required_mode_, text = args[-2:]
@@ -680,16 +675,6 @@ class Window:
         self.write_to_child(text)
         return False
 
-    @ac(
-        'misc', '''
-        Send the specified keys to the active window.
-        Note that the key will be sent only if the current keyboard mode of the program running in the terminal supports it.
-        Both key press and key release are sent. First presses for all specified keys and then releases in reverse order.
-        To send a pattern of press and release for multiple keys use the :ac:`combine` action. For example::
-
-            map f1 send_key ctrl+x alt+y
-            map f1 combine : send_key ctrl+x : send_key alt+y
-    ''')
     def send_key(self, *args: str) -> bool:
         from .options.utils import parse_shortcut
         km = get_options().alatty_mod
@@ -721,7 +706,6 @@ class Window:
                 if enc:
                     self.write_to_child(enc)
 
-    @ac('debug', 'Show a dump of the current lines in the scrollback + screen with their line attributes')
     def dump_lines_with_attrs(self) -> None:
         strings: List[str] = []
         self.screen.dump_lines_with_attrs(strings.append)
@@ -748,8 +732,6 @@ class Window:
             self.call_watchers(self.watchers.on_set_user_var, {'key': key, 'value': val})
         else:
             self.call_watchers(self.watchers.on_set_user_var, {'key': key, 'value': None})
-
-    # screen callbacks {{{
 
     def osc_1337(self, raw_data: str) -> None:
         for record in raw_data.split(';'):
@@ -942,21 +924,7 @@ class Window:
             self.clipboard_request_manager.parse_osc_5522(data)
         else:
             self.clipboard_request_manager.parse_osc_52(data, is_partial)
-    # }}}
 
-    # mouse actions {{{
-    @ac('mouse', '''
-        Handle a mouse click
-
-        Try to perform the specified actions one after the other till one of them is successful.
-        Supported actions are::
-
-            selection - check for a selection and if one exists abort processing
-            link - if a link exists under the mouse, click it
-            prompt - if the mouse click happens at a shell prompt move the cursor to the mouse location
-
-        For examples, see :ref:`conf-alatty-mouse.mousemap`
-        ''')
     def mouse_handle_click(self, *actions: str) -> None:
         for a in actions:
             if a == 'selection':
@@ -972,25 +940,17 @@ class Window:
                 if move_cursor_to_mouse_if_in_prompt(self.os_window_id, self.tab_id, self.id):
                     break
 
-    @ac('mouse', 'Click the URL under the mouse')
     def mouse_click_url(self) -> None:
         self.mouse_handle_click('link')
 
-    @ac('mouse', '''
-        Manipulate the selection based on the current mouse position
-
-        For examples, see :ref:`conf-alatty-mouse.mousemap`
-        ''')
     def mouse_selection(self, code: int) -> None:
         mouse_selection(self.os_window_id, self.tab_id, self.id, code, self.current_mouse_event_button)
 
-    @ac('mouse', 'Paste the current primary selection')
     def paste_selection(self) -> None:
         txt = get_boss().current_primary_selection()
         if txt:
             self.paste_with_actions(txt)
 
-    @ac('mouse', 'Paste the current primary selection or the clipboard if no selection is present')
     def paste_selection_or_clipboard(self) -> None:
         txt = get_boss().current_primary_selection_or_clipboard()
         if txt:
@@ -1157,7 +1117,6 @@ class Window:
         text = text.replace('\r\n', '\n').replace('\r', '\n')
         get_boss().display_scrollback(self, text, title=title, report_cursor=False)
 
-    @ac('cp', 'Paste the specified text into the current window. ANSI C escapes are decoded.')
     def paste(self, text: str) -> None:
         self.paste_with_actions(text)
 
@@ -1169,7 +1128,6 @@ class Window:
             cursor_key_mode=self.screen.cursor_key_mode,
         ).encode('ascii')
 
-    @ac('cp', 'Copy the selected text from the active window to the clipboard, if no selection, send SIGINT (aka :kbd:`ctrl+c`)')
     def copy_or_interrupt(self) -> None:
         text = self.text_for_selection()
         if text:
@@ -1178,12 +1136,10 @@ class Window:
             self.scroll_end()
             self.write_to_child(self.encoded_key(KeyEvent(key=ord('c'), mods=GLFW_MOD_CONTROL)))
 
-    @ac('cp', 'Copy the selected text from the active window to the clipboard and clear selection, if no selection, send SIGINT (aka :kbd:`ctrl+c`)')
     def copy_and_clear_or_interrupt(self) -> None:
         self.copy_or_interrupt()
         self.screen.clear_selection()
 
-    @ac('cp', 'Pass the selected text from the active window to the specified program')
     def pass_selection_to_program(self, *args: str) -> None:
         cwd = self.cwd_of_child
         text = self.text_for_selection()
@@ -1191,59 +1147,45 @@ class Window:
             if args:
                 open_cmd(args, text, cwd=cwd)
 
-    @ac('cp', 'Clear the current selection')
     def clear_selection(self) -> None:
         self.screen.clear_selection()
 
-    @ac('sc', 'Scroll up by one line when in main screen')
     def scroll_line_up(self) -> Optional[bool]:
         if self.screen.is_main_linebuf():
             self.screen.scroll(SCROLL_LINE, True)
             return None
         return True
 
-    @ac('sc', 'Scroll down by one line when in main screen')
     def scroll_line_down(self) -> Optional[bool]:
         if self.screen.is_main_linebuf():
             self.screen.scroll(SCROLL_LINE, False)
             return None
         return True
 
-    @ac('sc', 'Scroll up by one page when in main screen')
     def scroll_page_up(self) -> Optional[bool]:
         if self.screen.is_main_linebuf():
             self.screen.scroll(SCROLL_PAGE, True)
             return None
         return True
 
-    @ac('sc', 'Scroll down by one page when in main screen')
     def scroll_page_down(self) -> Optional[bool]:
         if self.screen.is_main_linebuf():
             self.screen.scroll(SCROLL_PAGE, False)
             return None
         return True
 
-    @ac('sc', 'Scroll to the top of the scrollback buffer when in main screen')
     def scroll_home(self) -> Optional[bool]:
         if self.screen.is_main_linebuf():
             self.screen.scroll(SCROLL_FULL, True)
             return None
         return True
 
-    @ac('sc', 'Scroll to the bottom of the scrollback buffer when in main screen')
     def scroll_end(self) -> Optional[bool]:
         if self.screen.is_main_linebuf():
             self.screen.scroll(SCROLL_FULL, False)
             return None
         return True
 
-    @ac('misc', '''
-        Send the specified SIGNAL to the foreground process in the active window
-
-        For example::
-
-            map f1 signal_child SIGTERM
-        ''')
     def signal_child(self, *signals: int) -> None:
         pid = self.child.pid_for_cwd
         if pid is not None:

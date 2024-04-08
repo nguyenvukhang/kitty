@@ -43,7 +43,6 @@ from .fast_data_types import (
 from .layout.base import Layout
 from .layout.interface import create_layout_object_for, evict_cached_layouts
 from .tab_bar import TabBar, TabBarData
-from .types import ac
 from .typing import EdgeLiteral, SessionTab, SessionType, TypedDict
 from .utils import cmdline_for_hold, log_error, platform_window_id, resolved_shell, shlex_split, which
 from .window import CwdRequest, Watchers, Window, WindowDict
@@ -272,7 +271,6 @@ class Tab:  # {{{
     def create_layout_object(self, name: str) -> Layout:
         return create_layout_object_for(name, self.os_window_id, self.id)
 
-    @ac('lay', 'Go to the next enabled layout. Can optionally supply an integer to jump by the specified number.')
     def next_layout(self, delta: int = 1) -> None:
         if len(self.enabled_layouts) > 1:
             for i, layout_name in enumerate(self.enabled_layouts):
@@ -288,22 +286,11 @@ class Tab:  # {{{
             self._set_current_layout(nl)
             self.relayout()
 
-    @ac('lay', 'Go to the previously used layout')
     def last_used_layout(self) -> None:
         if len(self.enabled_layouts) > 1 and self._last_used_layout and self._last_used_layout != self._current_layout_name:
             self._set_current_layout(self._last_used_layout)
             self.relayout()
 
-    @ac('lay', '''
-        Switch to the named layout
-        In case there are multiple layouts with the same name and different options,
-        specify the full layout definition or a unique prefix of the full definition.
-
-        For example::
-
-            map f1 goto_layout tall
-            map f2 goto_layout fat:bias=20
-        ''')
     def goto_layout(self, layout_name: str, raise_exception: bool = False) -> None:
         layout_name = layout_name.lower()
         q, has_colon, rest = layout_name.partition(':')
@@ -338,15 +325,6 @@ class Tab:  # {{{
                     raise ValueError(layout_name)
                 log_error(f'Multiple layouts match: {layout_name}')
 
-    @ac('lay', '''
-        Toggle the named layout
-
-        Switches to the named layout if another layout is current, otherwise
-        switches to the last used layout. Useful to "zoom" a window temporarily
-        by switching to the stack layout. For example::
-
-            map f1 toggle_layout stack
-        ''')
     def toggle_layout(self, layout_name: str) -> None:
         if self._current_layout_name == layout_name:
             self.last_used_layout()
@@ -360,11 +338,6 @@ class Tab:  # {{{
             return None
         return 'Could not resize'
 
-    @ac('win', '''
-        Resize the active window by the specified amount
-
-        See :ref:`window_resizing` for details.
-        ''')
     def resize_window(self, quality: str, increment: int) -> None:
         if quality == 'reset':
             self.reset_window_sizes()
@@ -373,12 +346,10 @@ class Tab:  # {{{
             raise ValueError(increment)
         increment *= 1 if quality in ('wider', 'taller') else -1
 
-    @ac('win', 'Reset window sizes undoing any dynamic resizing of windows')
     def reset_window_sizes(self) -> None:
         if self.current_layout.remove_all_biases():
             self.relayout()
 
-    @ac('lay', 'Perform a layout specific action. See :doc:`layouts` for details')
     def layout_action(self, action_name: str, args: Sequence[str]) -> None:
         ret = self.current_layout.layout_action(action_name, args, self.windows)
         if ret is None:
@@ -495,7 +466,6 @@ class Tab:  # {{{
             hold=special_window.hold,
         )
 
-    @ac('win', 'Close all windows in the tab other than the currently active window')
     def close_other_windows_in_tab(self) -> None:
         if len(self.windows) > 1:
             active_window = self.active_window
@@ -546,11 +516,9 @@ class Tab:  # {{{
             self.current_layout.next_window(self.windows, delta)
             self.relayout_borders()
 
-    @ac('win', 'Focus the next window in the current tab')
     def next_window(self) -> None:
         self._next_window()
 
-    @ac('win', 'Focus the previous window in the current tab')
     def previous_window(self) -> None:
         self._next_window(-1)
 
@@ -575,27 +543,11 @@ class Tab:  # {{{
             return self.most_recent_group(candidates)
         return None
 
-    @ac('win', '''
-        Focus the neighboring window in the current tab
-
-        For example::
-
-            map ctrl+left neighboring_window left
-            map ctrl+down neighboring_window bottom
-        ''')
     def neighboring_window(self, which: EdgeLiteral) -> None:
         neighbor = self.neighboring_group_id(which)
         if neighbor:
             self.windows.set_active_group(neighbor)
 
-    @ac('win', '''
-        Move the window in the specified direction
-
-        For example::
-
-            map ctrl+left move_window left
-            map ctrl+down move_window bottom
-        ''')
     def move_window(self, _: Union[EdgeLiteral, int] = 1) -> None:
         # [KHANG] try sending it to the left. Else, try right.
         neighbor = self.neighboring_group_id("left")
@@ -613,10 +565,6 @@ class Tab:  # {{{
             all_window_ids.discard(aw.id)
         return all_window_ids
 
-    @ac('win', '''
-        Focus a visible window by pressing the number of the window. Window numbers are displayed
-        over the windows for easy selection in this mode. See :opt:`visual_window_select_characters`.
-        ''')
     def focus_visible_window(self) -> None:
         def callback(tab: Optional[Tab], window: Optional[Window]) -> None:
             if tab and window:
@@ -624,17 +572,14 @@ class Tab:  # {{{
 
         get_boss().visual_window_select_action(self, callback, 'Choose window to switch to', only_window_ids=self.all_window_ids_except_active_window)
 
-    @ac('win', 'Move active window to the top (make it the first window)')
     def move_window_to_top(self) -> None:
         n = self.windows.active_group_idx
         if n > 0:
             self.move_window(-n)
 
-    @ac('win', 'Move active window forward (swap it with the next window)')
     def move_window_forward(self) -> None:
         self.move_window()
 
-    @ac('win', 'Move active window backward (swap it with the previous window)')
     def move_window_backward(self) -> None:
         self.move_window(-1)
 
