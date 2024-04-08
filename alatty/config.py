@@ -5,11 +5,11 @@ import json
 import os
 from contextlib import contextmanager, suppress
 from functools import partial
-from typing import Any, Dict, Generator, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Generator, Iterable, List, Optional
 
 from .conf.utils import BadLine, parse_config_base
 from .conf.utils import load_config as _load_config
-from .constants import cache_dir, defconf
+from .constants import cache_dir
 from .options.types import Options, defaults
 from .options.utils import KeyboardMode, KeyboardModeMap, KeyDefinition, MouseMap, MouseMapping, build_action_aliases
 from .typing import TypedDict

@@ -454,7 +454,6 @@ class Boss:
         window: Optional[Window] = None,  # the window associated with the confirmation
         confirm_on_cancel: bool = False,  # on closing window
         confirm_on_accept: bool = True,  # on pressing enter
-        title: str = '',  # window title
     ) -> Window:
         result: bool = False
 
@@ -1173,8 +1172,6 @@ class Boss:
 
                 overlay_window.actions_on_removal.append(callback_wrapper)
             return overlay_window
-
-    _run_kitten = run_kitten_with_metadata
 
     @ac('misc', 'Run the specified kitten. See :doc:`/kittens/custom` for details')
     def kitten(self, kitten: str, *kargs: str) -> None:
