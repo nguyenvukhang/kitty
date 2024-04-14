@@ -4,62 +4,28 @@ package tui
 
 import (
 	"fmt"
-	"alatty"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
-	"sync"
 
 	"github.com/shirou/gopsutil/v3/process"
 	"golang.org/x/sys/unix"
 
-	"alatty/tools/config"
 	"alatty/tools/tty"
 	"alatty/tools/tui/loop"
 	"alatty/tools/utils"
 	"alatty/tools/utils/shlex"
 )
 
-var _ = fmt.Print
-
-type AlattyOpts struct {
-	Shell string
-}
-
-func read_relevant_alatty_opts(path string) AlattyOpts {
-	ans := AlattyOpts{Shell: alatty.AlattyConfigDefaults.Shell}
-	handle_line := func(key, val string) error {
-		switch key {
-		case "shell":
-			ans.Shell = strings.TrimSpace(val)
-		}
-		return nil
-	}
-	cp := config.ConfigParser{LineHandler: handle_line}
-	_ = cp.ParseFiles(path)
-	if ans.Shell == "" {
-		ans.Shell = alatty.AlattyConfigDefaults.Shell
-	}
-	return ans
-}
-
-var relevant_alatty_opts = sync.OnceValue(func() AlattyOpts {
-	return read_relevant_alatty_opts(filepath.Join(utils.ConfigDir(), "alatty.conf"))
-})
-
 func get_shell_from_alatty_conf() (shell string) {
-	shell = relevant_alatty_opts().Shell
-	if shell == "." {
-		s, e := utils.LoginShellForCurrentUser()
-		if e != nil {
-			shell = "/bin/sh"
-		} else {
-			shell = s
-		}
-	}
-	return
+  s, e := utils.LoginShellForCurrentUser()
+  if e != nil {
+    return "/bin/sh"
+  } else {
+    return s
+  }
 }
 
 func find_shell_parent_process() string {
@@ -97,33 +63,14 @@ func ResolveShell(shell string) []string {
 	return shell_cmd
 }
 
-func rc_modification_allowed(ksi string) bool {
-	for _, x := range strings.Split(ksi, " ") {
-		switch x {
-		case "disabled", "no-rc":
-			return false
-		}
-	}
-	return ksi != ""
-}
-
 func RunShell(shell_cmd []string, cwd string) (err error) {
-	var shell_env map[string]string
 	exe := shell_cmd[0]
 	if runtime.GOOS == "darwin" {
 		// ensure shell runs in login mode. On macOS lots of people use ~/.bash_profile instead of ~/.bashrc
 		// which means they expect the shell to run in login mode always. Le Sigh.
 		shell_cmd[0] = "-" + filepath.Base(shell_cmd[0])
 	}
-	var env []string
-	if shell_env != nil {
-		env = make([]string, 0, len(shell_env))
-		for k, v := range shell_env {
-			env = append(env, fmt.Sprintf("%s=%s", k, v))
-		}
-	} else {
-		env = os.Environ()
-	}
+	var env []string = os.Environ()
 	// fmt.Println(fmt.Sprintf("%s %v\n%#v", utils.FindExe(exe), shell_cmd, env))
 	if cwd != "" {
 		_ = os.Chdir(cwd)
