@@ -108,7 +108,7 @@ typedef struct {
     HistoryBuf *historybuf;
     unsigned int history_line_added_count;
     bool *tabstops, *main_tabstops, *alt_tabstops;
-    ScreenModes modes, saved_modes;
+    ScreenModes modes;
     ColorProfile *color_profile;
 
     uint32_t parser_buf[PARSER_BUF_SZ];
@@ -162,10 +162,6 @@ void parse_worker_dump(Screen *screen, PyObject *dump_callback, monotonic_t now)
 void screen_align(Screen*);
 void screen_restore_cursor(Screen *);
 void screen_save_cursor(Screen *);
-void screen_restore_modes(Screen *);
-void screen_restore_mode(Screen *, unsigned int);
-void screen_save_modes(Screen *);
-void screen_save_mode(Screen *, unsigned int);
 bool write_escape_code_to_child(Screen *self, unsigned char which, const char *data);
 void screen_cursor_position(Screen*, unsigned int, unsigned int);
 void screen_cursor_back(Screen *self, unsigned int count/*=1*/, int move_direction/*=-1*/);

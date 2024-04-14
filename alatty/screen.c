@@ -120,7 +120,6 @@ new(PyTypeObject *type, PyObject *args, PyObject UNUSED *kwds) {
         if (self->write_buf == NULL) { Py_CLEAR(self); return PyErr_NoMemory(); }
         self->write_buf_sz = BUFSIZ;
         self->modes = empty_modes;
-        self->saved_modes = empty_modes;
         self->is_dirty = true;
         self->scroll_changed = false;
         self->margin_top = 0; self->margin_bottom = self->lines - 1;
@@ -175,7 +174,6 @@ screen_reset(Screen *self) {
     linebuf_clear(self->linebuf, BLANK_CHAR);
     historybuf_clear(self->historybuf);
     self->modes = empty_modes;
-    self->saved_modes = empty_modes;
 #define R(name) self->color_profile->overridden.name.val = 0
     R(default_fg); R(default_bg); R(cursor_color); R(highlight_fg); R(highlight_bg);
 #undef R
@@ -1425,73 +1423,6 @@ screen_save_cursor(Screen *self) {
     sp->is_valid = true;
 }
 
-static void
-copy_specific_mode(Screen *self, unsigned int mode, const ScreenModes *src, ScreenModes *dest) {
-#define SIMPLE_MODE(name) case name: dest->m##name = src->m##name; break;
-#define SIDE_EFFECTS(name) case name: if (do_side_effects) set_mode_from_const(self, name, src->m##name); else dest->m##name = src->m##name; break;
-
-    const bool do_side_effects = dest == &self->modes;
-
-    switch(mode) {
-        SIMPLE_MODE(LNM)  // alatty extension
-        SIMPLE_MODE(IRM)  // alatty extension
-        SIMPLE_MODE(DECARM)
-        SIMPLE_MODE(BRACKETED_PASTE)
-        SIMPLE_MODE(FOCUS_TRACKING)
-        SIMPLE_MODE(DECCKM)
-        SIMPLE_MODE(DECTCEM)
-        SIMPLE_MODE(DECAWM)
-        case MOUSE_BUTTON_TRACKING: case MOUSE_MOTION_TRACKING: case MOUSE_MOVE_TRACKING:
-            dest->mouse_tracking_mode = src->mouse_tracking_mode; break;
-        case MOUSE_UTF8_MODE: case MOUSE_SGR_MODE: case MOUSE_URXVT_MODE:
-            dest->mouse_tracking_protocol = src->mouse_tracking_protocol; break;
-        case DECSCLM:
-        case DECNRCM:
-            break;  // we ignore these modes
-        case DECSCNM:
-            if (dest->mDECSCNM != src->mDECSCNM) {
-                dest->mDECSCNM = src->mDECSCNM;
-                if (do_side_effects) self->is_dirty = true;
-            }
-            break;
-        SIDE_EFFECTS(DECOM)
-        SIDE_EFFECTS(DECCOLM)
-    }
-#undef SIMPLE_MODE
-#undef SIDE_EFFECTS
-}
-
-void
-screen_save_mode(Screen *self, unsigned int mode) { // XTSAVE
-    copy_specific_mode(self, mode, &self->modes, &self->saved_modes);
-}
-
-void
-screen_restore_mode(Screen *self, unsigned int mode) { // XTRESTORE
-    copy_specific_mode(self, mode, &self->saved_modes, &self->modes);
-}
-
-static void
-copy_specific_modes(Screen *self, const ScreenModes *src, ScreenModes *dest) {
-    copy_specific_mode(self, LNM, src, dest);
-    copy_specific_mode(self, IRM, src, dest);
-    copy_specific_mode(self, DECARM, src, dest);
-    copy_specific_mode(self, BRACKETED_PASTE, src, dest);
-    copy_specific_mode(self, FOCUS_TRACKING, src, dest);
-    copy_specific_mode(self, DECCKM, src, dest);
-    copy_specific_mode(self, DECTCEM, src, dest);
-    copy_specific_mode(self, DECAWM, src, dest);
-    copy_specific_mode(self, MOUSE_BUTTON_TRACKING, src, dest);
-    copy_specific_mode(self, MOUSE_UTF8_MODE, src, dest);
-    copy_specific_mode(self, DECSCNM, src, dest);
-}
-
-void
-screen_save_modes(Screen *self) {
-    // alatty extension to XTSAVE that saves a bunch of no side-effect modes
-    copy_specific_modes(self, &self->modes, &self->saved_modes);
-}
-
 void
 screen_restore_cursor(Screen *self) {
     Savepoint *sp = self->linebuf == self->main_linebuf ? &self->main_savepoint : &self->alt_savepoint;
@@ -1509,12 +1440,6 @@ screen_restore_cursor(Screen *self) {
         cursor_copy_to(&(sp->cursor), self->cursor);
         screen_ensure_bounds(self, false, false);
     }
-}
-
-void
-screen_restore_modes(Screen *self) {
-    // alatty extension to XTRESTORE that saves a bunch of no side-effect modes
-    copy_specific_modes(self, &self->saved_modes, &self->modes);
 }
 
 void
