@@ -173,14 +173,6 @@ func (self *Readline) move_cursor_vertically(amt int) (ans int) {
 	return ans
 }
 
-func (self *Readline) move_cursor_down(amt uint) uint {
-	ans := uint(0)
-	if self.screen_width == 0 {
-		self.update_current_screen_size()
-	}
-	return ans
-}
-
 func (self *Readline) move_to_start_of_line() bool {
 	if self.input_state.cursor.X > 0 {
 		self.input_state.cursor.X = 0
@@ -482,30 +474,6 @@ func (self *Readline) _perform_action(ac Action, repeat_count uint) (err error, 
 		}
 	case ActionDelete:
 		if self.erase_chars_after_cursor(repeat_count, true) > 0 {
-			return
-		}
-	case ActionMoveToStartOfLine:
-		if self.move_to_start_of_line() {
-			return
-		}
-	case ActionMoveToEndOfLine:
-		if self.move_to_end_of_line() {
-			return
-		}
-	case ActionMoveToEndOfWord:
-		if self.move_to_end_of_word(repeat_count, true, has_word_chars) > 0 {
-			return
-		}
-	case ActionMoveToStartOfWord:
-		if self.move_to_start_of_word(repeat_count, true, has_word_chars) > 0 {
-			return
-		}
-	case ActionMoveToStartOfDocument:
-		if self.move_to_start() {
-			return
-		}
-	case ActionMoveToEndOfDocument:
-		if self.move_to_end() {
 			return
 		}
 	case ActionCursorLeft:

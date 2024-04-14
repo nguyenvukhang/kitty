@@ -222,28 +222,12 @@ func (self *Readline) OnText(text string, from_key_event bool, in_bracketed_past
 	return self.dispatch_key_action(ActionAddText)
 }
 
-func (self *Readline) TextBeforeCursor() string {
-	return self.text_upto_cursor_pos()
-}
-
-func (self *Readline) TextAfterCursor() string {
-	return self.text_after_cursor_pos()
-}
-
 func (self *Readline) AllText() string {
 	return self.all_text()
 }
 
 func (self *Readline) SetText(text string) {
 	self.set_text(text)
-}
-
-func (self *Readline) MoveCursorToEnd() bool {
-	return self.move_to_end()
-}
-
-func (self *Readline) CursorAtEndOfLine() bool {
-	return self.input_state.cursor.X >= len(self.input_state.lines[self.input_state.cursor.Y])
 }
 
 func (self *Readline) OnResize(old_size loop.ScreenSize, new_size loop.ScreenSize) error {

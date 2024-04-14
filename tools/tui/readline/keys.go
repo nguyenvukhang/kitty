@@ -30,22 +30,6 @@ func default_shortcuts() *ShortcutMap {
 		sm.AddOrPanic(ActionBackspace, "ctrl+h")
 		sm.AddOrPanic(ActionDelete, "delete")
 
-		sm.AddOrPanic(ActionMoveToStartOfLine, "home")
-		sm.AddOrPanic(ActionMoveToStartOfLine, "ctrl+a")
-
-		sm.AddOrPanic(ActionMoveToEndOfLine, "end")
-		sm.AddOrPanic(ActionMoveToEndOfLine, "ctrl+e")
-
-		sm.AddOrPanic(ActionMoveToStartOfDocument, "ctrl+home")
-		sm.AddOrPanic(ActionMoveToEndOfDocument, "ctrl+end")
-
-		sm.AddOrPanic(ActionMoveToEndOfWord, "alt+f")
-		sm.AddOrPanic(ActionMoveToEndOfWord, "ctrl+right")
-		sm.AddOrPanic(ActionMoveToEndOfWord, "alt+right")
-		sm.AddOrPanic(ActionMoveToStartOfWord, "ctrl+left")
-		sm.AddOrPanic(ActionMoveToStartOfWord, "alt+left")
-		sm.AddOrPanic(ActionMoveToStartOfWord, "alt+b")
-
 		sm.AddOrPanic(ActionCursorLeft, "left")
 		sm.AddOrPanic(ActionCursorLeft, "ctrl+b")
 		sm.AddOrPanic(ActionCursorRight, "right")
@@ -66,18 +50,6 @@ func default_shortcuts() *ShortcutMap {
 		sm.AddOrPanic(ActionKillPreviousSpaceDelimitedWord, "ctrl+w")
 		sm.AddOrPanic(ActionYank, "ctrl+y")
 		sm.AddOrPanic(ActionPopYank, "alt+y")
-
-		sm.AddOrPanic(ActionNumericArgumentDigit0, "alt+0")
-		sm.AddOrPanic(ActionNumericArgumentDigit1, "alt+1")
-		sm.AddOrPanic(ActionNumericArgumentDigit2, "alt+2")
-		sm.AddOrPanic(ActionNumericArgumentDigit3, "alt+3")
-		sm.AddOrPanic(ActionNumericArgumentDigit4, "alt+4")
-		sm.AddOrPanic(ActionNumericArgumentDigit5, "alt+5")
-		sm.AddOrPanic(ActionNumericArgumentDigit6, "alt+6")
-		sm.AddOrPanic(ActionNumericArgumentDigit7, "alt+7")
-		sm.AddOrPanic(ActionNumericArgumentDigit8, "alt+8")
-		sm.AddOrPanic(ActionNumericArgumentDigit9, "alt+9")
-		sm.AddOrPanic(ActionNumericArgumentDigitMinus, "alt+-")
 
 		_default_shortcuts = sm
 	}
@@ -118,29 +90,8 @@ func (self *Readline) pop_keyboard_map() {
 	}
 }
 
-func (self *Readline) handle_numeric_arg(ac Action) {
-	t := "-"
-	num := int(ac - ActionNumericArgumentDigit0)
-	if num < 10 {
-		t = strconv.Itoa(num)
-	}
-	cna := self.keyboard_state.current_numeric_argument
-	if (cna == "" && t == "0") || (cna != "" && t == "-") {
-		self.add_text(t)
-		self.keyboard_state.current_numeric_argument = ""
-		self.last_action = ActionAddText
-	} else {
-		self.keyboard_state.current_numeric_argument += t
-		self.last_action = ac
-	}
-}
-
 func (self *Readline) dispatch_key_action(ac Action) error {
 	self.keyboard_state.current_pending_keys = nil
-	if ActionNumericArgumentDigit0 <= ac && ac <= ActionNumericArgumentDigitMinus {
-		self.handle_numeric_arg(ac)
-		return nil
-	}
 	cna := self.keyboard_state.current_numeric_argument
 	self.keyboard_state.current_numeric_argument = ""
 	if cna == "" {

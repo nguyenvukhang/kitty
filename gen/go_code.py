@@ -1,7 +1,6 @@
 #!./alatty/launcher/alatty +launch
 # License: GPLv3 Copyright: 2022, Kovid Goyal <kovid at kovidgoyal.net>
 
-import argparse
 import io
 import json
 import os
@@ -10,7 +9,6 @@ import subprocess
 import sys
 from contextlib import contextmanager, suppress
 from functools import lru_cache
-from itertools import chain
 from typing import Any, Dict, Iterator, List, Sequence, Union
 
 import alatty.constants as kc
@@ -34,18 +32,6 @@ if __name__ == '__main__' and not __package__:
 changed: List[str] = []
 
 
-def newer(dest: str, *sources: str) -> bool:
-    try:
-        dtime = os.path.getmtime(dest)
-    except OSError:
-        return True
-    for s in chain(sources, (__file__,)):
-        with suppress(FileNotFoundError):
-            if os.path.getmtime(s) >= dtime:
-                return True
-    return False
-
-
 def serialize_go_dict(x: Union[Dict[str, int], Dict[int, str], Dict[int, int], Dict[str, str]]) -> str:
     ans = []
 
@@ -57,13 +43,6 @@ def serialize_go_dict(x: Union[Dict[str, int], Dict[int, str], Dict[int, int], D
     for k, v in x.items():
         ans.append(f'{s(k)}: {s(v)}')
     return '{' + ', '.join(ans) + '}'
-
-
-@lru_cache(maxsize=1)
-def enum_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser()
-    p.add_argument('--from-string-func-name')
-    return p
 
 
 # Completions {{{
@@ -86,50 +65,6 @@ def go_options_for_kitten(kitten: str) -> Sequence[GoOption]:
 
 
 # }}}
-
-
-# rc command wrappers {{{
-json_field_types: Dict[str, str] = {
-    'bool': 'bool',
-    'str': 'escaped_string',
-    'list.str': '[]escaped_string',
-    'dict.str': 'map[escaped_string]escaped_string',
-    'float': 'float64',
-    'int': 'int',
-    'scroll_amount': 'any',
-    'spacing': 'any',
-    'colors': 'any',
-}
-
-
-def go_field_type(json_field_type: str) -> str:
-    json_field_type = json_field_type.partition('=')[0]
-    q = json_field_types.get(json_field_type)
-    if q:
-        return q
-    if json_field_type.startswith('choices.'):
-        return 'string'
-    if '.' in json_field_type:
-        p, r = json_field_type.split('.', 1)
-        p = {'list': '[]', 'dict': 'map[string]'}[p]
-        return p + go_field_type(r)
-    raise TypeError(f'Unknown JSON field type: {json_field_type}')
-
-
-class JSONField:
-
-    def __init__(self, line: str) -> None:
-        field_def = line.split(':', 1)[0]
-        self.required = False
-        self.field, self.field_type = field_def.split('/', 1)
-        self.field_type, self.special_parser = self.field_type.partition('=')[::2]
-        if self.field.endswith('+'):
-            self.required = True
-            self.field = self.field[:-1]
-        self.struct_field_name = self.field[0].upper() + self.field[1:]
-
-    def go_declaration(self) -> str:
-        return self.struct_field_name + ' ' + go_field_type(self.field_type) + f'`json:"{self.field},omitempty"`'
 
 
 # kittens {{{
@@ -184,7 +119,6 @@ def generate_constants() -> str:
     with open('alatty/data-types.h') as dt:
         m = re.search(r'^#define IMAGE_PLACEHOLDER_CHAR (\S+)', dt.read(), flags=re.M)
         assert m is not None
-        placeholder_char = int(m.group(1), 16)
     dp = ", ".join(map(lambda x: f'"{serialize_as_go_string(x)}"', kc.default_pager_for_help))
     option_names = '``'
     return f'''\
@@ -194,7 +128,6 @@ type VersionType struct {{
     Major, Minor, Patch int
 }}
 const VersionString string = "{kc.str_version}"
-const ImagePlaceholderChar rune = {placeholder_char}
 const RC_ENCRYPTION_PROTOCOL_VERSION string = "{kc.RC_ENCRYPTION_PROTOCOL_VERSION}"
 var VCSRevision string = ""
 var IsFrozenBuild string = ""
@@ -273,12 +206,6 @@ def generate_readline_actions() -> str:
 
         ActionBackspace
         ActionDelete
-        ActionMoveToStartOfLine
-        ActionMoveToEndOfLine
-        ActionMoveToStartOfDocument
-        ActionMoveToEndOfDocument
-        ActionMoveToEndOfWord
-        ActionMoveToStartOfWord
         ActionCursorLeft
         ActionCursorRight
         ActionEndInput
@@ -298,18 +225,6 @@ def generate_readline_actions() -> str:
         ActionEndKillActions
         ActionYank
         ActionPopYank
-
-        ActionNumericArgumentDigit0
-        ActionNumericArgumentDigit1
-        ActionNumericArgumentDigit2
-        ActionNumericArgumentDigit3
-        ActionNumericArgumentDigit4
-        ActionNumericArgumentDigit5
-        ActionNumericArgumentDigit6
-        ActionNumericArgumentDigit7
-        ActionNumericArgumentDigit8
-        ActionNumericArgumentDigit9
-        ActionNumericArgumentDigitMinus
     ''',
     )
 
