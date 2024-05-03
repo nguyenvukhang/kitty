@@ -728,15 +728,7 @@ render_prepared_os_window(OSWindow *os_window, unsigned int active_window_id, co
 
 static bool
 no_render_frame_received_recently(OSWindow *w, monotonic_t now, monotonic_t max_wait) {
-    bool ans = now - w->last_render_frame_received_at > max_wait;
-    if (ans && global_state.debug_rendering) {
-        if (global_state.is_wayland) {
-            log_error("No render frame received in %.2f seconds", monotonic_t_to_s_double(max_wait));
-        } else  {
-            log_error("No render frame received in %.2f seconds, re-requesting at: %f", monotonic_t_to_s_double(max_wait), monotonic_t_to_s_double(now));
-        }
-    }
-    return ans;
+    return now - w->last_render_frame_received_at > max_wait;
 }
 
 bool

@@ -62,14 +62,14 @@ def load_all_shaders(semi_transparent: bool = False) -> None:
         raise SystemExit(err)
 
 
-def init_glfw_module(glfw_module: str, debug_keyboard: bool = False, debug_rendering: bool = False) -> None:
-    if not glfw_init(glfw_path(glfw_module), debug_keyboard, debug_rendering):
+def init_glfw_module(glfw_module: str, debug_keyboard: bool = False) -> None:
+    if not glfw_init(glfw_path(glfw_module), debug_keyboard):
         raise SystemExit('GLFW initialization failed')
 
 
-def init_glfw(opts: Options, debug_keyboard: bool = False, debug_rendering: bool = False) -> str:
+def init_glfw(opts: Options, debug_keyboard: bool = False) -> str:
     glfw_module = 'cocoa' if is_macos else ('wayland' if is_wayland(opts) else 'x11')
-    init_glfw_module(glfw_module, debug_keyboard, debug_rendering)
+    init_glfw_module(glfw_module, debug_keyboard)
     return glfw_module
 
 
@@ -213,7 +213,7 @@ class AppRunner:
 
     def __call__(self, opts: Options, args: CLIOptions, bad_lines: Sequence[BadLine] = ()) -> None:
         set_scale(opts.box_drawing_scale)
-        set_options(opts, is_wayland(), args.debug_rendering, args.debug_font_fallback)
+        set_options(opts, is_wayland(), args.debug_font_fallback)
         try:
             set_font_family(opts)
             _run_app(opts, args, bad_lines)
@@ -370,7 +370,7 @@ def _main() -> None:
     # threads. These threads must not handle the masked signals, to ensure
     # alatty can handle them. See https://github.com/kovidgoyal/alatty/issues/4636
     mask_alatty_signals_process_wide()
-    init_glfw(opts, cli_opts.debug_keyboard, cli_opts.debug_rendering)
+    init_glfw(opts, cli_opts.debug_keyboard)
     if cli_opts.watcher:
         from .window import global_watchers
         global_watchers.set_extra(cli_opts.watcher)

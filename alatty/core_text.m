@@ -21,8 +21,6 @@
 #import <Foundation/NSString.h>
 #import <Foundation/NSDictionary.h>
 
-#define debug(...) if (global_state.debug_rendering) { fprintf(stderr, __VA_ARGS__); fflush(stderr); }
-
 typedef struct {
     PyObject_HEAD
 
@@ -377,7 +375,6 @@ cell_metrics(PyObject *s, unsigned int* cell_width, unsigned int* cell_height, u
     CGFloat line_height = origin1.y - origin2.y;
     CFArrayRef lines = CTFrameGetLines(test_frame);
     CTLineRef line = CFArrayGetValueAtIndex(lines, 0);
-    CGRect bounds = CTLineGetBoundsWithOptions(line, 0);
     CGRect bounds_without_leading = CTLineGetBoundsWithOptions(line, kCTLineBoundsExcludeTypographicLeading);
     CGFloat typographic_ascent, typographic_descent, typographic_leading;
     CTLineGetTypographicBounds(line, &typographic_ascent, &typographic_descent, &typographic_leading);
@@ -389,14 +386,6 @@ cell_metrics(PyObject *s, unsigned int* cell_width, unsigned int* cell_height, u
     *underline_position = (unsigned int)floor(bounds_ascent - self->underline_position + 0.5);
     *strikethrough_position = (unsigned int)floor(*baseline * 0.65);
 
-    debug("Cell height calculation:\n");
-    debug("\tline height from line origins: %f\n", line_height);
-    debug("\tline bounds: origin-y: %f height: %f\n", bounds.origin.y, bounds.size.height);
-    debug("\tline bounds-no-leading: origin-y: %f height: %f\n", bounds.origin.y, bounds.size.height);
-    debug("\tbounds metrics: ascent: %f\n", bounds_ascent);
-    debug("\tline metrics: ascent: %f descent: %f leading: %f\n", typographic_ascent, typographic_descent, typographic_leading);
-    debug("\tfont metrics: ascent: %f descent: %f leading: %f underline_position: %f\n", self->ascent, self->descent, self->leading, self->underline_position);
-    debug("\tcell_height: %u baseline: %u underline_position: %u strikethrough_position: %u\n", *cell_height, *baseline, *underline_position, *strikethrough_position);
     CFRelease(test_frame); CFRelease(path); CFRelease(framesetter);
 
 #undef count
@@ -628,13 +617,11 @@ do_render(CTFontRef ct_font, unsigned int units_per_em, hb_glyph_info_t *info, h
     unsigned int canvas_width = cell_width * num_cells;
     ensure_render_space(canvas_width, cell_height, num_glyphs);
     CGRect br = CTFontGetBoundingRectsForGlyphs(ct_font, kCTFontOrientationHorizontal, buffers.glyphs, buffers.boxes, num_glyphs);
-    const bool debug_rendering = false;
     if (allow_resize) {
         // Resize glyphs that would bleed into neighboring cells, by scaling the font size
         float right = 0;
         for (unsigned i=0; i < num_glyphs; i++) right = MAX(right, buffers.boxes[i].origin.x + buffers.boxes[i].size.width);
         if (right > canvas_width + 1) {
-            if (debug_rendering) printf("resizing glyphs, right: %f canvas_width: %u\n", right, canvas_width);
             CGFloat sz = CTFontGetSize(ct_font);
             sz *= canvas_width / right;
             CTFontRef new_font = CTFontCreateCopyWithAttributes(ct_font, sz, NULL, NULL);
@@ -647,10 +634,6 @@ do_render(CTFontRef ct_font, unsigned int units_per_em, hb_glyph_info_t *info, h
     CGFloat scale = CTFontGetSize(ct_font) / units_per_em;
     for (unsigned i=0; i < num_glyphs; i++) {
         buffers.positions[i].x = x + hb_positions[i].x_offset * scale; buffers.positions[i].y = y + hb_positions[i].y_offset * scale;
-        if (debug_rendering) printf("x=%f y=%f origin=%f width=%f x_advance=%f x_offset=%f y_advance=%f y_offset=%f\n",
-                buffers.positions[i].x, buffers.positions[i].y, buffers.boxes[i].origin.x, buffers.boxes[i].size.width,
-                hb_positions[i].x_advance * scale, hb_positions[i].x_offset * scale,
-                hb_positions[i].y_advance * scale, hb_positions[i].y_offset * scale);
         x += hb_positions[i].x_advance * scale; y += hb_positions[i].y_advance * scale;
     }
     if (*was_colored) {
@@ -661,7 +644,6 @@ do_render(CTFontRef ct_font, unsigned int units_per_em, hb_glyph_info_t *info, h
         render_alpha_mask(buffers.render_buf, canvas, &src, &dest, canvas_width, canvas_width);
     }
     if (num_cells && (center_glyph || (num_cells == 2 && *was_colored))) {
-        if (debug_rendering) printf("centering glyphs: center_glyph: %d\n", center_glyph);
         // center glyphs (two cell emoji, PUA glyphs, ligatures, etc)
         CGFloat delta = (((CGFloat)canvas_width - br.size.width) / 2.f);
         // FiraCode ligatures result in negative origins

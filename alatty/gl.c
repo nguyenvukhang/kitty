@@ -50,9 +50,6 @@ gl_init(void) {
         if (!gl_version) {
             fatal("Loading the OpenGL library failed");
         }
-        if (!global_state.debug_rendering) {
-            gladUninstallGLDebug();
-        }
         gladSetGLPostCallback(check_for_gl_error);
 #define ARB_TEST(name) \
         if (!GLAD_GL_ARB_##name) { \
@@ -65,7 +62,6 @@ gl_init(void) {
         int gl_minor = GLAD_VERSION_MINOR(gl_version);
         const char *gvs = (const char*)glGetString(GL_VERSION);
         if (strstr(gvs, "NVIDIA")) is_nvidia = true;
-        if (global_state.debug_rendering) printf("GL version string: '%s' Detected version: %d.%d\n", gvs, gl_major, gl_minor);
         if (gl_major < OPENGL_REQUIRED_VERSION_MAJOR || (gl_major == OPENGL_REQUIRED_VERSION_MAJOR && gl_minor < OPENGL_REQUIRED_VERSION_MINOR)) {
             fatal("OpenGL version is %d.%d, version >= 3.3 required for alatty", gl_major, gl_minor);
         }

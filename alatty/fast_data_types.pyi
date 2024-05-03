@@ -503,7 +503,6 @@ def update_window_visibility(
 def set_options(
     opts: Optional[Options],
     is_wayland: bool = False,
-    debug_rendering: bool = False,
     debug_font_fallback: bool = False
 ) -> None:
     pass
@@ -538,7 +537,7 @@ def glfw_terminate() -> None:
     pass
 
 
-def glfw_init(path: str, debug_keyboard: bool = False, debug_rendering: bool = False) -> bool:
+def glfw_init(path: str, debug_keyboard: bool = False) -> bool:
     pass
 
 

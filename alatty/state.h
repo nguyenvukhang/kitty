@@ -258,7 +258,7 @@ typedef struct {
   OSWindow *callback_os_window;
   bool is_wayland;
   bool has_render_frames;
-  bool debug_rendering, debug_font_fallback;
+  bool debug_font_fallback;
   bool has_pending_resizes, has_pending_closes;
   bool check_for_active_animated_images;
   struct {

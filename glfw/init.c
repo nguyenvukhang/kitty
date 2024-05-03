@@ -270,9 +270,6 @@ GLFWAPI void glfwInitHint(int hint, int value)
         case GLFW_DEBUG_KEYBOARD:
             _glfwInitHints.debugKeyboard = value;
             return;
-        case GLFW_DEBUG_RENDERING:
-            _glfwInitHints.debugRendering = value;
-            return;
         case GLFW_COCOA_CHDIR_RESOURCES:
             _glfwInitHints.ns.chdir = value;
             return;
