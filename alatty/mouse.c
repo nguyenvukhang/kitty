@@ -222,7 +222,8 @@ distance_to_window(Window *w) {
     double x = global_state.callback_os_window->mouse_x, y = global_state.callback_os_window->mouse_y;
     double cx = (window_left(w) + window_right(w)) / 2.0;
     double cy = (window_top(w) + window_bottom(w)) / 2.0;
-    return (x - cx) * (x - cx) + (y - cy) * (y - cy);
+    x -= cx, y -= cy;
+    return x * x + y * y;
 }
 
 static bool clamp_to_window = false;
@@ -379,7 +380,8 @@ HANDLER(handle_move_event) {
 
 static double
 distance(double x1, double y1, double x2, double y2) {
-    return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    x1 -= x2, y1 -= y2;
+    return sqrt(x1 * x1 + y1 * y1);
 }
 
 #define N(n) (q->clicks[q->length - n])
