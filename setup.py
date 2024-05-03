@@ -1156,12 +1156,6 @@ def macos_info_plist() -> bytes:
             'NSRequiredContext': {'NSTextContent': 'FilePath'},
             'NSSendTypes': ['NSFilenamesPboardType', 'public.plain-text'],
         },
-        {
-            'NSMenuItem': {'default': f'Open with {appname}'},
-            'NSMessage': 'openFileURLs',
-            'NSRequiredContext': {'NSTextContent': 'FilePath'},
-            'NSSendTypes': ['NSFilenamesPboardType', 'public.plain-text'],
-        },
     ]
 
     pl = dict(

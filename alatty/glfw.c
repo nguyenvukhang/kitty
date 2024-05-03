@@ -591,12 +591,6 @@ get_ime_cursor_position(GLFWwindow *glfw_window, GLFWIMEUpdateEvent *ev) {
 static void get_window_dpi(GLFWwindow *w, double *x, double *y);
 
 #ifdef __APPLE__
-static bool
-apple_url_open_callback(const char* url) {
-    set_cocoa_pending_action(LAUNCH_URLS, url);
-    return true;
-}
-
 extern bool cocoa_render_line_of_text(const char *text, const color_type fg, const color_type bg, uint8_t *rgba_output, const size_t width, const size_t height);
 
 bool
@@ -1331,9 +1325,7 @@ glfw_init(PyObject UNUSED *self, PyObject *args) {
 #endif
     PyObject *ans = glfwInit(monotonic_start_time) ? Py_True: Py_False;
     if (ans == Py_True) {
-#ifdef __APPLE__
-        glfwSetCocoaURLOpenCallback(apple_url_open_callback);
-#else
+#ifndef __APPLE__
         glfwSetDrawTextFunction(draw_text_callback);
 #endif
         OSWindow w = {0};

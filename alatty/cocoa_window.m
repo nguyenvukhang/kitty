@@ -557,19 +557,6 @@ cocoa_send_notification(PyObject *self UNUSED, PyObject *args) {
     return YES;
 }
 
-- (BOOL)openFileURLs:(NSPasteboard*)pasteboard
-        userData:(NSString *) UNUSED userData  error:(NSError **) UNUSED error {
-    NSDictionary *options = @{ NSPasteboardURLReadingFileURLsOnlyKey: @YES };
-    NSArray *urlArray = [pasteboard readObjectsForClasses:[NSArray arrayWithObject:[NSURL class]] options:options];
-    for (NSURL *url in urlArray) {
-        NSString *path = [url path];
-        if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-            set_cocoa_pending_action(LAUNCH_URLS, [[[NSURL fileURLWithPath:path] absoluteString] UTF8String]);
-        }
-    }
-    return YES;
-}
-
 @end
 
 // global menu {{{
