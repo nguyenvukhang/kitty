@@ -951,19 +951,8 @@ send_mouse_event(PyObject *self UNUSED, PyObject *args, PyObject *kw) {
     Py_RETURN_FALSE;
 }
 
-static PyObject*
-test_encode_mouse(PyObject *self UNUSED, PyObject *args) {
-    unsigned int x, y;
-    int mouse_tracking_protocol, button, action, mods;
-    if (!PyArg_ParseTuple(args, "IIiiii", &x, &y, &mouse_tracking_protocol, &button, &action, &mods)) return NULL;
-    MousePosition mpos = {.cell_x = x - 1, .cell_y = y - 1};
-    int sz = encode_mouse_event_impl(&mpos, mouse_tracking_protocol, button, action, mods);
-    return PyUnicode_FromStringAndSize(mouse_event_buf, sz);
-}
-
 static PyMethodDef module_methods[] = {
     {"send_mouse_event", (PyCFunction)(void (*) (void))(send_mouse_event), METH_VARARGS | METH_KEYWORDS, NULL},
-    METHODB(test_encode_mouse, METH_VARARGS),
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
