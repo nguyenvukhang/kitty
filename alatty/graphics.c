@@ -74,4 +74,3 @@ png_path_to_bitmap(const char* path, uint8_t** data, unsigned int* width, unsign
     fclose(fp); fp = NULL;
     return ret;
 }
-

@@ -1143,21 +1143,6 @@ def macos_info_plist() -> bytes:
         },
     ]
 
-    services = [
-        {
-            'NSMenuItem': {'default': f'New {appname} Tab Here'},
-            'NSMessage': 'openTab',
-            'NSRequiredContext': {'NSTextContent': 'FilePath'},
-            'NSSendTypes': ['NSFilenamesPboardType', 'public.plain-text'],
-        },
-        {
-            'NSMenuItem': {'default': f'New {appname} Window Here'},
-            'NSMessage': 'openOSWindow',
-            'NSRequiredContext': {'NSTextContent': 'FilePath'},
-            'NSSendTypes': ['NSFilenamesPboardType', 'public.plain-text'],
-        },
-    ]
-
     pl = dict(
         # Naming
         CFBundleName=appname,
@@ -1195,7 +1180,7 @@ def macos_info_plist() -> bytes:
         # Document and URL Types
         CFBundleDocumentTypes=docs,
         # Services
-        NSServices=services,
+        NSServices=[],
         # Calendar and Reminders
         NSCalendarsUsageDescription=access('your calendar data.'),
         NSRemindersUsageDescription=access('your reminders.'),
