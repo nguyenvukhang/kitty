@@ -974,9 +974,6 @@ class Screen:
     def draw(self, text: str) -> None:
         pass
 
-    def dump_lines_with_attrs(self, acc: Callable[[str], None]) -> None:
-        pass
-
     def apply_sgr(self, text: str) -> None:
         pass
 

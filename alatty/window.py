@@ -706,12 +706,6 @@ class Window:
                 if enc:
                     self.write_to_child(enc)
 
-    def dump_lines_with_attrs(self) -> None:
-        strings: List[str] = []
-        self.screen.dump_lines_with_attrs(strings.append)
-        text = ''.join(strings)
-        get_boss().display_scrollback(self, text, title='Dump of lines', report_cursor=False)
-
     def write_to_child(self, data: Union[str, bytes]) -> None:
         if data:
             if isinstance(data, str):

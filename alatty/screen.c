@@ -3558,43 +3558,6 @@ reverse_scroll(Screen *self, PyObject *args) {
 
 
 static PyObject*
-dump_lines_with_attrs(Screen *self, PyObject *accum) {
-    int y = (self->linebuf == self->main_linebuf) ? -self->historybuf->count : 0;
-    PyObject *t;
-    while (y < (int)self->lines) {
-        Line *line = range_line_(self, y);
-        t = PyUnicode_FromFormat("\x1b[31m%d: \x1b[39m", y++);
-        if (t) {
-            PyObject_CallFunctionObjArgs(accum, t, NULL);
-            Py_DECREF(t);
-        }
-        switch (line->attrs.prompt_kind) {
-            case UNKNOWN_PROMPT_KIND:
-                break;
-            case PROMPT_START:
-                PyObject_CallFunction(accum, "s", "\x1b[32mprompt \x1b[39m");
-                break;
-            case SECONDARY_PROMPT:
-                PyObject_CallFunction(accum, "s", "\x1b[32msecondary_prompt \x1b[39m");
-                break;
-            case OUTPUT_START:
-                PyObject_CallFunction(accum, "s", "\x1b[33moutput \x1b[39m");
-                break;
-        }
-        if (line->attrs.is_continued) PyObject_CallFunction(accum, "s", "continued ");
-        if (line->attrs.has_dirty_text) PyObject_CallFunction(accum, "s", "dirty ");
-        PyObject_CallFunction(accum, "s", "\n");
-        t = line_as_unicode(line, false);
-        if (t) {
-            PyObject_CallFunctionObjArgs(accum, t, NULL);
-            Py_DECREF(t);
-        }
-        PyObject_CallFunction(accum, "s", "\n");
-    }
-    Py_RETURN_NONE;
-}
-
-static PyObject*
 cursor_at_prompt(Screen *self, PyObject *args UNUSED) {
     int y = screen_cursor_at_a_shell_prompt(self);
     if (y > -1) { Py_RETURN_TRUE; }
@@ -3615,7 +3578,6 @@ line_edge_colors(Screen *self, PyObject *a UNUSED) {
 static PyMethodDef methods[] = {
     MND(line_edge_colors, METH_NOARGS)
     MND(line, METH_O)
-    MND(dump_lines_with_attrs, METH_O)
     MND(cursor_at_prompt, METH_NOARGS)
     MND(visual_line, METH_VARARGS)
     MND(draw, METH_O)

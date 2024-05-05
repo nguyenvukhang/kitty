@@ -390,8 +390,7 @@ class Layout:
         yield from self.minimal_borders(windows)
 
     def minimal_borders(self, windows: WindowList) -> Generator[BorderLine, None, None]:
-        return
-        yield BorderLine()  # type: ignore
+        pass
 
     def layout_action(self, action_name: str, args: Sequence[str], all_windows: WindowList) -> Optional[bool]:
         pass
