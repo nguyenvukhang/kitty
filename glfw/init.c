@@ -267,9 +267,6 @@ GLFWAPI void glfwInitHint(int hint, int value)
         case GLFW_ANGLE_PLATFORM_TYPE:
             _glfwInitHints.angleType = value;
             return;
-        case GLFW_DEBUG_KEYBOARD:
-            _glfwInitHints.debugKeyboard = value;
-            return;
         case GLFW_COCOA_CHDIR_RESOURCES:
             _glfwInitHints.ns.chdir = value;
             return;

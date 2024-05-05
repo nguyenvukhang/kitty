@@ -781,12 +781,6 @@ instead of ignoring them. Also prints out miscellaneous debug information.
 Useful when debugging rendering problems.
 
 
---debug-input --debug-keyboard
-dest=debug_keyboard
-type=bool-set
-Print out key and mouse events as they are received.
-
-
 --debug-font-fallback
 type=bool-set
 Print out information about the selection of fallback fonts for characters not

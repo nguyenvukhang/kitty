@@ -537,7 +537,7 @@ def glfw_terminate() -> None:
     pass
 
 
-def glfw_init(path: str, debug_keyboard: bool = False) -> bool:
+def glfw_init(path: str) -> bool:
     pass
 
 

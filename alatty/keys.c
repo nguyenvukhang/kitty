@@ -148,15 +148,11 @@ format_mods(unsigned mods) {
 void
 on_key_input(GLFWkeyevent *ev) {
     Window *w = active_window();
-    const int action = ev->action, mods = ev->mods;
-    const uint32_t key = ev->key, native_key = ev->native_key;
+    const int action = ev->action;
+    const uint32_t key = ev->key;
     const char *text = ev->text ? ev->text : "";
 
-    debug("\x1b[33mon_key_input\x1b[m: glfw key: 0x%x native_code: 0x%x action: %s %stext: '%s' state: %d ",
-            key, native_key,
-            (action == GLFW_RELEASE ? "RELEASE" : (action == GLFW_PRESS ? "PRESS" : "REPEAT")),
-            format_mods(mods), text, ev->ime_state);
-    if (!w) { debug("no active window, ignoring\n"); return; }
+    if (!w) return;
     if (OPT(mouse_hide_wait) < 0 && !is_modifier_key(key)) hide_mouse(global_state.callback_os_window);
     Screen *screen = w->render_data.screen;
     id_type active_window_id = w->id;
@@ -166,18 +162,15 @@ on_key_input(GLFWkeyevent *ev) {
             // If we update IME position here it sends GNOME's text input system into
             // an infinite loop. See https://github.com/kovidgoyal/alatty/issues/5105
             screen_update_overlay_text(screen, NULL);
-            debug("handled wayland IME done event\n");
             return;
         case GLFW_IME_PREEDIT_CHANGED:
             screen_update_overlay_text(screen, text);
             update_ime_position(w, screen);
-            debug("updated pre-edit text: '%s'\n", text);
             return;
         case GLFW_IME_COMMIT_TEXT:
             if (*text) {
                 schedule_write_to_child(w->id, 1, text, strlen(text));
-                debug("committed pre-edit text: %s\n", text);
-            } else debug("committed pre-edit text: (null)\n");
+            }
             screen_update_overlay_text(screen, NULL);
             return;
         case GLFW_IME_NONE:
@@ -187,7 +180,6 @@ on_key_input(GLFWkeyevent *ev) {
             update_ime_position(w, screen);
             break;
         default:
-            debug("invalid state, ignoring\n");
             return;
     }
     bool dispatch_ok = true, consumed = false;
@@ -204,7 +196,6 @@ on_key_input(GLFWkeyevent *ev) {
         dispatch_key_event(dispatch_possible_special_key);
         if (dispatch_ok) {
             if (consumed) {
-                debug("handled as shortcut\n");
                 if (w) w->last_special_key_pressed = key;
                 return;
             }
@@ -212,14 +203,10 @@ on_key_input(GLFWkeyevent *ev) {
         if (!w) return;
     } else if (w->last_special_key_pressed == key) {
         w->last_special_key_pressed = 0;
-        debug("ignoring release event for previous press that was handled as shortcut\n");
         return;
     }
 #undef dispatch_key_event
-    if (action == GLFW_REPEAT && !screen->modes.mDECARM) {
-        debug("discarding repeat key event as DECARM is off\n");
-        return;
-    }
+    if (action == GLFW_REPEAT && !screen->modes.mDECARM) return;
     if (screen->scrolled_by && action == GLFW_PRESS && !is_modifier_key(key)) {
         screen_history_scroll(screen, SCROLL_FULL, false);  // scroll back to bottom
     }
@@ -227,24 +214,11 @@ on_key_input(GLFWkeyevent *ev) {
     int size = encode_glfw_key_event(ev, screen->modes.mDECCKM, screen_current_key_encoding_flags(screen), encoded_key);
     if (size == SEND_TEXT_TO_CHILD) {
         schedule_write_to_child(w->id, 1, text, strlen(text));
-        debug("sent key as text to child: %s\n", text);
     } else if (size > 0) {
         if (size == 1 && screen->modes.mHANDLE_TERMIOS_SIGNALS) {
             if (screen_send_signal_for_key(screen, *encoded_key)) return;
         }
         schedule_write_to_child(w->id, 1, encoded_key, size);
-        if (OPT(debug_keyboard)) {
-            debug("sent encoded key to child: ");
-            for (int ki = 0; ki < size; ki++) {
-                if (encoded_key[ki] == 27) { debug("^[ "); }
-                else if (encoded_key[ki] == ' ') { debug("SPC "); }
-                else if (isprint(encoded_key[ki])) { debug("%c ", encoded_key[ki]); }
-                else { debug("0x%x ", encoded_key[ki]); }
-            }
-            debug("\n");
-        }
-    } else {
-        debug("ignoring as keyboard mode does not support encoding this event\n");
     }
 }
 

@@ -776,18 +776,10 @@ class Boss:
                     t.relayout_borders()
                 set_os_window_chrome(w.os_window_id)
 
-    def dispatch_action(self, key_action: KeyAction, window_for_dispatch: Optional[Window] = None, dispatch_type: str = 'KeyPress') -> bool:
-
-        def report_match(f: Callable[..., Any]) -> None:
-            if self.args.debug_keyboard:
-                prefix = '\n' if dispatch_type == 'KeyPress' else ''
-                end = ', ' if dispatch_type == 'KeyPress' else '\n'
-                print(f'{prefix}\x1b[35m{dispatch_type}\x1b[m matched action:', func_name(f), end=end, flush=True)
-
+    def dispatch_action(self, key_action: KeyAction, window_for_dispatch: Optional[Window] = None) -> bool:
         if key_action is not None:
             f = getattr(self, key_action.func, None)
             if f is not None:
-                report_match(f)
                 passthrough = f(*key_action.args)
                 if passthrough is not True:
                     return True
@@ -803,7 +795,6 @@ class Boss:
             f = getattr(tab, key_action.func, getattr(window, key_action.func, None))
             if f is not None:
                 passthrough = f(*key_action.args)
-                report_match(f)
                 if passthrough is not True:
                     return True
         return False
@@ -822,7 +813,7 @@ class Boss:
                 return True
             if actions:
                 try:
-                    if self.dispatch_action(actions[0], window_for_dispatch, dispatch_type):
+                    if self.dispatch_action(actions[0], window_for_dispatch):
                         consumed = True
                         if len(actions) > 1:
                             self.drain_actions(list(actions[1:]), window_for_dispatch, dispatch_type)
@@ -1171,7 +1162,7 @@ class Boss:
     def drain_actions(self, actions: List[KeyAction], window_for_dispatch: Optional[Window] = None, dispatch_type: str = 'KeyPress') -> None:
 
         def callback(timer_id: Optional[int]) -> None:
-            self.dispatch_action(actions.pop(0), window_for_dispatch, dispatch_type)
+            self.dispatch_action(actions.pop(0), window_for_dispatch)
             if actions:
                 self.drain_actions(actions)
 

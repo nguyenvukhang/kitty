@@ -18,7 +18,6 @@ extern PyTypeObject Screen_Type;
 
 static MouseShape mouse_cursor_shape = TEXT_POINTER;
 typedef enum MouseActions { PRESS, RELEASE, DRAG, MOVE } MouseAction;
-#define debug(...) if (OPT(debug_keyboard)) printf(__VA_ARGS__);
 
 // Encoding of mouse events {{{
 #define SHIFT_INDICATOR  (1 << 2)
@@ -163,29 +162,6 @@ dispatch_mouse_event(Window *w, int button, int count, int modifiers, bool grabb
         else {
             handled = callback_ret == Py_True;
             Py_DECREF(callback_ret);
-        }
-        if (OPT(debug_keyboard)) {
-            const char *evname = "move";
-            switch(count) {
-                case -3: evname = "doubleclick"; break;
-                case -2: evname = "click"; break;
-                case -1: evname = "release"; break;
-                case 1: evname = "press"; break;
-                case 2: evname = "doublepress"; break;
-                case 3: evname = "triplepress"; break;
-            }
-            const char *bname = "unknown";
-            switch(button) {
-                case GLFW_MOUSE_BUTTON_LEFT: bname = "left"; break;
-                case GLFW_MOUSE_BUTTON_MIDDLE: bname = "middle"; break;
-                case GLFW_MOUSE_BUTTON_RIGHT: bname = "right"; break;
-                case GLFW_MOUSE_BUTTON_4: bname = "b4"; break;
-                case GLFW_MOUSE_BUTTON_5: bname = "b5"; break;
-                case GLFW_MOUSE_BUTTON_6: bname = "b6"; break;
-                case GLFW_MOUSE_BUTTON_7: bname = "b7"; break;
-                case GLFW_MOUSE_BUTTON_8: bname = "b8"; break;
-            }
-            debug("\x1b[33mon_mouse_input\x1b[m: %s button: %s %sgrabbed: %d handled_in_alatty: %d\n", evname, bname, format_mods(modifiers), grabbed, handled);
         }
     }
     return handled;
@@ -713,10 +689,6 @@ mouse_event(const int button, int modifiers, int action) {
     bool in_tab_bar;
     unsigned int window_idx = 0;
     Window *w = NULL;
-    if (OPT(debug_keyboard)) {
-        if (button < 0) { debug("%s x: %.1f y: %.1f ", "\x1b[36mMove\x1b[m", global_state.callback_os_window->mouse_x, global_state.callback_os_window->mouse_y); }
-        else { debug("%s mouse_button: %d %s", action == GLFW_RELEASE ? "\x1b[32mRelease\x1b[m" : "\x1b[31mPress\x1b[m", button, format_mods(modifiers)); }
-    }
     if (global_state.redirect_mouse_handling) {
         w = window_for_event(&window_idx, &in_tab_bar);
         call_boss(mouse_event, "OK iiii dd",
@@ -724,7 +696,6 @@ mouse_event(const int button, int modifiers, int action) {
                 action, modifiers, button, currently_pressed_button(),
                 global_state.callback_os_window->mouse_x, global_state.callback_os_window->mouse_y
         );
-        debug("mouse handling redirected\n");
         return;
     }
     if (global_state.active_drag_in_window) {
@@ -737,7 +708,6 @@ mouse_event(const int button, int modifiers, int action) {
                     for (window_idx = 0; window_idx < t->num_windows && t->windows[window_idx].id != w->id; window_idx++);
                     handle_move_event(w, currently_pressed_button(), modifiers, window_idx);
                     clamp_to_window = false;
-                    debug("handled as drag move\n");
                     return;
                 }
             }
@@ -746,7 +716,6 @@ mouse_event(const int button, int modifiers, int action) {
             w = window_for_id(global_state.active_drag_in_window);
             if (w) {
                 end_drag(w);
-                debug("handled as drag end\n");
                 dispatch_possible_click(w, button, modifiers);
                 return;
             }
@@ -763,7 +732,6 @@ mouse_event(const int button, int modifiers, int action) {
                         for (window_idx = 0; window_idx < t->num_windows && t->windows[window_idx].id != w->id; window_idx++);
                         handle_move_event(w, global_state.tracked_drag_button, modifiers, window_idx);
                         clamp_to_window = false;
-                        debug("sent to child as drag move\n");
                         return;
                     }
                 }
@@ -775,7 +743,6 @@ mouse_event(const int button, int modifiers, int action) {
                 clamp_to_window = true;
                 Tab *t = global_state.callback_os_window->tabs + global_state.callback_os_window->active_tab;
                 for (window_idx = 0; window_idx < t->num_windows && t->windows[window_idx].id != w->id; window_idx++);
-                debug("sent to child as drag end\n");
                 handle_button_event(w, button, modifiers, window_idx);
                 clamp_to_window = false;
                 return;
@@ -784,18 +751,16 @@ mouse_event(const int button, int modifiers, int action) {
     }
     w = window_for_event(&window_idx, &in_tab_bar);
     if (w) {
-        debug("grabbed: %d\n", w->render_data.screen->modes.mouse_tracking_mode != 0);
         handle_event(w, button, modifiers, window_idx);
     } else if (button == GLFW_MOUSE_BUTTON_LEFT && global_state.callback_os_window->mouse_button_pressed[button]) {
         // initial click, clamp it to the closest window
         w = closest_window_for_event(&window_idx);
         if (w) {
             clamp_to_window = true;
-            debug("grabbed: %d\n", w->render_data.screen->modes.mouse_tracking_mode != 0);
             handle_event(w, button, modifiers, window_idx);
             clamp_to_window = false;
-        } else debug("no window for event\n");
-    } else debug("\n");
+        };
+    }
     if (mouse_cursor_shape != old_cursor) set_mouse_cursor(mouse_cursor_shape);
 }
 
@@ -833,7 +798,6 @@ scale_scroll(MouseTrackingMode mouse_tracking_mode, double offset, bool is_high_
 
 void
 scroll_event(double xoffset, double yoffset, int flags, int modifiers) {
-    debug("\x1b[36mScroll\x1b[m xoffset: %f yoffset: %f flags: %x modifiers: %s\n", xoffset, yoffset, flags, format_mods(modifiers));
     bool in_tab_bar;
     static id_type window_for_momentum_scroll = 0;
     static bool main_screen_for_momentum_scroll = false;

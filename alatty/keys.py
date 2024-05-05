@@ -187,9 +187,7 @@ class Mappings:
         return get_options()
 
     def debug_print(self, *args: Any, end: str = '\n') -> None:
-        b = get_boss()
-        if b.args.debug_keyboard:
-            print(*args, end=end, flush=True)
+        pass
 
     def set_cocoa_global_shortcuts(self, opts: Options) -> Dict[str, SingleKey]:
         from .main import set_cocoa_global_shortcuts

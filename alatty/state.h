@@ -74,7 +74,6 @@ typedef struct {
   bool resize_in_steps;
   bool sync_to_monitor;
   bool close_on_child_death;
-  bool debug_keyboard;
   struct {
     monotonic_t on_end, on_pause;
   } resize_debounce_time;

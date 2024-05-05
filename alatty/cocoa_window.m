@@ -81,8 +81,6 @@ find_app_name(void) {
     return @"alatty";
 }
 
-#define debug_key(...) if (OPT(debug_keyboard)) { fprintf(stderr, __VA_ARGS__); fflush(stderr); }
-
 // SecureKeyboardEntryController {{{
 @interface SecureKeyboardEntryController : NSObject
 
@@ -135,7 +133,6 @@ find_app_name(void) {
 - (void)toggle {
     // Set _desired to the opposite of the current state.
     _desired = !_desired;
-    debug_key("SecureKeyboardEntry: toggle called. Setting desired to %d ", _desired);
 
     // Try to set the system's state of secure input to the desired state.
     [self update];
@@ -154,7 +151,6 @@ find_app_name(void) {
 - (void)applicationDidResignActive:(NSNotification *)notification {
     (void)notification;
     if (_count > 0) {
-        debug_key("SecureKeyboardEntry: Application resigning active.");
         [self update];
     }
 }
@@ -162,7 +158,6 @@ find_app_name(void) {
 - (void)applicationDidBecomeActive:(NSNotification *)notification {
     (void)notification;
     if (self.isDesired) {
-        debug_key("SecureKeyboardEntry: Application became active.");
         [self update];
     }
 }
@@ -174,39 +169,22 @@ find_app_name(void) {
 }
 
 - (void)update {
-    debug_key("Update secure keyboard entry. desired=%d active=%d\n",
-         (int)self.isDesired, (int)[NSApp isActive]);
     const BOOL secure = self.isDesired && [self allowed];
 
-    if (secure && _count > 0) {
-        debug_key("Want to turn on secure input but it's already on\n");
-        return;
-    }
+    if (secure && _count > 0) return;
+    if (!secure && _count == 0) return;
 
-    if (!secure && _count == 0) {
-        debug_key("Want to turn off secure input but it's already off\n");
-        return;
-    }
-
-    debug_key("Before: IsSecureEventInputEnabled returns %d ", (int)self.isEnabled);
     if (secure) {
         OSErr err = EnableSecureEventInput();
-        debug_key("EnableSecureEventInput err=%d ", (int)err);
-        if (err) {
-            debug_key("EnableSecureEventInput failed with error %d ", (int)err);
-        } else {
+        if (!err) {
             _count += 1;
         }
     } else {
         OSErr err = DisableSecureEventInput();
-        debug_key("DisableSecureEventInput err=%d ", (int)err);
-        if (err) {
-            debug_key("DisableSecureEventInput failed with error %d ", (int)err);
-        } else {
+        if (!err) {
             _count -= 1;
         }
     }
-    debug_key("After: IsSecureEventInputEnabled returns %d\n", (int)self.isEnabled);
 }
 
 @end

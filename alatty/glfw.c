@@ -479,9 +479,6 @@ static id_type focus_counter = 0;
 static void
 window_focus_callback(GLFWwindow *w, int focused) {
     if (!set_callback_window(w)) return;
-    if (OPT(debug_keyboard)) {
-        fprintf(stderr, "\x1b[35mon_focus_change\x1b[m: window id: 0x%llu focused: %d\n", global_state.callback_os_window->id, focused);
-    }
     // There exist some numbnut Wayland compositors, like kwin, that send mouse
     // press events before focus gained events. So only clear the active drag
     // window if it is not the focused window. See https://github.com/kovidgoyal/alatty/issues/6095
@@ -1304,16 +1301,13 @@ dbus_user_notification_activated(uint32_t notification_id, const char* action) {
 static PyObject*
 glfw_init(PyObject UNUSED *self, PyObject *args) {
     const char* path;
-    int debug_keyboard = 0;
-    if (!PyArg_ParseTuple(args, "s|p", &path, &debug_keyboard)) return NULL;
+    if (!PyArg_ParseTuple(args, "s", &path)) return NULL;
 #ifdef __APPLE__
     cocoa_set_uncaught_exception_handler();
 #endif
     const char* err = load_glfw(path);
     if (err) { PyErr_SetString(PyExc_RuntimeError, err); return NULL; }
     glfwSetErrorCallback(error_callback);
-    glfwInitHint(GLFW_DEBUG_KEYBOARD, debug_keyboard);
-    OPT(debug_keyboard) = debug_keyboard != 0;
 #ifdef __APPLE__
     glfwInitHint(GLFW_COCOA_CHDIR_RESOURCES, 0);
     glfwInitHint(GLFW_COCOA_MENUBAR, 0);

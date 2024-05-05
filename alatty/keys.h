@@ -13,7 +13,6 @@
 
 #define KEY_BUFFER_SIZE 128
 #define SEND_TEXT_TO_CHILD INT_MIN
-#define debug(...) if (OPT(debug_keyboard)) { fprintf(stderr, __VA_ARGS__); fflush(stderr); }
 
 int
 encode_glfw_key_event(const GLFWkeyevent *e, const bool cursor_key_mode, const unsigned flags, char *output);

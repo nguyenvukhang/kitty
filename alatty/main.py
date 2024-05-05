@@ -62,14 +62,14 @@ def load_all_shaders(semi_transparent: bool = False) -> None:
         raise SystemExit(err)
 
 
-def init_glfw_module(glfw_module: str, debug_keyboard: bool = False) -> None:
-    if not glfw_init(glfw_path(glfw_module), debug_keyboard):
+def init_glfw_module(glfw_module: str) -> None:
+    if not glfw_init(glfw_path(glfw_module)):
         raise SystemExit('GLFW initialization failed')
 
 
-def init_glfw(opts: Options, debug_keyboard: bool = False) -> str:
+def init_glfw(opts: Options) -> str:
     glfw_module = 'cocoa' if is_macos else ('wayland' if is_wayland(opts) else 'x11')
-    init_glfw_module(glfw_module, debug_keyboard)
+    init_glfw_module(glfw_module)
     return glfw_module
 
 
@@ -370,7 +370,7 @@ def _main() -> None:
     # threads. These threads must not handle the masked signals, to ensure
     # alatty can handle them. See https://github.com/kovidgoyal/alatty/issues/4636
     mask_alatty_signals_process_wide()
-    init_glfw(opts, cli_opts.debug_keyboard)
+    init_glfw(opts)
     if cli_opts.watcher:
         from .window import global_watchers
         global_watchers.set_extra(cli_opts.watcher)
