@@ -173,7 +173,7 @@ class Options:
     draw_minimal_borders: bool = True
     dynamic_background_opacity: bool = False
     editor: str = '.'
-    enabled_layouts: typing.List[str] = ['fat', 'grid', 'horizontal', 'splits', 'stack', 'tall', 'vertical']
+    enabled_layouts: typing.List[str] = ['splits']
     font_family: str = 'monospace'
     font_size: float = 11.0
     force_ltr: bool = False
