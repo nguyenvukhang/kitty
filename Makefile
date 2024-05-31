@@ -4,8 +4,7 @@ RG += --iglob='!*.txt'
 RG += '[^a-z0-9_]5[^a-z0-9]'
 
 linux:
-	python3 setup.py
-	./alatty/launcher/alatty
+	python3 setup.py linux-package
 
 current: build c
 
