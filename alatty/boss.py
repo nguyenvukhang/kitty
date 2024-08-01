@@ -1272,9 +1272,9 @@ class Boss:
             tm.next_tab(-1)
 
     def my_session(self) -> None:
-        self.set_tab_title("editor")
-        self.new_tab_with_cwd()
         self.set_tab_title("server")
+        self.new_tab_with_cwd()
+        self.set_tab_title("editor")
 
     prev_tab = previous_tab
 
